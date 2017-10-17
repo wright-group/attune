@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import WrightTools as wt
-from . import curve as attune.curve
+from . import curve as attune_curve
 
 
 # --- define --------------------------------------------------------------------------------------
@@ -67,14 +67,14 @@ def intensity(data, curve, channel_name, level=False, cutoff_factor=0.1,
     for motor_index, motor_name in enumerate([m.name for m in old_curve.motors]):
         if motor_name == motor_axis_name.split('_')[-1]:
             positions = data.axes[0].centers + offsets_splined
-            motor = attune.curve.Motor(positions, motor_name)
+            motor = attune_curve.Motor(positions, motor_name)
             motors.append(motor)
             tuned_motor_index = motor_index
         else:
             motors.append(old_curve.motors[motor_index])
     kind = old_curve.kind
     interaction = old_curve.interaction
-    curve = attune.curve.Curve(tune_points, 'wn', motors,
+    curve = attune_curve.Curve(tune_points, 'wn', motors,
                            name=old_curve.name.split('-')[0],
                            kind=kind, interaction=interaction)
     curve.map_colors(old_curve.colors)
@@ -136,7 +136,7 @@ def tune_test(data, curve, channel_name, level=False, cutoff_factor=0.01,
     ----------
     data : wt.data.Data object
         should be in (setpoint, detuning)
-    curve : attune.curve object
+    curve : attune_curve object
         tuning curve used to do tune_test
     channel_nam : str
         name of the signal chanel to evalute

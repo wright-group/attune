@@ -16,8 +16,8 @@ import numpy as np
 from scipy.optimize import leastsq
 from scipy.interpolate import griddata, interp1d, UnivariateSpline
 
-import Wright Tools as wt
-from . import curve as attune.curve
+import WrightTools as wt
+from . import curve as attune_curve
 
 
 # --- define --------------------------------------------------------------------------------------
@@ -88,7 +88,7 @@ def process_C2_motortune(opa_index, data_filepath, curves, save=True):
     -------
     WrightTools.tuning.curve.Curve
     """
-    old_curve = attune.curve.from_TOPAS_crvs(curves, 'TOPAS-C', 'NON-NON-NON-Sig')
+    old_curve = attune_curve.from_TOPAS_crvs(curves, 'TOPAS-C', 'NON-NON-NON-Sig')
     # extract information from file
     headers = wt.kit.read_headers(data_filepath)
     wa_index = headers['name'].index('wa')
@@ -234,7 +234,7 @@ def process_D2_motortune(opa_index, data_filepath, curves, save=True):
     -------
     WrightTools.tuning.curve.Curve
     """
-    old_curve = attune.curve.from_TOPAS_crvs(curves, 'TOPAS-C', 'NON-NON-NON-Sig')
+    old_curve = attune_curve.from_TOPAS_crvs(curves, 'TOPAS-C', 'NON-NON-NON-Sig')
     # extract information from file
     headers = wt.kit.read_headers(data_filepath)
     wa_index = headers['name'].index('wa')
@@ -359,7 +359,7 @@ def process_preamp_motortune(OPA_index, data_filepath, curves, save=True):
     # extract information from file
     headers = wt.kit.read_headers(data_filepath)
     arr = np.genfromtxt(data_filepath).T
-    old_curve = attune.curve.from_TOPAS_crvs(curves, 'TOPAS-C', 'NON-NON-NON-Sig')
+    old_curve = attune_curve.from_TOPAS_crvs(curves, 'TOPAS-C', 'NON-NON-NON-Sig')
     # get array data
     array_colors = arr[headers['name'].index('wa')]
     array_data = arr[headers['name'].index('array_signal')]
@@ -514,7 +514,7 @@ def process_preamp_motortune(OPA_index, data_filepath, curves, save=True):
     old_curve_copy = old_curve.copy()
     old_curve_copy.map_colors(colors)
     for i, name in zip(range(1, 3), ['Crystal_1', 'Delay_1']):
-        motors.append(attune.curve.Motor([pc[i] for pc in preamp_chosen], name))
+        motors.append(attune_curve.Motor([pc[i] for pc in preamp_chosen], name))
     for i in range(2, 4):
         motors.append(old_curve_copy.motors[i])
     curve = old_curve.copy()
@@ -609,7 +609,7 @@ def process_SHS_motortune(OPA_index, data_filepath, curves, save=True):
     -------
     WrightTools.tuning.curve.Curve
     """
-    old_curve = attune.curve.from_TOPAS_crvs(curves, 'TOPAS-C', 'NON-SH-NON-Sig')
+    old_curve = attune_curve.from_TOPAS_crvs(curves, 'TOPAS-C', 'NON-SH-NON-Sig')
     # extract information from headers
     headers = wt.kit.read_headers(data_filepath)
     m2_index = headers['name'].index('w%d_Mixer_2' % OPA_index)
@@ -749,7 +749,7 @@ def process_SFS_motortune(OPA_index, data_filepath, curves, save=True):
     -------
     WrightTools.tuning.curve.Curve
     """
-    old_curve = attune.curve.from_TOPAS_crvs(curves, 'TOPAS-C', 'NON-NON-SF-Sig')
+    old_curve = attune_curve.from_TOPAS_crvs(curves, 'TOPAS-C', 'NON-NON-SF-Sig')
     # extract information from headers
     headers = wt.kit.read_headers(data_filepath)
     m2_index = headers['name'].index('w%d_Mixer_1' % OPA_index)

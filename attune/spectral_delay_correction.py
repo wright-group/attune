@@ -15,7 +15,7 @@ import numpy as np
 from scipy.interpolate import UnivariateSpline
 
 import WrightTools as wt
-from . import coset as attune.coset
+from . import coset as attune_coset
 
 
 # --- processing methods --------------------------------------------------------------------------
@@ -98,7 +98,7 @@ def process_wigner(data, channel, control_name, offset_name, coset_name, color_u
     yi = corrections
     artist.onplot(xi, yi, alpha=1)
     # make coset
-    coset = attune.coset.CoSet(control_name, color_units, ws, offset_name,
+    coset = attune_coset.CoSet(control_name, color_units, ws, offset_name,
                            delay_units, corrections, coset_name)
     # save
     if save_directory is None:
@@ -247,7 +247,7 @@ def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
         ), '_'.join([datas[0].axes[0].name, 'w{}'.format(opa_index)]))
     # construct coset objects
     # TODO: generalize
-    x_coset = attune.coset.CoSet('OPA2 TOPAS-C',
+    x_coset = attune_coset.CoSet('OPA2 TOPAS-C',
                              color_units,
                              ws,
                              'D1 SMC100',
@@ -255,7 +255,7 @@ def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
                              x_corrections,
                              name='_'.join(['w{}'.format(opa_index),
                                             datas[0].axes[1].name]))
-    y_coset = attune.coset.CoSet('OPA2 TOPAS-C',
+    y_coset = attune_coset.CoSet('OPA2 TOPAS-C',
                              color_units,
                              ws,
                              'D2 SMC100',
