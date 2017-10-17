@@ -18,8 +18,7 @@ import scipy
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as grd
 
-from .. import units as wt_units
-from .. import kit as wt_kit
+import WrightTools as wt
 
 
 # --- define --------------------------------------------------------------------------------------
@@ -80,8 +79,8 @@ class Linear:
         self.colors = colors
         self.units = units
         self.motors = motors
-        self.functions = [wt_kit.Spline(colors, motor.positions, k=1, s=0) for motor in motors]
-        self.i_functions = [wt_kit.Spline(motor.positions, colors, k=1, s=0) for motor in motors]
+        self.functions = [wt.kit.Spline(colors, motor.positions, k=1, s=0) for motor in motors]
+        self.i_functions = [wt.kit.Spline(motor.positions, colors, k=1, s=0) for motor in motors]
 
     def get_motor_positions(self, color):
         """Get motor positions.
@@ -270,10 +269,10 @@ class Curve:
         units : str
             The destination units.
         """
-        self.colors = wt_units.converter(self.colors, self.units, units)
+        self.colors = wt.units.converter(self.colors, self.units, units)
         if self.subcurve:
             positions = self.source_colors.positions
-            self.source_colors.positions = wt_units.converter(positions, self.units, units)
+            self.source_colors.positions = wt.units.converter(positions, self.units, units)
         self.units = units
         self.interpolate()  # how did it ever work if this wasn't here?  - Blaise 2017-03-22
 
@@ -325,7 +324,7 @@ class Curve:
         if units == 'same':
             return [self.colors.min(), self.colors.max()]
         else:
-            units_colors = wt_units.converter(self.colors, self.units, units)
+            units_colors = wt.units.converter(self.colors, self.units, units)
             return [units_colors.min(), units_colors.max()]
 
     def get_motor_names(self, full=True):
@@ -367,7 +366,7 @@ class Curve:
         if units == 'same':
             pass
         else:
-            color = wt_units.converter(color, units, self.units)
+            color = wt.units.converter(color, units, self.units)
         # color must be array
 
         def is_numeric(obj):
@@ -419,7 +418,7 @@ class Curve:
         if units == 'same':
             pass
         else:
-            color = wt_units.converter(color, units, self.units)
+            color = wt.units.converter(color, units, self.units)
         # evaluate
         return np.array([self.source_color_interpolator.get_motor_positions(c) for c in color])
 
@@ -457,7 +456,7 @@ class Curve:
         # convert new colors to local units
         if units == 'same':
             units = self.units
-        new_colors = np.sort(wt_units.converter(new_colors, units, self.units))
+        new_colors = np.sort(wt.units.converter(new_colors, units, self.units))
         # ensure that motor interpolators agree with current motor positions
         self.interpolate(interpolate_subcurve=True)
         # map own motors
@@ -495,7 +494,7 @@ class Curve:
         offset_to
         """
         # get motor index
-        motor_index = wt_kit.get_index(self.motor_names, motor)
+        motor_index = wt.kit.get_index(self.motor_names, motor)
 
         # offset
         self.motors[motor_index].positions += amount
@@ -678,7 +677,7 @@ def from_800_curve(filepath):
     -------
     WrightTools.tuning.curve.Curve
     """
-    headers = wt_kit.read_headers(filepath)
+    headers = wt.kit.read_headers(filepath)
     arr = np.genfromtxt(filepath).T
     colors = arr[0]
     grating = Motor(arr[1], 'Grating')
@@ -686,7 +685,7 @@ def from_800_curve(filepath):
     mixer = Motor(arr[3], 'Mixer')
     motors = [grating, bbo, mixer]
     interaction = headers['interaction']
-    path, name, suffix = wt_kit.filename_parse(filepath)
+    path, name, suffix = wt.kit.filename_parse(filepath)
     curve = Curve(colors, 'wn', motors, name=name, interaction=interaction,
                   kind='opa800', method=Spline)
     return curve
@@ -707,7 +706,7 @@ def from_poynting_curve(filepath, subcurve=None):
     WrightTools.tuning.curve.Curve
     """
     # read from file
-    headers = wt_kit.read_headers(filepath)
+    headers = wt.kit.read_headers(filepath)
     arr = np.genfromtxt(filepath).T
     names = headers['name']
     # colors
@@ -721,7 +720,7 @@ def from_poynting_curve(filepath, subcurve=None):
     kwargs['interaction'] = headers['interaction']
     kwargs['kind'] = 'poynting'
     kwargs['method'] = Linear
-    kwargs['name'] = wt_kit.filename_parse(filepath)[1]
+    kwargs['name'] = wt.kit.filename_parse(filepath)[1]
     if subcurve is not None:
         kwargs['subcurve'] = subcurve
         kwargs['source_colors'] = Motor(colors, 'wn')
@@ -785,7 +784,7 @@ def from_TOPAS_crvs(filepaths, kind, interaction_string):
             motor_name = TOPAS_interactions[interaction_string][1][i - 3]
             motor = Motor(arr[i], motor_name)
             motors.append(motor)
-            name = wt_kit.filename_parse(crv_path)[1]
+            name = wt.kit.filename_parse(crv_path)[1]
         curve = Curve(colors, 'nm', motors, name, interaction_string,
                       kind, method=Linear,
                       subcurve=subcurve, source_colors=source_colors)
@@ -823,7 +822,7 @@ def to_800_curve(curve, save_directory):
     out_arr[0] = colors
     out_arr[1:4] = np.array([motor.positions for motor in motors])
     # filename
-    timestamp = wt_kit.TimeStamp()
+    timestamp = wt.kit.TimeStamp()
     out_name = curve.name.split('-')[0] + '- ' + timestamp.path
     out_path = os.path.join(save_directory, out_name + '.curve')
     # save
@@ -831,7 +830,7 @@ def to_800_curve(curve, save_directory):
     headers['file created'] = timestamp.RFC3339
     headers['interaction'] = curve.interaction
     headers['name'] = ['Color (wn)', 'Grating', 'BBO', 'Mixer']
-    wt_kit.write_headers(out_path, headers)
+    wt.kit.write_headers(out_path, headers)
     with open(out_path, 'ab') as f:
         np.savetxt(f, out_arr.T, fmt=['%.2f', '%.5f', '%.5f', '%.5f'],
                    delimiter='\t')
@@ -863,7 +862,7 @@ def to_poynting_curve(curve, save_directory):
     out_arr[0] = colors
     out_arr[1:3] = np.array([motor.positions for motor in motors])
     # filename
-    timestamp = wt_kit.TimeStamp()
+    timestamp = wt.kit.TimeStamp()
     out_name = curve.name.split('-')[0] + '- ' + timestamp.path
     out_path = os.path.join(save_directory, out_name + '.curve')
     # save
@@ -871,7 +870,7 @@ def to_poynting_curve(curve, save_directory):
     headers['file created'] = timestamp.RFC3339
     headers['interaction'] = curve.interaction
     headers['name'] = ['Color (wn)', 'Phi', 'Theta']
-    wt_kit.write_headers(out_path, headers)
+    wt.kit.write_headers(out_path, headers)
     with open(out_path, 'ab') as f:
         np.savetxt(f, out_arr.T, fmt=['%.2f', '%.0f', '%.0f'],
                    delimiter='\t')
@@ -1019,7 +1018,7 @@ def to_TOPAS_crvs(curve, save_directory, kind, full, **kwargs):
         out_lines.insert(line_index - 1, str(len(curve.colors)) +
                          '\n')  # number of points of new curve
     # filename
-    timestamp = wt_kit.TimeStamp().path
+    timestamp = wt.kit.TimeStamp().path
     out_name = curve.name.split('-')[0] + '- ' + timestamp
     out_path = os.path.join(save_directory, out_name + '.crv')
     # save

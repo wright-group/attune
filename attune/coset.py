@@ -17,9 +17,7 @@ import scipy
 import matplotlib
 import matplotlib.pyplot as plt
 
-from .. import units as wt_units
-from .. import kit as wt_kit
-from .. import artists as wt_artists
+import WrightTools as wt
 
 matplotlib.rcParams['font.size'] = 14
 
@@ -110,7 +108,7 @@ class CoSet:
         units : string
             New control units.
         """
-        self.control_points = wt_units.converter(self.control_points, self.control_units, units)
+        self.control_points = wt.units.converter(self.control_points, self.control_units, units)
         self.sort()
         self.control_units = units
         self.interpolate()
@@ -123,7 +121,7 @@ class CoSet:
         units : string
             New offset units.
         """
-        self.offset_points = wt_units.converter(self.offset_points, self.offset_units, units)
+        self.offset_points = wt.units.converter(self.offset_points, self.offset_units, units)
         self.offset_units = units
         self.interpolate()
 
@@ -147,7 +145,7 @@ class CoSet:
         if units == 'same':
             return [self.control_points.min(), self.control_points.max()]
         else:
-            units_points = wt_units.converter(self.control_points, self.control_units, units)
+            units_points = wt.units.converter(self.control_points, self.control_units, units)
             return [units_points.min(), units_points.max()]
 
     def get_offset(self, control_position, input_units='same',
@@ -170,13 +168,13 @@ class CoSet:
         """
         # get control position in own units
         if not input_units == 'same':
-            control_position = wt_units.converter(
+            control_position = wt.units.converter(
                 control_position, self.control_units, input_units)
         # get offset in own units using spline
         offset = self.spline(control_position)
         # convert offset to output units
         if not output_units == 'same':
-            offset = wt_units.converter(offset, self.offset_units, output_units)
+            offset = wt.units.converter(offset, self.offset_units, output_units)
         # finish
         return offset
 
@@ -206,7 +204,7 @@ class CoSet:
         # convert new points to local units
         if units == 'same':
             units = self.control_units
-        new_points = np.sort(wt_units.converter(new_points, units, self.control_units))
+        new_points = np.sort(wt.units.converter(new_points, units, self.control_units))
         new_offsets = self.get_offset(new_points)
         # finish
         self.control_points = new_points
@@ -222,7 +220,7 @@ class CoSet:
         save_path : string (optional)
             Location to save figure. Default is ''.
         """
-        fig, gs = wt_artists.create_figure(cols=[1])
+        fig, gs = wt.artists.create_figure(cols=[1])
         ax = plt.subplot(gs[0])
         xi = self.control_points
         yi = self.offset_points
@@ -233,7 +231,7 @@ class CoSet:
         ax.set_xlabel(xlabel, fontsize=18)
         ylabel = self.offset_name + ' (' + self.offset_units + ')'
         ax.set_ylabel(ylabel, fontsize=18)
-        wt_artists._title(fig, self.name)
+        wt.artists._title(fig, self.name)
         if autosave:
             plt.savefig(save_path, dpi=300, transparent=True, pad_inches=1)
             plt.close(fig)
@@ -252,7 +250,7 @@ class CoSet:
         """
         if save_directory is None:
             save_directory = os.getcwd()
-        time_stamp = wt_kit.TimeStamp()
+        time_stamp = wt.kit.TimeStamp()
         file_name = ' - '.join([self.name, time_stamp.path]) + '.coset'
         file_path = os.path.join(save_directory, file_name)
         headers = collections.OrderedDict()
@@ -260,7 +258,7 @@ class CoSet:
         headers['control units'] = self.control_units
         headers['offset'] = self.offset_name
         headers['offset units'] = self.offset_units
-        file_path = wt_kit.write_headers(file_path, headers)
+        file_path = wt.kit.write_headers(file_path, headers)
         X = np.vstack([self.control_points, self.offset_points]).T
         with open(file_path, 'ab') as f:
             np.savetxt(f, X, fmt=str('%8.6f'), delimiter='\t')
@@ -293,7 +291,7 @@ def from_file(path):
     WrightTools.tuning.coset.Coset
     """
     # get raw information from file
-    headers = wt_kit.read_headers(path)
+    headers = wt.kit.read_headers(path)
     arr = np.genfromtxt(path).T
     name = os.path.basename(path).split(' - ')[0]
     # construct coset object

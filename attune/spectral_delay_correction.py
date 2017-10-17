@@ -14,11 +14,8 @@ import numpy as np
 
 from scipy.interpolate import UnivariateSpline
 
-from .. import artists as wt_artists
-from .. import kit as wt_kit
-from .. import fit as wt_fit
-from .. import data as wt_data
-from . import coset as wt_coset
+import WrightTools as wt
+from . import coset as attune.coset
 
 
 # --- processing methods --------------------------------------------------------------------------
@@ -63,7 +60,7 @@ def process_wigner(data, channel, control_name, offset_name, coset_name, color_u
     data.convert(delay_units)
     ws = data.axes[1].points
     # get channel index
-    channel_index = wt_kit.get_index(data.channel_names, channel)
+    channel_index = wt.kit.get_index(data.channel_names, channel)
 
     # clip slice
     values = data.channels[channel_index].values
@@ -74,8 +71,8 @@ def process_wigner(data, channel, control_name, offset_name, coset_name, color_u
     # clip global
     data.channels[channel_index].clip(min=data.channels[channel_index].max() * global_cutoff_factor)
     # process
-    function = wt_fit.Gaussian()
-    fitter = wt_fit.Fitter(function, data, data.axes[0].name)
+    function = wt.fit.Gaussian()
+    fitter = wt.fit.Fitter(function, data, data.axes[0].name)
     outs = fitter.run(channel_index, propagate_other_channels=False, verbose=False)
     # clean
     # remove the edges because they are badly behaved...
@@ -88,10 +85,10 @@ def process_wigner(data, channel, control_name, offset_name, coset_name, color_u
     outs.share_nans()
     centers = outs.channels[0].values
     # spline
-    spline = wt_kit.Spline(ws, centers, k=2, s=s)
+    spline = wt.kit.Spline(ws, centers, k=2, s=s)
     corrections = spline(ws)
     # prepare for plot
-    artist = wt_artists.mpl_2D(data)
+    artist = wt.artists.mpl_2D(data)
     # plot outs
     xi = outs.axes[0].points
     yi = outs.channels[0].values
@@ -101,7 +98,7 @@ def process_wigner(data, channel, control_name, offset_name, coset_name, color_u
     yi = corrections
     artist.onplot(xi, yi, alpha=1)
     # make coset
-    coset = wt_coset.CoSet(control_name, color_units, ws, offset_name,
+    coset = attune.coset.CoSet(control_name, color_units, ws, offset_name,
                            delay_units, corrections, coset_name)
     # save
     if save_directory is None:
@@ -122,7 +119,7 @@ def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
     - Blaise 2016.03.18
     """
     # get data
-    data = wt_data.from_PyCMDS(data_filepath, verbose=False)
+    data = wt.data.from_PyCMDS(data_filepath, verbose=False)
     # check if data is valid for this operation
     # TODO:
     # get channel index
@@ -148,7 +145,7 @@ def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
     for d in y_bins:
         d.collapse(1, method='sum')
     # choose corrections
-    function = wt_fit.Gaussian()
+    function = wt.fit.Gaussian()
 
     def fitit(d):
         xi = d.axes[0].points
@@ -167,7 +164,7 @@ def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
         centers[centers > upper_cutoff] = np.nan
         amplitudes = np.array([o[2] for o in outs])
         amplitudes[amplitudes < amplitudes.max() * amplitude_cutoff_factor] = np.nan
-        ws_internal, centers, amplitudes = wt_kit.remove_nans_1D(
+        ws_internal, centers, amplitudes = wt.kit.remove_nans_1D(
             [ws_internal, centers, amplitudes])
         spline = UnivariateSpline(ws_internal, centers, k=2, s=10000)
         return spline(ws)
@@ -178,17 +175,17 @@ def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
         ws, y_outs, datas[0].axes[0].points.min(), datas[0].axes[0].points.max())
     # plot data
     aspect = (datas[0].d2.max() - datas[0].d2.min()) / (datas[0].d1.max() - datas[0].d1.min())
-    cmap = wt_artists.colormaps['default']
+    cmap = wt.artists.colormaps['default']
     if plot:
         for i, d in enumerate(datas):
             # prepare
-            fig, gs = wt_artists.create_figure(aspects=[[[0, 0], aspect]])
+            fig, gs = wt.artists.create_figure(aspects=[[[0, 0], aspect]])
             ax = plt.subplot(gs[0])
             # main plot
             xi = d.axes[1].points
             yi = d.axes[0].points
             zi = d.channels[channel_index].values
-            X, Y, Z = wt_artists.pcolor_helper(xi, yi, zi)
+            X, Y, Z = wt.artists.pcolor_helper(xi, yi, zi)
             mappable = ax.pcolor(X, Y, Z, vmin=0, cmap=cmap)
             ax.set_xlim(xi.min(), xi.max())
             ax.set_ylim(yi.min(), yi.max())
@@ -200,7 +197,7 @@ def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
             ax.axhline(y_corrections[i], lw=4, c='k')
             ax.axvline(x_corrections[i], lw=4, c='k')
             # x side plot
-            sax = wt_artists.add_sideplot(ax, 'x')
+            sax = wt.artists.add_sideplot(ax, 'x')
             xi = x_bins[i].axes[0].points
             yi = x_bins[i].channels[channel_index].values
             sax.plot(xi, yi, lw=2, c='b')
@@ -212,7 +209,7 @@ def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
             sax.set_ylim(0, x_max_amp * 1.1)
             sax.grid()
             # y side plot
-            sax = wt_artists.add_sideplot(ax, 'y')
+            sax = wt.artists.add_sideplot(ax, 'y')
             xi = y_bins[i].axes[0].points
             yi = y_bins[i].channels[channel_index].values
             sax.plot(yi, xi, lw=2, c='b')
@@ -227,7 +224,7 @@ def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
             cax = plt.subplot(gs[1])
             plt.colorbar(mappable=mappable, cax=cax)
             # title
-            wt_artists._title(fig, str(ws[i]))
+            wt.artists._title(fig, str(ws[i]))
             # save
             figure_path = os.path.join(os.path.dirname(data_filepath), str(i).zfill(3) + '.png')
             plt.savefig(figure_path, dpi=300, transparent=True, pad_inches=1)
@@ -235,11 +232,11 @@ def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
     # plot corrections array
 
     def plot_corrections(centers, corrections, title, name):
-        fig, gs = wt_artists.create_figure(cols=[1])
+        fig, gs = wt.artists.create_figure(cols=[1])
         ax = plt.subplot(gs[0])
         ax.plot(ws, centers, lw=4, c='grey')
         ax.plot(ws, corrections, lw=4, c='k')
-        wt_artists._title(fig, title)
+        wt.artists._title(fig, title)
         figure_path = os.path.join(os.path.dirname(data_filepath), name + '.png')
         plt.savefig(figure_path, dpi=300, transparent=True, pad_inches=1)
         plt.close(fig)
@@ -250,7 +247,7 @@ def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
         ), '_'.join([datas[0].axes[0].name, 'w{}'.format(opa_index)]))
     # construct coset objects
     # TODO: generalize
-    x_coset = wt_coset.CoSet('OPA2 TOPAS-C',
+    x_coset = attune.coset.CoSet('OPA2 TOPAS-C',
                              color_units,
                              ws,
                              'D1 SMC100',
@@ -258,7 +255,7 @@ def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
                              x_corrections,
                              name='_'.join(['w{}'.format(opa_index),
                                             datas[0].axes[1].name]))
-    y_coset = wt_coset.CoSet('OPA2 TOPAS-C',
+    y_coset = attune.coset.CoSet('OPA2 TOPAS-C',
                              color_units,
                              ws,
                              'D2 SMC100',
