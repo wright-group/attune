@@ -7,6 +7,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
+import pathlib
 import copy
 import shutil
 import collections
@@ -19,6 +20,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as grd
 
 import WrightTools as wt
+import tidy_headers
 
 
 # --- define --------------------------------------------------------------------------------------
@@ -87,7 +89,6 @@ class Linear:
         self.units = units
         self.motors = motors
         self.functions = [wt.kit.Spline(colors, motor.positions, k=1, s=0) for motor in motors]
-        self.i_functions = [wt.kit.Spline(motor.positions, colors, k=1, s=0) for motor in motors]
 
     def get_motor_positions(self, color):
         """Get motor positions.
@@ -170,10 +171,6 @@ class Spline:
             scipy.interpolate.UnivariateSpline(colors, motor.positions, k=3, s=1000)
             for motor in motors
         ]
-        self.i_functions = [
-            scipy.interpolate.UnivariateSpline(motor.positions, colors, k=3, s=1000)
-            for motor in motors
-        ]
 
     def get_motor_positions(self, color):
         """Get motor positions.
@@ -244,7 +241,7 @@ class Curve:
             The interpolation method to use.
         """
         # version
-        from .. import __version__
+        from . import __version__
 
         self.__version__ = __version__
         # inherit
@@ -703,7 +700,8 @@ def from_800_curve(filepath):
     -------
     WrightTools.tuning.curve.Curve
     """
-    headers = wt.kit.read_headers(filepath)
+    filepath = pathlib.Path(filepath)
+    headers = tidy_headers.read(filepath)
     arr = np.genfromtxt(filepath).T
     colors = arr[0]
     grating = Motor(arr[1], "Grating")
@@ -711,7 +709,7 @@ def from_800_curve(filepath):
     mixer = Motor(arr[3], "Mixer")
     motors = [grating, bbo, mixer]
     interaction = headers["interaction"]
-    path, name, suffix = wt.kit.filename_parse(filepath)
+    name = filepath.stem
     curve = Curve(
         colors, "wn", motors, name=name, interaction=interaction, kind="opa800", method=Spline
     )
@@ -733,7 +731,7 @@ def from_poynting_curve(filepath, subcurve=None):
     WrightTools.tuning.curve.Curve
     """
     # read from file
-    headers = wt.kit.read_headers(filepath)
+    headers = tidy_headers.read(filepath)
     arr = np.genfromtxt(filepath).T
     names = headers["name"]
     # colors

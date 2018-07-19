@@ -30,7 +30,7 @@ setup(
     python_requires=">=3.5",
     setup_requires=["pytest-runner"],
     tests_require=["pytest", "pytest-cov"],
-    install_requires=["WrightTools>=3.0", "numpy", "scipy", "matplotlib"],
+    install_requires=["WrightTools>=3.0", "numpy", "scipy", "matplotlib", "tidy_headers"],
     extras_require={"dev": ["black", "pre-commit"]},
     version=version,
     description="Tools for tuning optical parametric amplifiers and multidimensional spectrometers.",
