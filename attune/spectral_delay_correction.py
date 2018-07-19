@@ -21,9 +21,20 @@ from . import coset as attune_coset
 # --- processing methods --------------------------------------------------------------------------
 
 
-def process_wigner(data, channel, control_name, offset_name, coset_name, color_units='nm',
-                   delay_units='fs', global_cutoff_factor=0.05, slice_cutoff_factor=0.1,
-                   s=1000, autosave=True, save_directory=None):
+def process_wigner(
+    data,
+    channel,
+    control_name,
+    offset_name,
+    coset_name,
+    color_units="nm",
+    delay_units="fs",
+    global_cutoff_factor=0.05,
+    slice_cutoff_factor=0.1,
+    s=1000,
+    autosave=True,
+    save_directory=None,
+):
     """Create a coset file from a measured wigner.
 
     Parameters
@@ -54,7 +65,7 @@ def process_wigner(data, channel, control_name, offset_name, coset_name, color_u
         Control save directory. Default is None (current working directory).
     """
     # get data
-    if data.axes[0].units_kind == 'energy':
+    if data.axes[0].units_kind == "energy":
         data.transpose()  # prefered shape - delay then color
     data.convert(color_units)
     data.convert(delay_units)
@@ -69,7 +80,9 @@ def process_wigner(data, channel, control_name, offset_name, coset_name, color_u
     values[values < cutoffs] = np.nan
     data.channels[channel_index].values = values
     # clip global
-    data.channels[channel_index].clip(min=data.channels[channel_index].max() * global_cutoff_factor)
+    data.channels[channel_index].clip(
+        min=data.channels[channel_index].max() * global_cutoff_factor
+    )
     # process
     function = wt.fit.Gaussian()
     fitter = wt.fit.Fitter(function, data, data.axes[0].name)
@@ -98,21 +111,35 @@ def process_wigner(data, channel, control_name, offset_name, coset_name, color_u
     yi = corrections
     artist.onplot(xi, yi, alpha=1)
     # make coset
-    coset = attune_coset.CoSet(control_name, color_units, ws, offset_name,
-                           delay_units, corrections, coset_name)
+    coset = attune_coset.CoSet(
+        control_name, color_units, ws, offset_name, delay_units, corrections, coset_name
+    )
     # save
     if save_directory is None:
         save_directory = os.getcwd()
-    artist.plot(channel_index, contours=0, lines=False, fname=data.name,
-                output_folder=save_directory, autosave=autosave)
+    artist.plot(
+        channel_index,
+        contours=0,
+        lines=False,
+        fname=data.name,
+        output_folder=save_directory,
+        autosave=autosave,
+    )
     if autosave:
         coset.save(save_directory=save_directory)
     return coset
 
 
-def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
-                        delay_units='fs', amplitude_cutoff_factor=0.5,
-                        plot=True, autosave=True):
+def process_brute_force(
+    data_filepath,
+    opa_index,
+    channel,
+    color_units="nm",
+    delay_units="fs",
+    amplitude_cutoff_factor=0.5,
+    plot=True,
+    autosave=True,
+):
     """Brute force process Spectral Delay Correction.
 
     This method is a good idea, but it isn't ready for prime time yet.
@@ -128,7 +155,7 @@ def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
     elif type(channel) in [str]:
         channel_index = data.channel_names.index(channel)
     else:
-        print('channel type not recognized')
+        print("channel type not recognized")
         return
 
     # pre-process data
@@ -136,14 +163,14 @@ def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
     data.convert(color_units, verbose=False)
     data.convert(delay_units, verbose=False)
     # slice data
-    ws = getattr(data, 'w{}'.format(opa_index)).points
-    datas = data.chop('d2', 'd1', verbose=False)  # TODO: generalize...
+    ws = getattr(data, "w{}".format(opa_index)).points
+    datas = data.chop("d2", "d1", verbose=False)  # TODO: generalize...
     x_bins = [d.copy() for d in datas]
     y_bins = [d.copy() for d in datas]
     for d in x_bins:
-        d.collapse(0, method='sum')
+        d.collapse(0, method="sum")
     for d in y_bins:
-        d.collapse(1, method='sum')
+        d.collapse(1, method="sum")
     # choose corrections
     function = wt.fit.Gaussian()
 
@@ -165,17 +192,20 @@ def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
         amplitudes = np.array([o[2] for o in outs])
         amplitudes[amplitudes < amplitudes.max() * amplitude_cutoff_factor] = np.nan
         ws_internal, centers, amplitudes = wt.kit.remove_nans_1D(
-            [ws_internal, centers, amplitudes])
+            [ws_internal, centers, amplitudes]
+        )
         spline = UnivariateSpline(ws_internal, centers, k=2, s=10000)
         return spline(ws)
 
     x_corrections = get_corrections(
-        ws, x_outs, datas[0].axes[1].points.min(), datas[0].axes[1].points.max())
+        ws, x_outs, datas[0].axes[1].points.min(), datas[0].axes[1].points.max()
+    )
     y_corrections = get_corrections(
-        ws, y_outs, datas[0].axes[0].points.min(), datas[0].axes[0].points.max())
+        ws, y_outs, datas[0].axes[0].points.min(), datas[0].axes[0].points.max()
+    )
     # plot data
     aspect = (datas[0].d2.max() - datas[0].d2.min()) / (datas[0].d1.max() - datas[0].d1.min())
-    cmap = wt.artists.colormaps['default']
+    cmap = wt.artists.colormaps["default"]
     if plot:
         for i, d in enumerate(datas):
             # prepare
@@ -192,31 +222,31 @@ def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
             ax.set_xlabel(d.axes[1].get_label(), fontsize=18)
             ax.set_ylabel(d.axes[0].get_label(), fontsize=18)
             ax.grid()
-            ax.axhline(y_centers[i], lw=4, c='grey')
-            ax.axvline(x_centers[i], lw=4, c='grey')
-            ax.axhline(y_corrections[i], lw=4, c='k')
-            ax.axvline(x_corrections[i], lw=4, c='k')
+            ax.axhline(y_centers[i], lw=4, c="grey")
+            ax.axvline(x_centers[i], lw=4, c="grey")
+            ax.axhline(y_corrections[i], lw=4, c="k")
+            ax.axvline(x_corrections[i], lw=4, c="k")
             # x side plot
-            sax = wt.artists.add_sideplot(ax, 'x')
+            sax = wt.artists.add_sideplot(ax, "x")
             xi = x_bins[i].axes[0].points
             yi = x_bins[i].channels[channel_index].values
-            sax.plot(xi, yi, lw=2, c='b')
+            sax.plot(xi, yi, lw=2, c="b")
             yi = function.evaluate(x_outs[i], xi)
-            sax.plot(xi, yi, lw=2, c='grey')
-            sax.axvline(x_centers[i], lw=4, c='grey')
-            sax.axvline(x_corrections[i], lw=4, c='k')
+            sax.plot(xi, yi, lw=2, c="grey")
+            sax.axvline(x_centers[i], lw=4, c="grey")
+            sax.axvline(x_corrections[i], lw=4, c="k")
             x_max_amp = max([o[2] for o in x_outs])
             sax.set_ylim(0, x_max_amp * 1.1)
             sax.grid()
             # y side plot
-            sax = wt.artists.add_sideplot(ax, 'y')
+            sax = wt.artists.add_sideplot(ax, "y")
             xi = y_bins[i].axes[0].points
             yi = y_bins[i].channels[channel_index].values
-            sax.plot(yi, xi, lw=2, c='b')
+            sax.plot(yi, xi, lw=2, c="b")
             yi = function.evaluate(y_outs[i], xi)
-            sax.plot(yi, xi, lw=2, c='grey')
-            sax.axhline(y_centers[i], lw=4, c='grey')
-            sax.axhline(y_corrections[i], lw=4, c='k')
+            sax.plot(yi, xi, lw=2, c="grey")
+            sax.axhline(y_centers[i], lw=4, c="grey")
+            sax.axhline(y_corrections[i], lw=4, c="k")
             y_max_amp = max([o[2] for o in y_outs])
             sax.set_xlim(0, y_max_amp * 1.1)
             sax.grid()
@@ -226,7 +256,7 @@ def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
             # title
             wt.artists._title(fig, str(ws[i]))
             # save
-            figure_path = os.path.join(os.path.dirname(data_filepath), str(i).zfill(3) + '.png')
+            figure_path = os.path.join(os.path.dirname(data_filepath), str(i).zfill(3) + ".png")
             plt.savefig(figure_path, dpi=300, transparent=True, pad_inches=1)
             plt.close(fig)
     # plot corrections array
@@ -234,35 +264,46 @@ def process_brute_force(data_filepath, opa_index, channel, color_units='nm',
     def plot_corrections(centers, corrections, title, name):
         fig, gs = wt.artists.create_figure(cols=[1])
         ax = plt.subplot(gs[0])
-        ax.plot(ws, centers, lw=4, c='grey')
-        ax.plot(ws, corrections, lw=4, c='k')
+        ax.plot(ws, centers, lw=4, c="grey")
+        ax.plot(ws, corrections, lw=4, c="k")
         wt.artists._title(fig, title)
-        figure_path = os.path.join(os.path.dirname(data_filepath), name + '.png')
+        figure_path = os.path.join(os.path.dirname(data_filepath), name + ".png")
         plt.savefig(figure_path, dpi=300, transparent=True, pad_inches=1)
         plt.close(fig)
+
     if plot:
-        plot_corrections(x_centers, x_corrections, datas[0].axes[1].get_label(
-        ), '_'.join([datas[0].axes[1].name, 'w{}'.format(opa_index)]))
-        plot_corrections(y_centers, y_corrections, datas[0].axes[0].get_label(
-        ), '_'.join([datas[0].axes[0].name, 'w{}'.format(opa_index)]))
+        plot_corrections(
+            x_centers,
+            x_corrections,
+            datas[0].axes[1].get_label(),
+            "_".join([datas[0].axes[1].name, "w{}".format(opa_index)]),
+        )
+        plot_corrections(
+            y_centers,
+            y_corrections,
+            datas[0].axes[0].get_label(),
+            "_".join([datas[0].axes[0].name, "w{}".format(opa_index)]),
+        )
     # construct coset objects
     # TODO: generalize
-    x_coset = attune_coset.CoSet('OPA2 TOPAS-C',
-                             color_units,
-                             ws,
-                             'D1 SMC100',
-                             delay_units,
-                             x_corrections,
-                             name='_'.join(['w{}'.format(opa_index),
-                                            datas[0].axes[1].name]))
-    y_coset = attune_coset.CoSet('OPA2 TOPAS-C',
-                             color_units,
-                             ws,
-                             'D2 SMC100',
-                             delay_units,
-                             y_corrections,
-                             name='_'.join(['w{}'.format(opa_index),
-                                            datas[0].axes[0].name]))
+    x_coset = attune_coset.CoSet(
+        "OPA2 TOPAS-C",
+        color_units,
+        ws,
+        "D1 SMC100",
+        delay_units,
+        x_corrections,
+        name="_".join(["w{}".format(opa_index), datas[0].axes[1].name]),
+    )
+    y_coset = attune_coset.CoSet(
+        "OPA2 TOPAS-C",
+        color_units,
+        ws,
+        "D2 SMC100",
+        delay_units,
+        y_corrections,
+        name="_".join(["w{}".format(opa_index), datas[0].axes[0].name]),
+    )
     # save coset files
     if autosave:
         save_directory = os.path.dirname(data_filepath)

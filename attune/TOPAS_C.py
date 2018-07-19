@@ -31,7 +31,7 @@ spitfire_output = 800.  # nm
 
 def _gauss_residuals(p, y, x):
     A, mu, sigma = p
-    err = y - np.abs(A) * np.exp(-(x - mu)**2 / (2 * np.abs(sigma)**2))
+    err = y - np.abs(A) * np.exp(-(x - mu) ** 2 / (2 * np.abs(sigma) ** 2))
     return np.abs(err)
 
 
@@ -88,26 +88,26 @@ def process_C2_motortune(opa_index, data_filepath, curves, save=True):
     -------
     WrightTools.tuning.curve.Curve
     """
-    old_curve = attune_curve.from_TOPAS_crvs(curves, 'TOPAS-C', 'NON-NON-NON-Sig')
+    old_curve = attune_curve.from_TOPAS_crvs(curves, "TOPAS-C", "NON-NON-NON-Sig")
     # extract information from file
     headers = wt.kit.read_headers(data_filepath)
-    wa_index = headers['name'].index('wa')
-    zi_index = headers['name'].index('array_signal')
+    wa_index = headers["name"].index("wa")
+    zi_index = headers["name"].index("array_signal")
     # fit array data
     outs = []
     function = wt.fit.Gaussian()
     file_slicer = wt.kit.FileSlicer(data_filepath)
-    print('fitting wa traces')
+    print("fitting wa traces")
     while file_slicer.n < file_slicer.length:
         # get data from file
         lines = file_slicer.get(256)
-        arr = np.array([np.fromstring(line, sep='\t') for line in lines]).T
+        arr = np.array([np.fromstring(line, sep="\t") for line in lines]).T
         # fit data
         xi = arr[wa_index]
-        xi = wt.units.converter(xi, 'nm', 'wn')
+        xi = wt.units.converter(xi, "nm", "wn")
         yi = arr[zi_index]
         mean, width, amplitude, baseline = function.fit(yi, xi)
-        mean = wt.units.converter(mean, 'wn', 'nm')
+        mean = wt.units.converter(mean, "wn", "nm")
         outs.append([amplitude, mean, width])
         wt.kit.update_progress(100 * file_slicer.n / float(file_slicer.length - 256))
     outs = np.array(outs).T
@@ -124,8 +124,8 @@ def process_C2_motortune(opa_index, data_filepath, curves, save=True):
     # finish removal
     amp, cen, wid = wt.kit.share_nans([amp, cen, wid])
     # get axes
-    ws = np.array(headers['w%d points' % opa_index])
-    c2 = np.array(headers['w%d_Crystal_2 points' % opa_index])
+    ws = np.array(headers["w%d points" % opa_index])
+    c2 = np.array(headers["w%d_Crystal_2 points" % opa_index])
     # reshape
     amp.shape = (ws.size, c2.size)
     cen.shape = (ws.size, c2.size)
@@ -163,7 +163,7 @@ def process_C2_motortune(opa_index, data_filepath, curves, save=True):
     curve.motors[2].positions = chosen_c2
     # preapre for plot
     fig = plt.figure(figsize=[8, 6])
-    cmap = wt.artists.colormaps['default']
+    cmap = wt.artists.colormaps["default"]
     cmap.set_bad([0.75] * 3, 1.)
     cmap.set_under([0.75] * 3, 1.)
     gs = grd.GridSpec(2, 1, hspace=0.1, wspace=0.1)
@@ -176,7 +176,7 @@ def process_C2_motortune(opa_index, data_filepath, curves, save=True):
         # real data
         xi = c2 + old_curve.motors[2].positions[i]
         yi = mismatch[:, i]
-        ax.scatter(xi, yi, c=colors[i], edgecolor='none')
+        ax.scatter(xi, yi, c=colors[i], edgecolor="none")
         # poly fit
         if ps[i] is not None:
             p = ps[i]
@@ -184,33 +184,33 @@ def process_C2_motortune(opa_index, data_filepath, curves, save=True):
             xi = np.polyval(p, yi) + old_curve.motors[2].positions[i]
             ax.plot(xi, yi, c=colors[i], lw=1)
         # chosen point
-        ax.scatter(curve.motors[2].positions[i], 0, c=colors[i], marker='x', s=100)
+        ax.scatter(curve.motors[2].positions[i], 0, c=colors[i], marker="x", s=100)
     ax.grid()
     x1 = old_curve.motors[2].positions.min()
     x2 = old_curve.motors[2].positions.max()
-    plt.plot([x1, x2], [0, 0], c='k', lw=1)
-    ax.set_xlabel('C2 (deg)', fontsize=16)
-    ax.set_ylabel('detuning (nm)', fontsize=16)
+    plt.plot([x1, x2], [0, 0], c="k", lw=1)
+    ax.set_xlabel("C2 (deg)", fontsize=16)
+    ax.set_ylabel("detuning (nm)", fontsize=16)
     ax.set_xlim(*xlim)
     ax.set_ylim(-45, 45)
     # curves
     ax = plt.subplot(gs[0, 0])
-    ax.plot(old_curve.motors[2].positions, old_curve.colors, c='k', lw=1)
+    ax.plot(old_curve.motors[2].positions, old_curve.colors, c="k", lw=1)
     for i in range(ws.size):
-        ax.scatter(curve.motors[2].positions[i], curve.colors[i], c=colors[i], marker='x', s=100)
+        ax.scatter(curve.motors[2].positions[i], curve.colors[i], c=colors[i], marker="x", s=100)
     ax.set_xlim(ws.min(), ws.max())
     ax.grid()
     plt.setp(ax.get_xticklabels(), visible=False)
-    ax.set_ylabel('setpoint (nm)', fontsize=16)
+    ax.set_ylabel("setpoint (nm)", fontsize=16)
     ax.set_xlim(*xlim)
     # finish plot
-    title = os.path.basename(data_filepath).replace('.data', '')[-19:]  # extract timestamp
+    title = os.path.basename(data_filepath).replace(".data", "")[-19:]  # extract timestamp
     plt.suptitle(title, fontsize=20)
     # finish
     if save:
         directory = os.path.dirname(data_filepath)
         curve.save(save_directory=directory)
-        image_path = data_filepath.replace('.data', '.png')
+        image_path = data_filepath.replace(".data", ".png")
         plt.savefig(image_path, dpi=300, transparent=True)
         plt.close(fig)
     return curve
@@ -234,26 +234,26 @@ def process_D2_motortune(opa_index, data_filepath, curves, save=True):
     -------
     WrightTools.tuning.curve.Curve
     """
-    old_curve = attune_curve.from_TOPAS_crvs(curves, 'TOPAS-C', 'NON-NON-NON-Sig')
+    old_curve = attune_curve.from_TOPAS_crvs(curves, "TOPAS-C", "NON-NON-NON-Sig")
     # extract information from file
     headers = wt.kit.read_headers(data_filepath)
-    wa_index = headers['name'].index('wa')
-    zi_index = headers['name'].index('array_signal')
+    wa_index = headers["name"].index("wa")
+    zi_index = headers["name"].index("array_signal")
     # fit array data
     outs = []
     function = wt.fit.Gaussian()
     file_slicer = wt.kit.FileSlicer(data_filepath)
-    print('fitting wa traces')
+    print("fitting wa traces")
     while file_slicer.n < file_slicer.length:
         # get data from file
         lines = file_slicer.get(256)
-        arr = np.array([np.fromstring(line, sep='\t') for line in lines]).T
+        arr = np.array([np.fromstring(line, sep="\t") for line in lines]).T
         # fit data
         xi = arr[wa_index]
-        xi = wt.units.converter(xi, 'nm', 'wn')
+        xi = wt.units.converter(xi, "nm", "wn")
         yi = arr[zi_index]
         mean, width, amplitude, baseline = function.fit(yi, xi)
-        mean = wt.units.converter(mean, 'wn', 'nm')
+        mean = wt.units.converter(mean, "wn", "nm")
         outs.append([amplitude, mean, width])
         wt.kit.update_progress(100 * file_slicer.n / float(file_slicer.length - 256))
     print(file_slicer.n, file_slicer.length)
@@ -271,8 +271,8 @@ def process_D2_motortune(opa_index, data_filepath, curves, save=True):
     # finish removal
     amp, cen, wid = wt.kit.share_nans([amp, cen, wid])
     # get axes
-    ws = np.array(headers['w%d points' % opa_index])
-    d2 = np.array(headers['w%d_Delay_2 points' % opa_index])
+    ws = np.array(headers["w%d points" % opa_index])
+    d2 = np.array(headers["w%d_Delay_2 points" % opa_index])
     # reshape
     amp.shape = (ws.size, d2.size)
     cen.shape = (ws.size, d2.size)
@@ -297,42 +297,42 @@ def process_D2_motortune(opa_index, data_filepath, curves, save=True):
     curve.motors[3].positions = chosen_d2
     # preapre for plot
     fig = plt.figure(figsize=[8, 6])
-    cmap = wt.artists.colormaps['default']
+    cmap = wt.artists.colormaps["default"]
     cmap.set_bad([0.75] * 3, 1.)
     cmap.set_under([0.75] * 3, 1.)
     gs = grd.GridSpec(2, 2, hspace=0.1, wspace=0.1, width_ratios=[20, 1])
     # lines
     ax = plt.subplot(gs[0, 0])
-    ax.plot(old_curve.colors, old_curve.motors[3].positions, c='k', lw=1)
-    ax.plot(curve.colors, curve.motors[3].positions, c='k', lw=5)
+    ax.plot(old_curve.colors, old_curve.motors[3].positions, c="k", lw=1)
+    ax.plot(curve.colors, curve.motors[3].positions, c="k", lw=5)
     ax.set_xlim(ws.min(), ws.max())
     ax.grid()
     plt.setp(ax.get_xticklabels(), visible=False)
-    ax.set_ylabel('D2', fontsize=16)
+    ax.set_ylabel("D2", fontsize=16)
     # pcolor
     ax = plt.subplot(gs[1, 0])
     X, Y, Z = wt.artists.pcolor_helper(ws, d2, amp)
     mappable = ax.pcolor(X, Y, Z, vmin=0, vmax=np.nanmax(Z), cmap=cmap)
-    plt.axhline(c='k', lw=1)
-    ax.plot(ws, chosen_deltas, c='grey', lw=5)
+    plt.axhline(c="k", lw=1)
+    ax.plot(ws, chosen_deltas, c="grey", lw=5)
     final_deltas = curve.motors[3].positions - old_curve.motors[3].positions
-    ax.plot(ws, final_deltas, c='k', lw=5)
+    ax.plot(ws, final_deltas, c="k", lw=5)
     ax.set_xlim(ws.min(), ws.max())
     ax.set_ylim(d2.min(), d2.max())
     ax.grid()
-    ax.set_xlabel('setpoint (nm)', fontsize=16)
-    ax.set_ylabel('$\mathsf{\Delta}$D2', fontsize=16)
+    ax.set_xlabel("setpoint (nm)", fontsize=16)
+    ax.set_ylabel("$\mathsf{\Delta}$D2", fontsize=16)
     # colorbar
     cax = plt.subplot(gs[1, 1])
     plt.colorbar(mappable=mappable, cax=cax)
     # finish plot
-    title = os.path.basename(data_filepath).replace('.data', '')[-19:]  # extract timestamp
+    title = os.path.basename(data_filepath).replace(".data", "")[-19:]  # extract timestamp
     plt.suptitle(title, fontsize=20)
     # finish
     if save:
         directory = os.path.dirname(data_filepath)
         curve.save(save_directory=directory)
-        image_path = data_filepath.replace('.data', '.png')
+        image_path = data_filepath.replace(".data", ".png")
         plt.savefig(image_path, dpi=300, transparent=True)
         plt.close(fig)
     return curve
@@ -359,13 +359,13 @@ def process_preamp_motortune(OPA_index, data_filepath, curves, save=True):
     # extract information from file
     headers = wt.kit.read_headers(data_filepath)
     arr = np.genfromtxt(data_filepath).T
-    old_curve = attune_curve.from_TOPAS_crvs(curves, 'TOPAS-C', 'NON-NON-NON-Sig')
+    old_curve = attune_curve.from_TOPAS_crvs(curves, "TOPAS-C", "NON-NON-NON-Sig")
     # get array data
-    array_colors = arr[headers['name'].index('wa')]
-    array_data = arr[headers['name'].index('array_signal')]
+    array_colors = arr[headers["name"].index("wa")]
+    array_data = arr[headers["name"].index("array_signal")]
     array_colors.shape = (-1, 256)
     array_data.shape = (-1, 256)
-    array_colors = wt.units.converter(array_colors, 'nm', 'wn')
+    array_colors = wt.units.converter(array_colors, "nm", "wn")
     # fit array data
     outs = []
     for i in range(len(array_data)):
@@ -373,16 +373,16 @@ def process_preamp_motortune(OPA_index, data_filepath, curves, save=True):
         yi = array_data[i]
         function = wt.fit.Gaussian()
         mean, width, amplitude, baseline = function.fit(yi, xi)
-        mean = wt.units.converter(mean, 'wn', 'nm')
+        mean = wt.units.converter(mean, "wn", "nm")
         outs.append([amplitude, mean, width])
     outs = np.array(outs).T
     amps, centers, widths = outs
     # get crystal 1 data
-    array_c1 = arr[headers['name'].index('w{}_Crystal_1'.format(OPA_index))]
+    array_c1 = arr[headers["name"].index("w{}_Crystal_1".format(OPA_index))]
     array_c1.shape = (-1, 256)
     c1_list = array_c1[..., 0].flatten()
     # get delay 1 data
-    array_d1 = arr[headers['name'].index('w{}_Delay_1'.format(OPA_index))]
+    array_d1 = arr[headers["name"].index("w{}_Delay_1".format(OPA_index))]
     array_d1.shape = (-1, 256)
     d1_list = array_d1[..., 0].flatten()
     d1_width = (array_d1[:, 0].max() - array_d1[:, 0].min()) / 2.
@@ -397,12 +397,13 @@ def process_preamp_motortune(OPA_index, data_filepath, curves, save=True):
     widths[widths > 500] = np.nan
     # finish removal
     amps, centers, widths, c1_list, d1_list = wt.kit.remove_nans_1D(
-        [amps, centers, widths, c1_list, d1_list])
+        [amps, centers, widths, c1_list, d1_list]
+    )
     # grid data (onto a fine grid)
     points_count = 100
     c1_points = np.linspace(c1_list.min(), c1_list.max(), points_count)
     d1_points = np.linspace(d1_list.min(), d1_list.max(), points_count)
-    xi = tuple(np.meshgrid(c1_points, d1_points, indexing='xy'))
+    xi = tuple(np.meshgrid(c1_points, d1_points, indexing="xy"))
     c1_grid, d1_grid = xi
     points = tuple([c1_list, d1_list])
     amp_grid = griddata(points, amps, xi)
@@ -411,7 +412,7 @@ def process_preamp_motortune(OPA_index, data_filepath, curves, save=True):
     setpoints = np.linspace(1140, 1620, 25)
     within = 2
     fits_by_setpoint = []
-    print('binning points')
+    print("binning points")
     for i in range(len(setpoints)):
         these_fits = []
         for j in range(points_count):
@@ -437,7 +438,7 @@ def process_preamp_motortune(OPA_index, data_filepath, curves, save=True):
             false_setpoints.append(setpoints[i])
     # fit each setpoint
     preamp_chosen = []
-    print('fitting points')
+    print("fitting points")
     for i in range(len(setpoints)):
         c1s = np.zeros(len(fits_by_setpoint[i]))
         d1s = np.zeros(len(fits_by_setpoint[i]))
@@ -464,7 +465,7 @@ def process_preamp_motortune(OPA_index, data_filepath, curves, save=True):
             try:
                 out_c1 = leastsq(_gauss_residuals, p0, args=(y, c1s))[0]
             except RuntimeWarning:
-                print('runtime')
+                print("runtime")
             # d1
             amplitude_guess = max(y)
             center_guess = old_curve.get_motor_positions(setpoints[i])[1]
@@ -473,7 +474,7 @@ def process_preamp_motortune(OPA_index, data_filepath, curves, save=True):
             try:
                 out_d1 = leastsq(_gauss_residuals, p0, args=(y, d1s))[0]
             except RuntimeWarning:
-                print('runtime')
+                print("runtime")
             # write to preamp_chosen
             chosen[0] = setpoints[i]
             chosen[1] = out_c1[1]
@@ -513,7 +514,7 @@ def process_preamp_motortune(OPA_index, data_filepath, curves, save=True):
     motors = []
     old_curve_copy = old_curve.copy()
     old_curve_copy.map_colors(colors)
-    for i, name in zip(range(1, 3), ['Crystal_1', 'Delay_1']):
+    for i, name in zip(range(1, 3), ["Crystal_1", "Delay_1"]):
         motors.append(attune_curve.Motor([pc[i] for pc in preamp_chosen], name))
     for i in range(2, 4):
         motors.append(old_curve_copy.motors[i])
@@ -522,8 +523,8 @@ def process_preamp_motortune(OPA_index, data_filepath, curves, save=True):
     curve.motors = motors
     curve.map_colors(setpoints)
     # preapre for plot
-    fig, gs = wt.artists.create_figure(width='single', cols=[1, 'cbar'])
-    cmap = wt.artists.colormaps['default']
+    fig, gs = wt.artists.create_figure(width="single", cols=[1, "cbar"])
+    cmap = wt.artists.colormaps["default"]
     cmap.set_bad([0.75] * 3, 1.)
     cmap.set_under([0.75] * 3, 1.)
     # plot amplitude data
@@ -531,32 +532,32 @@ def process_preamp_motortune(OPA_index, data_filepath, curves, save=True):
     X, Y, Z = wt.artists.pcolor_helper(c1_points, d1_points, amp_grid)
     mappable = ax.pcolor(X, Y, Z, vmin=0, vmax=np.nanmax(Z), cmap=cmap)
     # plot and label contours of constant color
-    CS = plt.contour(c1_points, d1_points, cen_grid, colors='grey', levels=setpoints)
+    CS = plt.contour(c1_points, d1_points, cen_grid, colors="grey", levels=setpoints)
     clabel_positions = np.zeros([len(preamp_chosen), 2])
     clabel_positions[:, 0] = preamp_chosen[:, 1]
     clabel_positions[:, 1] = preamp_chosen[:, 2]
-    plt.clabel(CS, inline=0, fontsize=9, manual=clabel_positions, colors='w', fmt='%1.0f')
+    plt.clabel(CS, inline=0, fontsize=9, manual=clabel_positions, colors="w", fmt="%1.0f")
     # plot old points, edges of acquisition
     xi = old_curve.motors[0].positions
     yi = old_curve.motors[1].positions
-    plt.plot(xi, yi, c='k')
-    plt.plot(xi, yi + d1_width, c='k', ls='--')
-    plt.plot(xi, yi - d1_width, c='k', ls='--')
+    plt.plot(xi, yi, c="k")
+    plt.plot(xi, yi + d1_width, c="k", ls="--")
+    plt.plot(xi, yi - d1_width, c="k", ls="--")
     for x, y in zip([xi[0], xi[-1]], [yi[0], yi[-1]]):
         xs = [x, x]
         ys = [y - d1_width, y + d1_width]
-        plt.plot(xs, ys, c='k', ls='--')
+        plt.plot(xs, ys, c="k", ls="--")
     # plot points chosen by fits
     xi = [pc[1] for pc in preamp_chosen]
     yi = [pc[2] for pc in preamp_chosen]
-    plt.plot(xi, yi, c='grey', lw=5)
+    plt.plot(xi, yi, c="grey", lw=5)
     # plot smoothed points
     xi = curve.motors[0].positions
     yi = curve.motors[1].positions
-    plt.plot(xi, yi, c='k', lw=5)
+    plt.plot(xi, yi, c="k", lw=5)
     # finish plot
-    plt.xlabel('C1 (deg)', fontsize=18)
-    plt.ylabel('D1 (mm)', fontsize=18)
+    plt.xlabel("C1 (deg)", fontsize=18)
+    plt.ylabel("D1 (mm)", fontsize=18)
     title = os.path.basename(data_filepath)
     plt.suptitle(title)
     plt.gca().patch.set_facecolor([0.75] * 3)
@@ -565,7 +566,7 @@ def process_preamp_motortune(OPA_index, data_filepath, curves, save=True):
     # colorbar
     cax = plt.subplot(gs[:, -1])
     plt.colorbar(mappable=mappable, cax=cax)
-    cax.set_ylabel('intensity', fontsize=18)
+    cax.set_ylabel("intensity", fontsize=18)
     # plot at an index (for debugging purposes only)
     # TODO: remove this eventually...
     if False:
@@ -577,13 +578,13 @@ def process_preamp_motortune(OPA_index, data_filepath, curves, save=True):
             amp = fits_by_setpoint[setpoint_index][i][1]
             fig.gca().scatter(c1_point, d1_point)
             fig2.gca().scatter(c1_point, amp)
-            plt.title('c1 vs amp - {} nm'.format(setpoints[setpoint_index]))
+            plt.title("c1 vs amp - {} nm".format(setpoints[setpoint_index]))
         plt.show()
     # write files
     if save:
         directory = os.path.dirname(data_filepath)
         curve.save(save_directory=directory)
-        image_path = data_filepath.replace('.data', '.png')
+        image_path = data_filepath.replace(".data", ".png")
         # TODO: figure out how to get transparent background >:-(
         plt.savefig(image_path, dpi=300, transparent=False)
         plt.close(fig)
@@ -609,21 +610,21 @@ def process_SHS_motortune(OPA_index, data_filepath, curves, save=True):
     -------
     WrightTools.tuning.curve.Curve
     """
-    old_curve = attune_curve.from_TOPAS_crvs(curves, 'TOPAS-C', 'NON-SH-NON-Sig')
+    old_curve = attune_curve.from_TOPAS_crvs(curves, "TOPAS-C", "NON-SH-NON-Sig")
     # extract information from headers
     headers = wt.kit.read_headers(data_filepath)
-    m2_index = headers['name'].index('w%d_Mixer_2' % OPA_index)
-    wm_index = headers['name'].index('wm')
-    zi_index = headers['kind'].index('channel')  # the first channel
-    ws = headers['w%d points' % OPA_index]
+    m2_index = headers["name"].index("w%d_Mixer_2" % OPA_index)
+    wm_index = headers["name"].index("wm")
+    zi_index = headers["kind"].index("channel")  # the first channel
+    ws = headers["w%d points" % OPA_index]
     ws_len = len(ws)
-    wm_len = len(headers['wm points'])
-    m2_len = len(headers['w%d_Mixer_2 points' % OPA_index])
+    wm_len = len(headers["wm points"])
+    m2_len = len(headers["w%d_Mixer_2 points" % OPA_index])
     # get arrays
     arr = np.genfromtxt(data_filepath).T
     wm = arr[wm_index]
     wm.shape = (ws_len, m2_len, wm_len)
-    wm = wt.units.converter(wm, 'nm', 'wn')
+    wm = wt.units.converter(wm, "nm", "wn")
     m2 = arr[m2_index]
     m2.shape = (ws_len, m2_len, wm_len)
     zi = arr[zi_index]
@@ -638,7 +639,7 @@ def process_SHS_motortune(OPA_index, data_filepath, curves, save=True):
         outs[idx] = out
     outs = outs.T
     cen, wid, amp, base = outs
-    cen = wt.units.converter(cen, 'wn', 'nm')
+    cen = wt.units.converter(cen, "wn", "nm")
     # remove points with amplitudes that are ridiculous
     amp[amp < 0.1] = np.nan
     amp[amp > 5] = np.nan
@@ -651,8 +652,8 @@ def process_SHS_motortune(OPA_index, data_filepath, curves, save=True):
     # finish removal
     amp, cen, wid = wt.kit.share_nans([amp, cen, wid])
     # get ws, m2
-    ws = np.array(headers['w%d points' % OPA_index])
-    m2 = np.array(headers['w%d_Mixer_2 points' % OPA_index])
+    ws = np.array(headers["w%d points" % OPA_index])
+    m2 = np.array(headers["w%d_Mixer_2 points" % OPA_index])
     # choose best mixer position by expectation value
     function = wt.fit.ExpectationValue()
     chosen_deltas = np.full(ws.size, np.nan)
@@ -685,20 +686,20 @@ def process_SHS_motortune(OPA_index, data_filepath, curves, save=True):
     curve.map_colors(setpoints)
     # preapre for plot
     fig = plt.figure(figsize=[8, 6])
-    cmap = wt.artists.colormaps['default']
+    cmap = wt.artists.colormaps["default"]
     cmap.set_bad([0.75] * 3, 1.)
     cmap.set_under([0.75] * 3, 1.)
     gs = grd.GridSpec(2, 2, hspace=0.1, wspace=0.1, width_ratios=[20, 1])
     # lines
     ax = plt.subplot(gs[0, 0])
-    ax.plot(old_curve.colors, old_curve.motors[0].positions, c='k', lw=1)
-    ax.plot(curve.colors, curve.motors[0].positions, c='k', lw=5)
+    ax.plot(old_curve.colors, old_curve.motors[0].positions, c="k", lw=1)
+    ax.plot(curve.colors, curve.motors[0].positions, c="k", lw=5)
     ax.set_xlim(ws.min(), ws.max())
     ax.grid()
     plt.setp(ax.get_xticklabels(), visible=False)
-    ax.set_ylabel('M2', fontsize=16)
+    ax.set_ylabel("M2", fontsize=16)
     # pcolor
-    cmap = wt.artists.colormaps['default']
+    cmap = wt.artists.colormaps["default"]
     cmap.set_bad([0.75] * 3, 1.)
     cmap.set_under([0.75] * 3, 1.)
     X, Y, Z = wt.artists.pcolor_helper(ws, m2, amp)
@@ -706,26 +707,26 @@ def process_SHS_motortune(OPA_index, data_filepath, curves, save=True):
     mappable = ax.pcolor(X, Y, Z, vmin=0, vmax=np.nanmax(amp), cmap=cmap)
     ax.set_xlim(ws.min(), ws.max())
     ax.set_ylim(m2.min(), m2.max())
-    plt.axhline(c='k', lw=1)
-    ax.plot(ws, chosen_deltas, c='grey', lw=5)
+    plt.axhline(c="k", lw=1)
+    ax.plot(ws, chosen_deltas, c="grey", lw=5)
     old_curve.map_colors(setpoints)
     final_deltas = curve.motors[0].positions - old_curve.motors[0].positions
-    ax.plot(setpoints, final_deltas, c='k', lw=5)
+    ax.plot(setpoints, final_deltas, c="k", lw=5)
     ax.grid()
-    ax.set_xlabel('setpoint (nm)', fontsize=16)
-    ax.set_ylabel('$\mathsf{\Delta}$M2', fontsize=16)
+    ax.set_xlabel("setpoint (nm)", fontsize=16)
+    ax.set_ylabel("$\mathsf{\Delta}$M2", fontsize=16)
     # colorbar
     cax = plt.subplot(gs[1, 1])
     plt.colorbar(mappable=mappable, cax=cax)
-    cax.set_ylabel('intensity', fontsize=18)
+    cax.set_ylabel("intensity", fontsize=18)
     # finish plot
-    title = os.path.basename(data_filepath).replace('.data', '')[-19:]  # extract timestamp
-    #plt.suptitle(title, fontsize=20)
+    title = os.path.basename(data_filepath).replace(".data", "")[-19:]  # extract timestamp
+    # plt.suptitle(title, fontsize=20)
     # finish
     if save:
         directory = os.path.dirname(data_filepath)
         curve.save(save_directory=directory)
-        image_path = data_filepath.replace('.data', '.png')
+        image_path = data_filepath.replace(".data", ".png")
         plt.savefig(image_path, dpi=300, transparent=True)
         plt.close(fig)
     return curve
@@ -749,21 +750,21 @@ def process_SFS_motortune(OPA_index, data_filepath, curves, save=True):
     -------
     WrightTools.tuning.curve.Curve
     """
-    old_curve = attune_curve.from_TOPAS_crvs(curves, 'TOPAS-C', 'NON-NON-SF-Sig')
+    old_curve = attune_curve.from_TOPAS_crvs(curves, "TOPAS-C", "NON-NON-SF-Sig")
     # extract information from headers
     headers = wt.kit.read_headers(data_filepath)
-    m2_index = headers['name'].index('w%d_Mixer_1' % OPA_index)
-    wm_index = headers['name'].index('wm')
-    zi_index = headers['kind'].index('channel')  # the first channel
-    ws = headers['w%d points' % OPA_index]
+    m2_index = headers["name"].index("w%d_Mixer_1" % OPA_index)
+    wm_index = headers["name"].index("wm")
+    zi_index = headers["kind"].index("channel")  # the first channel
+    ws = headers["w%d points" % OPA_index]
     ws_len = len(ws)
-    wm_len = len(headers['wm points'])
-    m1_len = len(headers['w%d_Mixer_1 points' % OPA_index])
+    wm_len = len(headers["wm points"])
+    m1_len = len(headers["w%d_Mixer_1 points" % OPA_index])
     # get arrays
     arr = np.genfromtxt(data_filepath).T
     wm = arr[wm_index]
     wm.shape = (ws_len, m1_len, wm_len)
-    wm = wt.units.converter(wm, 'nm', 'wn')
+    wm = wt.units.converter(wm, "nm", "wn")
     m2 = arr[m2_index]
     m2.shape = (ws_len, m1_len, wm_len)
     zi = arr[zi_index]
@@ -778,7 +779,7 @@ def process_SFS_motortune(OPA_index, data_filepath, curves, save=True):
         outs[idx] = out
     outs = outs.T
     cen, wid, amp, base = outs
-    cen = wt.units.converter(cen, 'wn', 'nm')
+    cen = wt.units.converter(cen, "wn", "nm")
     # remove points with amplitudes that are ridiculous
     amp[amp < 0.1] = np.nan
     amp[amp > 5] = np.nan
@@ -791,8 +792,8 @@ def process_SFS_motortune(OPA_index, data_filepath, curves, save=True):
     # finish removal
     amp, cen, wid = wt.kit.share_nans([amp, cen, wid])
     # get ws, m1
-    ws = np.array(headers['w%d points' % OPA_index])
-    m1 = np.array(headers['w%d_Mixer_1 points' % OPA_index])
+    ws = np.array(headers["w%d points" % OPA_index])
+    m1 = np.array(headers["w%d_Mixer_1 points" % OPA_index])
     # choose best mixer position by expectation value
     function = wt.fit.ExpectationValue()
     chosen_deltas = np.full(ws.size, np.nan)
@@ -825,20 +826,20 @@ def process_SFS_motortune(OPA_index, data_filepath, curves, save=True):
     curve.map_colors(setpoints)
     # preapre for plot
     fig = plt.figure(figsize=[8, 6])
-    cmap = wt.artists.colormaps['default']
+    cmap = wt.artists.colormaps["default"]
     cmap.set_bad([0.75] * 3, 1.)
     cmap.set_under([0.75] * 3, 1.)
     gs = grd.GridSpec(2, 2, hspace=0.1, wspace=0.1, width_ratios=[20, 1])
     # lines
     ax = plt.subplot(gs[0, 0])
-    ax.plot(old_curve.colors, old_curve.motors[0].positions, c='k', lw=1)
-    ax.plot(curve.colors, curve.motors[0].positions, c='k', lw=5)
+    ax.plot(old_curve.colors, old_curve.motors[0].positions, c="k", lw=1)
+    ax.plot(curve.colors, curve.motors[0].positions, c="k", lw=5)
     ax.set_xlim(ws.min(), ws.max())
     ax.grid()
     plt.setp(ax.get_xticklabels(), visible=False)
-    ax.set_ylabel('M1', fontsize=16)
+    ax.set_ylabel("M1", fontsize=16)
     # pcolor
-    cmap = wt.artists.colormaps['default']
+    cmap = wt.artists.colormaps["default"]
     cmap.set_bad([0.75] * 3, 1.)
     cmap.set_under([0.75] * 3, 1.)
     X, Y, Z = wt.artists.pcolor_helper(ws, m1, amp)
@@ -846,25 +847,25 @@ def process_SFS_motortune(OPA_index, data_filepath, curves, save=True):
     mappable = ax.pcolor(X, Y, Z, vmin=0, vmax=np.nanmax(amp), cmap=cmap)
     ax.set_xlim(ws.min(), ws.max())
     ax.set_ylim(m1.min(), m1.max())
-    plt.axhline(c='k', lw=1)
-    ax.plot(ws, chosen_deltas, c='grey', lw=5)
+    plt.axhline(c="k", lw=1)
+    ax.plot(ws, chosen_deltas, c="grey", lw=5)
     old_curve.map_colors(setpoints)
     final_deltas = curve.motors[0].positions - old_curve.motors[0].positions
-    ax.plot(setpoints, final_deltas, c='k', lw=5)
+    ax.plot(setpoints, final_deltas, c="k", lw=5)
     ax.grid()
-    ax.set_xlabel('setpoint (nm)', fontsize=16)
-    ax.set_ylabel('$\mathsf{\Delta}$M1', fontsize=16)
+    ax.set_xlabel("setpoint (nm)", fontsize=16)
+    ax.set_ylabel("$\mathsf{\Delta}$M1", fontsize=16)
     # colorbar
     cax = plt.subplot(gs[1, 1])
     plt.colorbar(mappable=mappable, cax=cax)
     # finish plot
-    title = os.path.basename(data_filepath).replace('.data', '')[-19:]  # extract timestamp
+    title = os.path.basename(data_filepath).replace(".data", "")[-19:]  # extract timestamp
     plt.suptitle(title, fontsize=20)
     # finish
     if save:
         directory = os.path.dirname(data_filepath)
         curve.save(save_directory=directory, old_filepaths=curves)
-        image_path = data_filepath.replace('.data', '.png')
+        image_path = data_filepath.replace(".data", ".png")
         plt.savefig(image_path, dpi=300, transparent=True)
         plt.close(fig)
     return curve

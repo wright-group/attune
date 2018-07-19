@@ -19,15 +19,16 @@ from . import curve as attune_curve
 # --- define --------------------------------------------------------------------------------------
 
 
-cmap = wt.artists.colormaps['default']
+cmap = wt.artists.colormaps["default"]
 cmap.set_bad([0.75] * 3, 1.)
 cmap.set_under([0.75] * 3)
 
 # --- processing methods --------------------------------------------------------------------------
 
 
-def intensity(data, curve, channel_name, level=False, cutoff_factor=0.1,
-              autosave=True, save_directory=None):
+def intensity(
+    data, curve, channel_name, level=False, cutoff_factor=0.1, autosave=True, save_directory=None
+):
     """Workup a generic intensity plot for a single motor.
 
     Parameters
@@ -65,7 +66,7 @@ def intensity(data, curve, channel_name, level=False, cutoff_factor=0.1,
     old_curve = curve.copy()
     motors = []
     for motor_index, motor_name in enumerate([m.name for m in old_curve.motors]):
-        if motor_name == motor_axis_name.split('_')[-1]:
+        if motor_name == motor_axis_name.split("_")[-1]:
             positions = data.axes[0].centers + offsets_splined
             motor = attune_curve.Motor(positions, motor_name)
             motors.append(motor)
@@ -74,20 +75,25 @@ def intensity(data, curve, channel_name, level=False, cutoff_factor=0.1,
             motors.append(old_curve.motors[motor_index])
     kind = old_curve.kind
     interaction = old_curve.interaction
-    curve = attune_curve.Curve(tune_points, 'wn', motors,
-                           name=old_curve.name.split('-')[0],
-                           kind=kind, interaction=interaction)
+    curve = attune_curve.Curve(
+        tune_points,
+        "wn",
+        motors,
+        name=old_curve.name.split("-")[0],
+        kind=kind,
+        interaction=interaction,
+    )
     curve.map_colors(old_curve.colors)
     # plot ----------------------------------------------------------------------------------------
-    fig, gs = wt.artists.create_figure(nrows=2, default_aspect=0.5, cols=[1, 'cbar'])
+    fig, gs = wt.artists.create_figure(nrows=2, default_aspect=0.5, cols=[1, "cbar"])
     # curves
     ax = plt.subplot(gs[0, 0])
     xi = old_curve.colors
     yi = old_curve.motors[tuned_motor_index].positions
-    ax.plot(xi, yi, c='k', lw=1)
+    ax.plot(xi, yi, c="k", lw=1)
     xi = curve.colors
     yi = curve.motors[tuned_motor_index].positions
-    ax.plot(xi, yi, c='k', lw=5, alpha=0.5)
+    ax.plot(xi, yi, c="k", lw=5, alpha=0.5)
     ax.grid()
     ax.set_xlim(tune_points.min(), tune_points.max())
     ax.set_ylabel(curve.motor_names[tuned_motor_index], fontsize=18)
@@ -102,17 +108,18 @@ def intensity(data, curve, channel_name, level=False, cutoff_factor=0.1,
     ax.set_xlim(xi.min(), xi.max())
     ax.set_ylim(yi.min(), yi.max())
     ax.grid()
-    ax.axhline(c='k', lw=1)
+    ax.axhline(c="k", lw=1)
     xi = curve.colors
     yi = offsets
-    ax.plot(xi, yi, c='grey', lw=5, alpha=0.5)
+    ax.plot(xi, yi, c="grey", lw=5, alpha=0.5)
     xi = curve.colors
     yi = offsets_splined
-    ax.plot(xi, yi, c='k', lw=5, alpha=0.5)
-    units_string = '$\mathsf{(' + wt.units.color_symbols[curve.units] + ')}$'
-    ax.set_xlabel(' '.join(['setpoint', units_string]), fontsize=18)
+    ax.plot(xi, yi, c="k", lw=5, alpha=0.5)
+    units_string = "$\mathsf{(" + wt.units.color_symbols[curve.units] + ")}$"
+    ax.set_xlabel(" ".join(["setpoint", units_string]), fontsize=18)
     ax.set_ylabel(
-        ' '.join(['$\mathsf{\Delta}$', curve.motor_names[tuned_motor_index]]), fontsize=18)
+        " ".join(["$\mathsf{\Delta}$", curve.motor_names[tuned_motor_index]]), fontsize=18
+    )
     # colorbar
     cax = plt.subplot(gs[1, -1])
     label = channel_name
@@ -123,13 +130,14 @@ def intensity(data, curve, channel_name, level=False, cutoff_factor=0.1,
         if save_directory is None:
             save_directory = os.getcwd()
         curve.save(save_directory=save_directory, full=True)
-        p = os.path.join(save_directory, 'intensity.png')
+        p = os.path.join(save_directory, "intensity.png")
         wt.artists.savefig(p, fig=fig)
     return curve
 
 
-def tune_test(data, curve, channel_name, level=False, cutoff_factor=0.01,
-              autosave=True, save_directory=None):
+def tune_test(
+    data, curve, channel_name, level=False, cutoff_factor=0.01, autosave=True, save_directory=None
+):
     """Workup a Tune Test.
 
     Parameters
@@ -178,15 +186,15 @@ def tune_test(data, curve, channel_name, level=False, cutoff_factor=0.01,
     # make curve ----------------------------------------------------------------------------------
     curve = curve.copy()
     curve_native_units = curve.units
-    curve.convert('wn')
+    curve.convert("wn")
     points = curve.colors.copy()
     curve.colors += offsets_splined
-    curve.map_colors(points, units='wn')
+    curve.map_colors(points, units="wn")
     curve.convert(curve_native_units)
     # plot ----------------------------------------------------------------------------------------
     data.axes[1].convert(curve_native_units)
-    fig, gs = wt.artists.create_figure(default_aspect=0.5, cols=[1, 'cbar'])
-    fig, gs = wt.artists.create_figure(default_aspect=0.5, cols=[1, 'cbar'])
+    fig, gs = wt.artists.create_figure(default_aspect=0.5, cols=[1, "cbar"])
+    fig, gs = wt.artists.create_figure(default_aspect=0.5, cols=[1, "cbar"])
     # heatmap
     ax = plt.subplot(gs[0, 0])
     xi = data.axes[1].points
@@ -200,13 +208,13 @@ def tune_test(data, curve, channel_name, level=False, cutoff_factor=0.01,
     outs.convert(curve_native_units)
     xi = outs.axes[0].points
     yi = outs.mean.values
-    ax.plot(xi, yi, c='grey', lw=5, alpha=0.5)
-    ax.plot(xi, offsets_splined, c='k', lw=5, alpha=0.5)
-    ax.axhline(c='k', lw=1)
+    ax.plot(xi, yi, c="grey", lw=5, alpha=0.5)
+    ax.plot(xi, offsets_splined, c="k", lw=5, alpha=0.5)
+    ax.axhline(c="k", lw=1)
     ax.grid()
-    units_string = '$\mathsf{(' + wt.units.color_symbols[curve.units] + ')}$'
-    ax.set_xlabel(r' '.join(['setpoint', units_string]), fontsize=18)
-    ax.set_ylabel(r'$\mathsf{\Delta' + wt.units.color_symbols['wn'] + '}$', fontsize=18)
+    units_string = "$\mathsf{(" + wt.units.color_symbols[curve.units] + ")}$"
+    ax.set_xlabel(r" ".join(["setpoint", units_string]), fontsize=18)
+    ax.set_ylabel(r"$\mathsf{\Delta" + wt.units.color_symbols["wn"] + "}$", fontsize=18)
     # colorbar
     cax = plt.subplot(gs[:, -1])
     label = channel_name
@@ -217,6 +225,6 @@ def tune_test(data, curve, channel_name, level=False, cutoff_factor=0.01,
         if save_directory is None:
             save_directory = os.path.dirname(data.source)
         curve.save(save_directory=save_directory, full=True)
-        p = os.path.join(save_directory, 'tune test.png')
+        p = os.path.join(save_directory, "tune test.png")
         wt.artists.savefig(p, fig=fig)
     return curve
