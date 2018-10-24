@@ -241,7 +241,7 @@ class Curve:
             The interpolation method to use.
         """
         # version
-        from . import __version__
+        from .. import __version__
 
         self.__version__ = __version__
         # inherit
