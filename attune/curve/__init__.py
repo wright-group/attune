@@ -862,10 +862,10 @@ def to_800_curve(curve, save_directory):
     headers = collections.OrderedDict()
     headers["file created"] = timestamp.RFC3339
     headers["interaction"] = curve.interaction
-    headers["name"] = ["Color (wn)", "Grating", "BBO", "Mixer"]
-    # wt.kit.write_headers(out_path, headers)
+    headers["name"] = ["Color (wn)"] + [motor.name for motor in motors]
+    tidy_headers.write(out_path, headers)
     with open(out_path, "ab") as f:
-        np.savetxt(f, out_arr.T, fmt=["%.2f", "%.5f", "%.5f", "%.5f"], delimiter="\t")
+        np.savetxt(f, out_arr.T, fmt=["%.2f"] + ["%.5f" for m in motors], delimiter="\t")
     return out_path
 
 
