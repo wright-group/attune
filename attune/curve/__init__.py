@@ -851,9 +851,9 @@ def to_800_curve(curve, save_directory):
     # array
     colors = curve.colors
     motors = curve.motors
-    out_arr = np.zeros([4, len(colors)])
+    out_arr = np.zeros([len(motors) + 1, len(colors)])
     out_arr[0] = colors
-    out_arr[1:4] = np.array([motor.positions for motor in motors])
+    out_arr[1:] = np.array([motor.positions for motor in motors])
     # filename
     timestamp = wt.kit.TimeStamp()
     out_name = curve.name.split("-")[0] + "- " + timestamp.path
@@ -863,7 +863,7 @@ def to_800_curve(curve, save_directory):
     headers["file created"] = timestamp.RFC3339
     headers["interaction"] = curve.interaction
     headers["name"] = ["Color (wn)", "Grating", "BBO", "Mixer"]
-    wt.kit.write_headers(out_path, headers)
+    # wt.kit.write_headers(out_path, headers)
     with open(out_path, "ab") as f:
         np.savetxt(f, out_arr.T, fmt=["%.2f", "%.5f", "%.5f", "%.5f"], delimiter="\t")
     return out_path
