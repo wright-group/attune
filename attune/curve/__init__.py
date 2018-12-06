@@ -730,6 +730,7 @@ def from_poynting_curve(filepath, subcurve=None):
     -------
     WrightTools.tuning.curve.Curve
     """
+    filepath = pathlib.Path(filepath)
     # read from file
     headers = tidy_headers.read(filepath)
     arr = np.genfromtxt(filepath).T
@@ -745,7 +746,7 @@ def from_poynting_curve(filepath, subcurve=None):
     kwargs["interaction"] = headers["interaction"]
     kwargs["kind"] = "poynting"
     kwargs["method"] = Linear
-    kwargs["name"] = wt.kit.filename_parse(filepath)[1]
+    kwargs["name"] = filepath.stem
     if subcurve is not None:
         kwargs["subcurve"] = subcurve
         kwargs["source_colors"] = Motor(colors, "wn")
@@ -902,7 +903,7 @@ def to_poynting_curve(curve, save_directory):
     headers["file created"] = timestamp.RFC3339
     headers["interaction"] = curve.interaction
     headers["name"] = ["Color (wn)", "Phi", "Theta"]
-    wt.kit.write_headers(out_path, headers)
+    tidy_headers.write(out_path, headers)
     with open(out_path, "ab") as f:
         np.savetxt(f, out_arr.T, fmt=["%.2f", "%.0f", "%.0f"], delimiter="\t")
     # save subcurve
