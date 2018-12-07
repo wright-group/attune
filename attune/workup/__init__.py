@@ -29,7 +29,14 @@ cmap.set_under([0.75] * 3)
 
 
 def intensity(
-    data, curve, channel, *, level=False, cutoff_factor=0.1, autosave=True, save_directory=None
+    data,
+    curve,
+    channel,
+    *,
+    level=False,
+    cutoff_factor=0.1,
+    autosave=True,
+    save_directory=None,
 ):
     """Workup a generic intensity plot for a single motor.
 
@@ -95,7 +102,9 @@ def intensity(
 
     # TODO: This is a common setup among tuning methods, should extract to a method
     def _plot():
-        fig, gs = wt.artists.create_figure(nrows=2, default_aspect=0.5, cols=[1, "cbar"])
+        fig, gs = wt.artists.create_figure(
+            nrows=2, default_aspect=0.5, cols=[1, "cbar"]
+        )
         ax = plt.subplot(gs[0, 0])
         xi = old_curve.colors
         yi = old_curve.motors[tuned_motor_index].positions
@@ -144,7 +153,13 @@ def intensity(
 
 
 def tune_test(
-    data, curve, channel_name, level=False, cutoff_factor=0.01, autosave=True, save_directory=None
+    data,
+    curve,
+    channel_name,
+    level=False,
+    cutoff_factor=0.01,
+    autosave=True,
+    save_directory=None,
 ):
     """Workup a Tune Test.
 

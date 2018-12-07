@@ -187,7 +187,9 @@ def process_brute_force(
         ws, y_outs, datas[0].axes[0].points.min(), datas[0].axes[0].points.max()
     )
     # plot data
-    aspect = (datas[0].d2.max() - datas[0].d2.min()) / (datas[0].d1.max() - datas[0].d1.min())
+    aspect = (datas[0].d2.max() - datas[0].d2.min()) / (
+        datas[0].d1.max() - datas[0].d1.min()
+    )
     cmap = wt.artists.colormaps["default"]
     if plot:
         for i, d in enumerate(datas):
@@ -239,7 +241,9 @@ def process_brute_force(
             # title
             wt.artists._title(fig, str(ws[i]))
             # save
-            figure_path = os.path.join(os.path.dirname(data_filepath), str(i).zfill(3) + ".png")
+            figure_path = os.path.join(
+                os.path.dirname(data_filepath), str(i).zfill(3) + ".png"
+            )
             plt.savefig(figure_path, dpi=300, transparent=True, pad_inches=1)
             plt.close(fig)
     # plot corrections array

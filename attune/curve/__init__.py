@@ -64,7 +64,10 @@ TOPAS_800_interactions = {
     "DF2-NON-NON-Sig": [7, TOPAS_800_motor_names[3]],
 }
 
-TOPAS_interaction_by_kind = {"TOPAS-C": TOPAS_C_interactions, "TOPAS-800": TOPAS_800_interactions}
+TOPAS_interaction_by_kind = {
+    "TOPAS-C": TOPAS_C_interactions,
+    "TOPAS-800": TOPAS_800_interactions,
+}
 
 
 # --- interpolation classes -----------------------------------------------------------------------
@@ -88,7 +91,9 @@ class Linear:
         self.colors = colors
         self.units = units
         self.motors = motors
-        self.functions = [wt.kit.Spline(colors, motor.positions, k=1, s=0) for motor in motors]
+        self.functions = [
+            wt.kit.Spline(colors, motor.positions, k=1, s=0) for motor in motors
+        ]
 
     def get_motor_positions(self, color):
         """Get motor positions.
@@ -125,7 +130,9 @@ class Poly:
         self.n = 8
         self.fit_params = []
         for motor in motors:
-            out = np.polynomial.polynomial.polyfit(colors, motor.positions, self.n, full=True)
+            out = np.polynomial.polynomial.polyfit(
+                colors, motor.positions, self.n, full=True
+            )
             self.fit_params.append(out)
         self.linear = Linear(colors, units, motors)
 
@@ -245,7 +252,9 @@ class Curve:
 
         self.__version__ = __version__
         # inherit
-        self.colors = np.array(colors)  # needs to be array for some interpolation methods
+        self.colors = np.array(
+            colors
+        )  # needs to be array for some interpolation methods
         self.units = units
         self.motors = motors
         self.name = name
@@ -268,7 +277,9 @@ class Curve:
         outs.append("  name: " + self.name)
         outs.append("  interaction: " + self.interaction)
         outs.append(
-            "  range: {0} - {1} ({2})".format(self.colors.min(), self.colors.max(), self.units)
+            "  range: {0} - {1} ({2})".format(
+                self.colors.min(), self.colors.max(), self.units
+            )
         )
         outs.append("  number: " + str(len(self.colors)))
         return "\n".join(outs)
@@ -291,7 +302,9 @@ class Curve:
         self.colors = wt.units.converter(self.colors, self.units, units)
         if self.subcurve:
             positions = self.source_colors.positions
-            self.source_colors.positions = wt.units.converter(positions, self.units, units)
+            self.source_colors.positions = wt.units.converter(
+                positions, self.units, units
+            )
         self.units = units
         self.interpolate()  # how did it ever work if this wasn't here?  - Blaise 2017-03-22
 
@@ -390,7 +403,9 @@ class Curve:
 
         def is_numeric(obj):
             attrs = ["__add__", "__sub__", "__mul__", "__pow__"]
-            return all([hasattr(obj, attr) for attr in attrs] + [not hasattr(obj, "__len__")])
+            return all(
+                [hasattr(obj, attr) for attr in attrs] + [not hasattr(obj, "__len__")]
+            )
 
         if is_numeric(color):
             color = np.array([color])
@@ -398,11 +413,17 @@ class Curve:
         if full and self.subcurve:
             out = []
             for c in color:
-                source_color = np.array(self.source_color_interpolator.get_motor_positions(c))
+                source_color = np.array(
+                    self.source_color_interpolator.get_motor_positions(c)
+                )
                 source_motor_positions = np.array(
-                    self.subcurve.get_motor_positions(source_color, units=self.units, full=True)
+                    self.subcurve.get_motor_positions(
+                        source_color, units=self.units, full=True
+                    )
                 ).squeeze()
-                own_motor_positions = np.array(self.interpolator.get_motor_positions(c)).flatten()
+                own_motor_positions = np.array(
+                    self.interpolator.get_motor_positions(c)
+                ).flatten()
                 out.append(np.hstack((source_motor_positions, own_motor_positions)))
             out = np.array(out)
             return out.squeeze().T
@@ -431,7 +452,9 @@ class Curve:
 
         def is_numeric(obj):
             attrs = ["__add__", "__sub__", "__mul__", "__div__", "__pow__"]
-            return all([hasattr(obj, attr) for attr in attrs] + [not hasattr(obj, "__len__")])
+            return all(
+                [hasattr(obj, attr) for attr in attrs] + [not hasattr(obj, "__len__")]
+            )
 
         if is_numeric(color):
             color = np.array([color])
@@ -441,7 +464,9 @@ class Curve:
         else:
             color = wt.units.converter(color, units, self.units)
         # evaluate
-        return np.array([self.source_color_interpolator.get_motor_positions(c) for c in color])
+        return np.array(
+            [self.source_color_interpolator.get_motor_positions(c) for c in color]
+        )
 
     def interpolate(self, interpolate_subcurve=True):
         """Generate the interploator object.
@@ -606,14 +631,18 @@ class Curve:
             for _ in range(len(all_curves) - curve_index - 1):
                 current_arr = current_curve.get_source_color(current_arr)
                 current_curve = current_curve.subcurve
-            source_color_arrs[current_curve.interaction] = np.array(current_arr).flatten()
+            source_color_arrs[current_curve.interaction] = np.array(
+                current_arr
+            ).flatten()
         # add labels
         for curve in all_curves:
             ax = plt.subplot(lowest_ax_dictionary[curve.interaction])
             plt.setp(ax.get_xticklabels(), visible=True)
             ax.set_xlabel(curve.interaction + " color ({})".format(curve.units))
             xtick_positions = self.colors
-            xtick_labels = [str(np.around(x, 1)) for x in source_color_arrs[curve.interaction]]
+            xtick_labels = [
+                str(np.around(x, 1)) for x in source_color_arrs[curve.interaction]
+            ]
             plt.xticks(xtick_positions, xtick_labels, rotation=45)
         # formatting details
         xmin = self.colors.min() - np.abs(self.colors[0] - self.colors[1])
@@ -670,7 +699,9 @@ class Curve:
         elif self.kind in ["TOPAS-C", "TOPAS-800"]:
             kwargs = {}
             kwargs["old_filepaths"] = self.old_filepaths
-            out_path = to_TOPAS_crvs(self, save_directory, self.kind, full=full, **kwargs)
+            out_path = to_TOPAS_crvs(
+                self, save_directory, self.kind, full=full, **kwargs
+            )
         else:
             error_text = " ".join(["kind", self.kind, "does not know how to save!"])
             raise LookupError(error_text)
@@ -711,7 +742,13 @@ def from_800_curve(filepath):
     interaction = headers["interaction"]
     name = filepath.stem
     curve = Curve(
-        colors, "wn", motors, name=name, interaction=interaction, kind="opa800", method=Spline
+        colors,
+        "wn",
+        motors,
+        name=name,
+        interaction=interaction,
+        kind="opa800",
+        method=Spline,
     )
     return curve
 
@@ -866,7 +903,9 @@ def to_800_curve(curve, save_directory):
     headers["name"] = ["Color (wn)"] + [motor.name for motor in motors]
     tidy_headers.write(out_path, headers)
     with open(out_path, "ab") as f:
-        np.savetxt(f, out_arr.T, fmt=["%.2f"] + ["%.5f" for m in motors], delimiter="\t")
+        np.savetxt(
+            f, out_arr.T, fmt=["%.2f"] + ["%.5f" for m in motors], delimiter="\t"
+        )
     return out_path
 
 
@@ -998,7 +1037,8 @@ def to_TOPAS_crvs(curve, save_directory, kind, full, **kwargs):
         to_insert["NON-NON-NON-Idl"] = idler_arr
     # TOPAS800 DFG (3 motor mier)
     elif (
-        interaction_string in ["DF1-NON-NON-Sig", "DF2-NON-NON-Sig"] and curve.kind == "TOPAS-800"
+        interaction_string in ["DF1-NON-NON-Sig", "DF2-NON-NON-Sig"]
+        and curve.kind == "TOPAS-800"
     ):
         # create array from curve
         arr = np.zeros([6, len(curve.colors)])
@@ -1045,7 +1085,9 @@ def to_TOPAS_crvs(curve, save_directory, kind, full, **kwargs):
                     value_as_string = "%f.6" % value
                     portion_before_decimal = value_as_string.split(".")[0]
                     portion_after_decimal = value_as_string.split(".")[1].ljust(6, "0")
-                    value_as_string = portion_before_decimal + "." + portion_after_decimal
+                    value_as_string = (
+                        portion_before_decimal + "." + portion_after_decimal
+                    )
                 line += value_as_string + "\t"
             line += "\n"
             out_lines.insert(line_index - 1, line)
