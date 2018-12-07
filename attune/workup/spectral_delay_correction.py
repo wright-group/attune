@@ -15,7 +15,7 @@ import numpy as np
 from scipy.interpolate import UnivariateSpline
 
 import WrightTools as wt
-from . import coset as attune_coset
+from .. import coset as attune_coset
 
 
 # --- processing methods --------------------------------------------------------------------------
@@ -26,7 +26,7 @@ def process_wigner(
     channel,
     control_name,
     offset_name,
-    coset_name,
+    coset_name=None,
     color_units="nm",
     delay_units="fs",
     global_cutoff_factor=0.05,
@@ -49,6 +49,7 @@ def process_wigner(
         Offset name.
     coset_name : string
         Coset name.
+        Default is "{control_name}_{offset_name}"
     color_units : string (optional)
         Color units. Default is nm.
     delay_units : string (optional)
@@ -64,52 +65,42 @@ def process_wigner(
     save_directory : string (optional)
         Control save directory. Default is None (current working directory).
     """
+    data = data.copy()
+    if coset_name is None:
+        coset_name = f"{control_name}_{offset_name}"
     # get data
     if data.axes[0].units_kind == "energy":
-        data.transpose()  # prefered shape - delay then color
+        data.transform(*data.axis_names[::-1])  # prefered shape - delay then color
     data.convert(color_units)
     data.convert(delay_units)
     ws = data.axes[1].points
     # get channel index
     channel_index = wt.kit.get_index(data.channel_names, channel)
+    channel_name = data.channel_names[channel_index]
+    channel = data[channel_name]
 
     # clip slice
-    values = data.channels[channel_index].values
-    cutoffs = np.amax(values, axis=0) * slice_cutoff_factor  # caught by nans
-    print(cutoffs, cutoffs.shape)
-    values[values < cutoffs] = np.nan
-    data.channels[channel_index].values = values
+    cutoffs = np.amax(channel[:], axis=0) * slice_cutoff_factor  # caught by nans
+    channel[channel < cutoffs] = np.nan
     # clip global
-    data.channels[channel_index].clip(
-        min=data.channels[channel_index].max() * global_cutoff_factor
-    )
+    channel.clip(min=data.channels[channel_index].max() * global_cutoff_factor)
     # process
-    function = wt.fit.Gaussian()
-    fitter = wt.fit.Fitter(function, data, data.axes[0].name)
-    outs = fitter.run(channel_index, propagate_other_channels=False, verbose=False)
-    # clean
-    # remove the edges because they are badly behaved...
-    # should probably do something more sophisticated...
-    outs.amplitude.values[0] = np.nan
-    outs.amplitude.values[-1] = np.nan
-    width = data.axes[0].max() - data.axes[0].min()
-    outs.width.clip(0, width)
-    outs.mean.clip(data.axes[0].min(), data.axes[0].max())
-    outs.share_nans()
-    centers = outs.channels[0].values
+    data.moment(axis=0, channel=channel_name, moment=1)
+    centers = data.channels[-1].points
     # spline
     spline = wt.kit.Spline(ws, centers, k=2, s=s)
     corrections = spline(ws)
     # prepare for plot
-    artist = wt.artists.mpl_2D(data)
+    wt.artists.quick2D(data, channel=channel_name)
+    ax = plt.gca()
     # plot outs
-    xi = outs.axes[0].points
-    yi = outs.channels[0].values
-    artist.onplot(xi, yi)
+    xi = data.axes[1].points
+    yi = centers
+    ax.plot(xi, yi)
     # plot corrections
     xi = ws
     yi = corrections
-    artist.onplot(xi, yi, alpha=1)
+    ax.plot(xi, yi, alpha=1)
     # make coset
     coset = attune_coset.CoSet(
         control_name, color_units, ws, offset_name, delay_units, corrections, coset_name
@@ -117,14 +108,6 @@ def process_wigner(
     # save
     if save_directory is None:
         save_directory = os.getcwd()
-    artist.plot(
-        channel_index,
-        contours=0,
-        lines=False,
-        fname=data.name,
-        output_folder=save_directory,
-        autosave=autosave,
-    )
     if autosave:
         coset.save(save_directory=save_directory)
     return coset

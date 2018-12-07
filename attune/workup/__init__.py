@@ -14,7 +14,8 @@ import numpy as np
 
 import WrightTools as wt
 from .. import curve as attune_curve
-#from . import fit
+
+# from . import fit
 
 
 # --- define --------------------------------------------------------------------------------------
@@ -118,11 +119,11 @@ def intensity(
         yi = offsets_splined
         ax.plot(xi, yi, c="k", lw=5, alpha=0.5)
 
-        #units_string = r"$\mathsf{\left(" + wt.units.color_symbols[curve.units] + r"\right)}$"
-        #ax.set_xlabel(" ".join(["setpoint", units_string]), fontsize=18)
-        #ax.set_ylabel(
+        # units_string = r"$\mathsf{\left(" + wt.units.color_symbols[curve.units] + r"\right)}$"
+        # ax.set_xlabel(" ".join(["setpoint", units_string]), fontsize=18)
+        # ax.set_ylabel(
         #    " ".join(["$\mathsf{\Delta}$", curve.motor_names[tuned_motor_index]]), fontsize=18
-        #)
+        # )
         cax = plt.subplot(gs[1, -1])
         label = channel.natural_name
         ticks = np.linspace(0, channel.max(), 7)
@@ -133,7 +134,7 @@ def intensity(
 
     if autosave:
         if save_directory is None:
-            #TODO: Formal decision on whether this should be cwd or data/curve location
+            # TODO: Formal decision on whether this should be cwd or data/curve location
             save_directory = os.getcwd()
         curve.save(save_directory=save_directory, full=True)
         # Should we timestamp the image?
@@ -213,16 +214,16 @@ def tune_test(
     ax.set_ylim(yi.min(), yi.max())
     # lines
     print(outs.units, outs.natural_name)
-    #outs.convert(curve_native_units)
+    # outs.convert(curve_native_units)
     xi = data.axes[1].points
     yi = outs.points
     ax.plot(xi, yi, c="grey", lw=5, alpha=0.5)
     ax.plot(xi, offsets_splined, c="k", lw=5, alpha=0.5)
     ax.axhline(c="k", lw=1)
     ax.grid()
-    #units_string = "$\mathsf{(" + wt.units.color_symbols[curve.units] + ")}$"
-    #ax.set_xlabel(r" ".join(["setpoint", units_string]), fontsize=18)
-    #ax.set_ylabel(r"$\mathsf{\Delta" + wt.units.color_symbols["wn"] + "}$", fontsize=18)
+    # units_string = "$\mathsf{(" + wt.units.color_symbols[curve.units] + ")}$"
+    # ax.set_xlabel(r" ".join(["setpoint", units_string]), fontsize=18)
+    # ax.set_ylabel(r"$\mathsf{\Delta" + wt.units.color_symbols["wn"] + "}$", fontsize=18)
     # colorbar
     cax = plt.subplot(gs[:, -1])
     label = channel_name

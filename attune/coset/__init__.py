@@ -18,6 +18,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 import WrightTools as wt
+import tidy_headers
 
 matplotlib.rcParams["font.size"] = 14
 
@@ -267,7 +268,7 @@ class CoSet:
         headers["control units"] = self.control_units
         headers["offset"] = self.offset_name
         headers["offset units"] = self.offset_units
-        file_path = wt.kit.write_headers(file_path, headers)
+        tidy_headers.write(file_path, headers)
         X = np.vstack([self.control_points, self.offset_points]).T
         with open(file_path, "ab") as f:
             np.savetxt(f, X, fmt=str("%8.6f"), delimiter="\t")
