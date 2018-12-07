@@ -169,10 +169,7 @@ def process_C2_motortune(opa_index, data_filepath, curves, save=True):
     gs = grd.GridSpec(2, 1, hspace=0.1, wspace=0.1)
     colors = wt.artists.get_color_cycle(ws.size, rotations=4)
     xroom = (curve.motors[2].positions.max() - curve.motors[2].positions.min()) / 10.
-    xlim = [
-        curve.motors[2].positions.min() - xroom,
-        curve.motors[2].positions.max() + xroom,
-    ]
+    xlim = [curve.motors[2].positions.min() - xroom, curve.motors[2].positions.max() + xroom]
     # detunings
     ax = plt.subplot(gs[1, 0])
     for i in range(ws.size):
@@ -200,22 +197,14 @@ def process_C2_motortune(opa_index, data_filepath, curves, save=True):
     ax = plt.subplot(gs[0, 0])
     ax.plot(old_curve.motors[2].positions, old_curve.colors, c="k", lw=1)
     for i in range(ws.size):
-        ax.scatter(
-            curve.motors[2].positions[i],
-            curve.colors[i],
-            c=colors[i],
-            marker="x",
-            s=100,
-        )
+        ax.scatter(curve.motors[2].positions[i], curve.colors[i], c=colors[i], marker="x", s=100)
     ax.set_xlim(ws.min(), ws.max())
     ax.grid()
     plt.setp(ax.get_xticklabels(), visible=False)
     ax.set_ylabel("setpoint (nm)", fontsize=16)
     ax.set_xlim(*xlim)
     # finish plot
-    title = os.path.basename(data_filepath).replace(".data", "")[
-        -19:
-    ]  # extract timestamp
+    title = os.path.basename(data_filepath).replace(".data", "")[-19:]  # extract timestamp
     plt.suptitle(title, fontsize=20)
     # finish
     if save:
@@ -337,9 +326,7 @@ def process_D2_motortune(opa_index, data_filepath, curves, save=True):
     cax = plt.subplot(gs[1, 1])
     plt.colorbar(mappable=mappable, cax=cax)
     # finish plot
-    title = os.path.basename(data_filepath).replace(".data", "")[
-        -19:
-    ]  # extract timestamp
+    title = os.path.basename(data_filepath).replace(".data", "")[-19:]  # extract timestamp
     plt.suptitle(title, fontsize=20)
     # finish
     if save:
@@ -549,9 +536,7 @@ def process_preamp_motortune(OPA_index, data_filepath, curves, save=True):
     clabel_positions = np.zeros([len(preamp_chosen), 2])
     clabel_positions[:, 0] = preamp_chosen[:, 1]
     clabel_positions[:, 1] = preamp_chosen[:, 2]
-    plt.clabel(
-        CS, inline=0, fontsize=9, manual=clabel_positions, colors="w", fmt="%1.0f"
-    )
+    plt.clabel(CS, inline=0, fontsize=9, manual=clabel_positions, colors="w", fmt="%1.0f")
     # plot old points, edges of acquisition
     xi = old_curve.motors[0].positions
     yi = old_curve.motors[1].positions
@@ -735,9 +720,7 @@ def process_SHS_motortune(OPA_index, data_filepath, curves, save=True):
     plt.colorbar(mappable=mappable, cax=cax)
     cax.set_ylabel("intensity", fontsize=18)
     # finish plot
-    title = os.path.basename(data_filepath).replace(".data", "")[
-        -19:
-    ]  # extract timestamp
+    title = os.path.basename(data_filepath).replace(".data", "")[-19:]  # extract timestamp
     # plt.suptitle(title, fontsize=20)
     # finish
     if save:
@@ -876,9 +859,7 @@ def process_SFS_motortune(OPA_index, data_filepath, curves, save=True):
     cax = plt.subplot(gs[1, 1])
     plt.colorbar(mappable=mappable, cax=cax)
     # finish plot
-    title = os.path.basename(data_filepath).replace(".data", "")[
-        -19:
-    ]  # extract timestamp
+    title = os.path.basename(data_filepath).replace(".data", "")[-19:]  # extract timestamp
     plt.suptitle(title, fontsize=20)
     # finish
     if save:

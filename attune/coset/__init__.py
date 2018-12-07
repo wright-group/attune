@@ -117,9 +117,7 @@ class CoSet:
         units : string
             New control units.
         """
-        self.control_points = wt.units.converter(
-            self.control_points, self.control_units, units
-        )
+        self.control_points = wt.units.converter(self.control_points, self.control_units, units)
         self.sort()
         self.control_units = units
         self.interpolate()
@@ -132,9 +130,7 @@ class CoSet:
         units : string
             New offset units.
         """
-        self.offset_points = wt.units.converter(
-            self.offset_points, self.offset_units, units
-        )
+        self.offset_points = wt.units.converter(self.offset_points, self.offset_units, units)
         self.offset_units = units
         self.interpolate()
 
@@ -158,9 +154,7 @@ class CoSet:
         if units == "same":
             return [self.control_points.min(), self.control_points.max()]
         else:
-            units_points = wt.units.converter(
-                self.control_points, self.control_units, units
-            )
+            units_points = wt.units.converter(self.control_points, self.control_units, units)
             return [units_points.min(), units_points.max()]
 
     def get_offset(self, control_position, input_units="same", output_units="same"):
