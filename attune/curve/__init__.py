@@ -60,6 +60,7 @@ class Interpolator:
 class Linear(Interpolator):
     """Linear interpolation."""
 
+    @property
     def functions(self):
         if self._functions is not None:
             return self._functions
@@ -73,6 +74,7 @@ class Poly:
         self.deg = kwargs.pop("deg", 8)
         super(self, Interpolator).__init__(*args, **kwargs)
 
+    @property
     def functions(self):
         if self._functions is not None:
             return self._functions
@@ -82,7 +84,8 @@ class Poly:
 class Spline:
     """Spline interpolation."""
 
-    def functions(self)
+    @property
+    def functions(self):
         if self._functions is not None:
             return self._functions
         self._functions = [
@@ -606,26 +609,26 @@ class Curve:
         return out_path
 
 
-    def read(filepath, subcurve=None):
-        filepath = pathlib.Path(filepath)
-        headers = tidy_headers.read(filepath)
-        arr = np.genfromtxt(filepath).T
-        colors = arr[0]
-        names = headers["name"]
-        motors = []
-        for a, n in zip(arr[1:], names[1:]):
-            motors.append(Motor(a,n))
-        kwargs = {}
-        kwargs["interaction"] = headers["interaction"]
-        kwargs["kind"] = headers.get("kind", None)
-        kwargs["method"] = methods.get(headers.get("method", ""), Linear)
-        kwargs["name"] = headers.get("curve name", filepath.stem)
-        kwargs["fmt"] = headers.get("fmt", ["%.2f"] + ["%.5f"]*len(motors))
-        units = re.parse(r".*\((.*)\).*", names[0])[1]
-        if subcurve is not None:
-            kwargs["subcurve"] = subcurve
-            kwargs["source_colors"] = Motor(colors, units)
-        # finish
-        curve = Curve(colors, units, motors, **kwargs)
-        return curve
+def read(filepath, subcurve=None):
+    filepath = pathlib.Path(filepath)
+    headers = tidy_headers.read(filepath)
+    arr = np.genfromtxt(filepath).T
+    colors = arr[0]
+    names = headers["name"]
+    motors = []
+    for a, n in zip(arr[1:], names[1:]):
+        motors.append(Motor(a,n))
+    kwargs = {}
+    kwargs["interaction"] = headers["interaction"]
+    kwargs["kind"] = headers.get("kind", None)
+    kwargs["method"] = methods.get(headers.get("method", ""), Linear)
+    kwargs["name"] = headers.get("curve name", filepath.stem)
+    kwargs["fmt"] = headers.get("fmt", ["%.2f"] + ["%.5f"]*len(motors))
+    units = re.match(r".*\((.*)\).*", names[0])[1]
+    if subcurve is not None:
+        kwargs["subcurve"] = subcurve
+        kwargs["source_colors"] = Motor(colors, units)
+    # finish
+    curve = Curve(colors, units, motors, **kwargs)
+    return curve
 
