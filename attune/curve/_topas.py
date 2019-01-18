@@ -1,8 +1,11 @@
 import numpy as np
-from ._base import Curve
+import pathlib
+import shutil
+import copy
+from ._base import Curve, Motor, Linear
 import WrightTools as wt
 
-__all__ = ["TopasCurve", "topas_read"]
+__all__ = ["TopasCurve", "read_topas"]
 
 TOPAS_C_motor_names = {
     0: ["Crystal_1", "Delay_1", "Crystal_2", "Delay_2"],
@@ -47,7 +50,8 @@ TOPAS_interaction_by_kind = {"TOPAS-C": TOPAS_C_interactions, "TOPAS-800": TOPAS
 
 class TopasCurve(Curve):
 
-    def save(self, save_directory, kind, full, **kwargs):
+
+    def save(self, save_directory, full=True):
         """Save a curve object.
 
         Parameters
@@ -58,18 +62,17 @@ class TopasCurve(Curve):
             Curve kind.
         full : boolean
             Toggle saving subcurves.
-        **kwargs
 
         Returns
         -------
         string
             Output path.
         """
-        TOPAS_interactions = TOPAS_interaction_by_kind[kind]
+        TOPAS_interactions = TOPAS_interaction_by_kind[self.kind]
         # unpack
         curve = self.copy()
         curve.convert("nm")
-        old_filepaths = kwargs["old_filepaths"]
+        old_filepaths = self.old_filepaths
         interaction_string = curve.interaction
         # open appropriate crv
         interactions = interaction_string.split("-")
@@ -77,6 +80,8 @@ class TopasCurve(Curve):
         curve_index += 1
         curve_index = len(old_filepaths) - curve_index
         crv_path = old_filepaths[curve_index]
+        save_directory = pathlib.Path(save_directory)
+        save_directory.mkdir(parents=True, exist_ok=True)
         if full:
             # copy other curves over as well
             for i, p in enumerate(old_filepaths):
@@ -86,7 +91,8 @@ class TopasCurve(Curve):
                 if p is None:
                     continue
                 print(i, p)
-                d = os.path.join(save_directory, os.path.basename(p))
+                p = pathlib.Path(p)
+                d = save_directory / p.name
                 shutil.copy(p, d)
         with open(crv_path, "r") as crv:
             crv_lines = crv.readlines()
@@ -97,7 +103,7 @@ class TopasCurve(Curve):
 
                 num_tune_points = int(crv_lines[line_index - 1])
         # construct to_insert (dictionary of arrays)
-        to_insert = collections.OrderedDict()
+        to_insert = {}
         if interaction_string == 'NON-NON-NON-Sig':  # must generate idler
             # read spitfire color from crv
             spitfire_output = float(crv_lines[line_index - 4].rstrip())
@@ -186,14 +192,14 @@ class TopasCurve(Curve):
         # filename
         timestamp = wt.kit.TimeStamp().path
         out_name = curve.name.split('-')[0] + '- ' + timestamp
-        out_path = os.path.join(save_directory, out_name + '.crv')
+        out_path = (save_directory / out_name).with_suffix('.crv')
         # save
         with open(out_path, 'w') as new_crv:
             new_crv.write(''.join(out_lines).rstrip())
         return out_path
 
 
-def topas_read(filepaths, kind, interaction_string):
+def read_topas(filepaths, kind, interaction_string):
     """Create a curve object from a TOPAS crv file.
 
     Parameters
@@ -248,7 +254,7 @@ def topas_read(filepaths, kind, interaction_string):
             motor_name = TOPAS_interactions[interaction_string][1][i - 3]
             motor = Motor(arr[i], motor_name)
             motors.append(motor)
-            name = pathlib.Path(crv_path).name
+            name = pathlib.Path(crv_path).stem
         curve = TopasCurve(
             colors,
             "nm",
