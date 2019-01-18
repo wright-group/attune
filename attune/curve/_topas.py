@@ -1,6 +1,8 @@
 import numpy as np
-from . import *
+from ._base import Curve
 import WrightTools as wt
+
+__all__ = ["TopasCurve", "topas_read"]
 
 TOPAS_C_motor_names = {
     0: ["Crystal_1", "Delay_1", "Crystal_2", "Delay_2"],
@@ -42,7 +44,156 @@ TOPAS_800_interactions = {
 
 TOPAS_interaction_by_kind = {"TOPAS-C": TOPAS_C_interactions, "TOPAS-800": TOPAS_800_interactions}
 
-def from_TOPAS_crvs(filepaths, kind, interaction_string):
+
+class TopasCurve(Curve):
+
+    def save(self, save_directory, kind, full, **kwargs):
+        """Save a curve object.
+
+        Parameters
+        ----------
+        save_directory : string.
+            Save directory.
+        kind : string
+            Curve kind.
+        full : boolean
+            Toggle saving subcurves.
+        **kwargs
+
+        Returns
+        -------
+        string
+            Output path.
+        """
+        TOPAS_interactions = TOPAS_interaction_by_kind[kind]
+        # unpack
+        curve = self.copy()
+        curve.convert("nm")
+        old_filepaths = kwargs["old_filepaths"]
+        interaction_string = curve.interaction
+        # open appropriate crv
+        interactions = interaction_string.split("-")
+        curve_index = next((i for i, v in enumerate(interactions) if v != "NON"), -1)
+        curve_index += 1
+        curve_index = len(old_filepaths) - curve_index
+        crv_path = old_filepaths[curve_index]
+        if full:
+            # copy other curves over as well
+            for i, p in enumerate(old_filepaths):
+                print(i, p, curve_index)
+                if i == curve_index:
+                    continue
+                if p is None:
+                    continue
+                print(i, p)
+                d = os.path.join(save_directory, os.path.basename(p))
+                shutil.copy(p, d)
+        with open(crv_path, "r") as crv:
+            crv_lines = crv.readlines()
+        # collect information from file
+        for i in range(len(crv_lines)):
+            if crv_lines[i].rstrip() == interaction_string:
+                line_index = i + TOPAS_interactions[interaction_string][0]
+
+                num_tune_points = int(crv_lines[line_index - 1])
+        # construct to_insert (dictionary of arrays)
+        to_insert = collections.OrderedDict()
+        if interaction_string == 'NON-NON-NON-Sig':  # must generate idler
+            # read spitfire color from crv
+            spitfire_output = float(crv_lines[line_index - 4].rstrip())
+            # create signal array from curve
+            signal_arr = np.zeros([7, len(curve.colors)])
+            signal_arr[0] = spitfire_output
+            signal_arr[1] = curve.colors
+            signal_arr[2] = 4
+            for i in range(4):
+                signal_arr[3 + i] = curve.motors[i].positions
+            # create idler aray
+            idler_arr = signal_arr.copy()
+            idler_arr[1] = 1 / ((1 / spitfire_output) - (1 / curve.colors))
+            # construct to_insert
+            to_insert['NON-NON-NON-Sig'] = signal_arr
+            to_insert['NON-NON-NON-Idl'] = idler_arr
+        elif interaction_string == 'NON-NON-NON-Idl':  # must generate signal
+            # read spitfire color from crv
+            spitfire_output = float(crv_lines[line_index - 4].rstrip())
+            # create idler array from curve
+            idler_arr = np.zeros([7, len(curve.colors)])
+            idler_arr[0] = spitfire_output
+            idler_arr[1] = curve.colors
+            idler_arr[2] = 4
+            for i in range(4):
+                idler_arr[3 + i] = curve.motors[i].positions
+            # create idler aray
+            signal_arr = idler_arr.copy()
+            signal_arr[1] = 1 / ((1 / spitfire_output) - (1 / curve.colors))
+            # construct to_insert
+            to_insert['NON-NON-NON-Sig'] = signal_arr
+            to_insert['NON-NON-NON-Idl'] = idler_arr
+        # TOPAS800 DFG (3 motor mier)
+        elif interaction_string in ['DF1-NON-NON-Sig', 'DF2-NON-NON-Sig'] and curve.kind == 'TOPAS-800':
+            # create array from curve
+            arr = np.zeros([6, len(curve.colors)])
+            arr[0] = curve.source_colors.positions
+            arr[1] = curve.colors
+            arr[2] = 3
+            arr[3] = curve.motors[0].positions
+            arr[4] = curve.motors[1].positions
+            arr[5] = curve.motors[2].positions
+            to_insert[interaction_string] = arr
+        else:  # all single-motor mixer processes
+            # create array from curve
+            arr = np.zeros([4, len(curve.colors)])
+            arr[0] = curve.source_colors.positions
+            arr[1] = curve.colors
+            arr[2] = 1
+            arr[3] = curve.motors[0].positions
+            to_insert[interaction_string] = arr
+        # generate output
+        out_lines = copy.copy(crv_lines)
+        for interaction_string, arr in to_insert.items():
+            # get current properties of out_lines
+            for i in range(len(crv_lines)):
+                if crv_lines[i].rstrip() == interaction_string:
+                    line_index = i + TOPAS_interactions[interaction_string][0]
+                    num_tune_points = int(crv_lines[line_index - 1])
+            # prepare array for addition
+            arr = arr.T
+            # TOPAS wants curves to be ascending in nm
+            #   curves get added 'backwards' here
+            #   so arr should be decending in nm
+            if arr[0, 1] < arr[-1, 1]:
+                arr = np.flipud(arr)
+            # remove old points
+            del out_lines[line_index - 1:line_index + num_tune_points]
+            # add strings to out_lines
+            for row in arr:
+                line = ''
+                for value in row:
+                    # the number of motors must be written as an integer for TOPAS
+                    if value in [1, 3, 4]:
+                        value_as_string = str(int(value))
+                    else:
+                        value_as_string = '%f.6' % value
+                        portion_before_decimal = value_as_string.split('.')[0]
+                        portion_after_decimal = value_as_string.split('.')[1].ljust(6, '0')
+                        value_as_string = portion_before_decimal + '.' + portion_after_decimal
+                    line += value_as_string + '\t'
+                line += '\n'
+                out_lines.insert(line_index - 1, line)
+            out_lines.insert(line_index - 1, str(len(curve.colors)) +
+                             '\n')  # number of points of new curve
+        # filename
+        timestamp = wt.kit.TimeStamp().path
+        out_name = curve.name.split('-')[0] + '- ' + timestamp
+        out_path = os.path.join(save_directory, out_name + '.crv')
+        # save
+        with open(out_path, 'w') as new_crv:
+            new_crv.write(''.join(out_lines).rstrip())
+        return out_path
+
+
+def topas_read(filepaths, kind, interaction_string):
     """Create a curve object from a TOPAS crv file.
 
     Parameters
@@ -58,7 +209,7 @@ def from_TOPAS_crvs(filepaths, kind, interaction_string):
 
     Returns
     -------
-    WrightTools.tuning.curve.Curve object
+    WrightTools.tuning.curve.TopasCurve object
     """
     TOPAS_interactions = TOPAS_interaction_by_kind[kind]
     # setup to recursively import data
@@ -98,7 +249,7 @@ def from_TOPAS_crvs(filepaths, kind, interaction_string):
             motor = Motor(arr[i], motor_name)
             motors.append(motor)
             name = pathlib.Path(crv_path).name
-        curve = Curve(
+        curve = TopasCurve(
             colors,
             "nm",
             motors,
@@ -117,150 +268,3 @@ def from_TOPAS_crvs(filepaths, kind, interaction_string):
 
 
 
-
-def to_TOPAS_crvs(curve, save_directory, kind, full, **kwargs):
-    """Save a curve object.
-
-    Parameters
-    ----------
-    curve : WrightTools.tuning.curve.Curve object
-        Curve.
-    save_directory : string.
-        Save directory.
-    kind : string
-        Curve kind.
-    full : boolean
-        Toggle saving subcurves.
-    **kwargs
-
-    Returns
-    -------
-    string
-        Output path.
-    """
-    TOPAS_interactions = TOPAS_interaction_by_kind[kind]
-    # unpack
-    curve = curve.copy()
-    curve.convert("nm")
-    old_filepaths = kwargs["old_filepaths"]
-    interaction_string = curve.interaction
-    # open appropriate crv
-    interactions = interaction_string.split("-")
-    curve_index = next((i for i, v in enumerate(interactions) if v != "NON"), -1)
-    curve_index += 1
-    curve_index = len(old_filepaths) - curve_index
-    crv_path = old_filepaths[curve_index]
-    if full:
-        # copy other curves over as well
-        for i, p in enumerate(old_filepaths):
-            print(i, p, curve_index)
-            if i == curve_index:
-                continue
-            if p is None:
-                continue
-            print(i, p)
-            d = os.path.join(save_directory, os.path.basename(p))
-            shutil.copy(p, d)
-    with open(crv_path, "r") as crv:
-        crv_lines = crv.readlines()
-    # collect information from file
-    for i in range(len(crv_lines)):
-        if crv_lines[i].rstrip() == interaction_string:
-            line_index = i + TOPAS_interactions[interaction_string][0]
-
-            num_tune_points = int(crv_lines[line_index - 1])
-    # construct to_insert (dictionary of arrays)
-    to_insert = collections.OrderedDict()
-    if interaction_string == 'NON-NON-NON-Sig':  # must generate idler
-        # read spitfire color from crv
-        spitfire_output = float(crv_lines[line_index - 4].rstrip())
-        # create signal array from curve
-        signal_arr = np.zeros([7, len(curve.colors)])
-        signal_arr[0] = spitfire_output
-        signal_arr[1] = curve.colors
-        signal_arr[2] = 4
-        for i in range(4):
-            signal_arr[3 + i] = curve.motors[i].positions
-        # create idler aray
-        idler_arr = signal_arr.copy()
-        idler_arr[1] = 1 / ((1 / spitfire_output) - (1 / curve.colors))
-        # construct to_insert
-        to_insert['NON-NON-NON-Sig'] = signal_arr
-        to_insert['NON-NON-NON-Idl'] = idler_arr
-    elif interaction_string == 'NON-NON-NON-Idl':  # must generate signal
-        # read spitfire color from crv
-        spitfire_output = float(crv_lines[line_index - 4].rstrip())
-        # create idler array from curve
-        idler_arr = np.zeros([7, len(curve.colors)])
-        idler_arr[0] = spitfire_output
-        idler_arr[1] = curve.colors
-        idler_arr[2] = 4
-        for i in range(4):
-            idler_arr[3 + i] = curve.motors[i].positions
-        # create idler aray
-        signal_arr = idler_arr.copy()
-        signal_arr[1] = 1 / ((1 / spitfire_output) - (1 / curve.colors))
-        # construct to_insert
-        to_insert['NON-NON-NON-Sig'] = signal_arr
-        to_insert['NON-NON-NON-Idl'] = idler_arr
-    # TOPAS800 DFG (3 motor mier)
-    elif interaction_string in ['DF1-NON-NON-Sig', 'DF2-NON-NON-Sig'] and curve.kind == 'TOPAS-800':
-        # create array from curve
-        arr = np.zeros([6, len(curve.colors)])
-        arr[0] = curve.source_colors.positions
-        arr[1] = curve.colors
-        arr[2] = 3
-        arr[3] = curve.motors[0].positions
-        arr[4] = curve.motors[1].positions
-        arr[5] = curve.motors[2].positions
-        to_insert[interaction_string] = arr
-    else:  # all single-motor mixer processes
-        # create array from curve
-        arr = np.zeros([4, len(curve.colors)])
-        arr[0] = curve.source_colors.positions
-        arr[1] = curve.colors
-        arr[2] = 1
-        arr[3] = curve.motors[0].positions
-        to_insert[interaction_string] = arr
-    # generate output
-    out_lines = copy.copy(crv_lines)
-    for interaction_string, arr in to_insert.items():
-        # get current properties of out_lines
-        for i in range(len(crv_lines)):
-            if crv_lines[i].rstrip() == interaction_string:
-                line_index = i + TOPAS_interactions[interaction_string][0]
-                num_tune_points = int(crv_lines[line_index - 1])
-        # prepare array for addition
-        arr = arr.T
-        # TOPAS wants curves to be ascending in nm
-        #   curves get added 'backwards' here
-        #   so arr should be decending in nm
-        if arr[0, 1] < arr[-1, 1]:
-            arr = np.flipud(arr)
-        # remove old points
-        del out_lines[line_index - 1:line_index + num_tune_points]
-        # add strings to out_lines
-        for row in arr:
-            line = ''
-            for value in row:
-                # the number of motors must be written as an integer for TOPAS
-                if value in [1, 3, 4]:
-                    value_as_string = str(int(value))
-                else:
-                    value_as_string = '%f.6' % value
-                    portion_before_decimal = value_as_string.split('.')[0]
-                    portion_after_decimal = value_as_string.split('.')[1].ljust(6, '0')
-                    value_as_string = portion_before_decimal + '.' + portion_after_decimal
-                line += value_as_string + '\t'
-            line += '\n'
-            out_lines.insert(line_index - 1, line)
-        out_lines.insert(line_index - 1, str(len(curve.colors)) +
-                         '\n')  # number of points of new curve
-    # filename
-    timestamp = wt.kit.TimeStamp().path
-    out_name = curve.name.split('-')[0] + '- ' + timestamp
-    out_path = os.path.join(save_directory, out_name + '.crv')
-    # save
-    with open(out_path, 'w') as new_crv:
-        new_crv.write(''.join(out_lines).rstrip())
-    return out_path
