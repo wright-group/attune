@@ -173,9 +173,13 @@ def tune_test(
         New curve object.
     """
     # make data object
+    curve = curve.copy()
+    curve_native_units = curve.units
+    curve.convert("wn")
     data = data.copy()
     data.bring_to_front(channel_name)
     data.transform(*data.axis_names[::-1])
+    data.convert("wn")
     # process data --------------------------------------------------------------------------------
     # cutoff
     channel_index = data.channel_names.index(channel_name)
@@ -190,12 +194,9 @@ def tune_test(
     yi = outs.points
     print(xi.shape, yi.shape)
     spline = wt.kit.Spline(xi, yi)
-    offsets_splined = spline(xi)  # wn
-    # make curve ----------------------------------------------------------------------------------
-    curve = curve.copy()
-    curve_native_units = curve.units
-    curve.convert("wn")
     points = curve.colors.copy()
+    offsets_splined = spline(points)  # wn
+    # make curve ----------------------------------------------------------------------------------
     curve.colors += offsets_splined
     curve.map_colors(points, units="wn")
     curve.convert(curve_native_units)
