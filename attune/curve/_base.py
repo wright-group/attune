@@ -116,6 +116,9 @@ class Motor:
         self.positions = positions
         self.name = name
 
+    def __getitem__(self, key):
+        return self.positions[key]
+
 
 class Curve:
     """Central object-type for all OPA tuning curves."""
@@ -185,6 +188,9 @@ class Curve:
         )
         outs.append("  number: " + str(len(self.colors)))
         return "\n".join(outs)
+
+    def __getitem__(self, key):
+        return self.motors[wt.kit.get_index(self.motor_names, key)]
 
     def coerce_motors(self):
         """Coerce the motor positions to lie exactly along the interpolation positions.

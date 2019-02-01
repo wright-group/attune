@@ -27,6 +27,17 @@ cmap.set_under([0.75] * 3)
 
 # --- processing methods --------------------------------------------------------------------------
 
+def _intensity(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
+    data.moment(axis=1, channel=channel_name, moment=1)
+    offsets = data[f"{channel.natural_name}_1_moment_1"].points
+
+    if spline:
+        spline = wt.kit.Spline(tune_points, offsets, **spline_kwargs)
+        return spline(tune_points)
+    if np.allclose(data.axes[0].points, tune_points):
+        return offsets
+    else:
+        raise ValueError("Data points and curve points do not match, and splining disabled")
 
 def intensity(
     data, curve, channel, *, level=False, cutoff_factor=0.1, autosave=True, save_directory=None
@@ -46,6 +57,8 @@ def intensity(
     # TODO: documentation
 
     data = data.copy()
+    old_curve = curve.copy()
+    old_curve.convert("wn")
     # TODO: transform?
     if isinstance(channel, (int, str)):
         channel = data.channels[wt.kit.get_index(data.channel_names, channel)]
@@ -61,18 +74,12 @@ def intensity(
     # TODO: not sure this is what we want
     motor_axis_name = data.axes[1].natural_name
 
-    data.moment(axis=1, channel=channel.natural_name, moment=1)
-    offsets = data[f"{channel.natural_name}_1_moment_1"].points
+    offsets = _intensity(data, channel.natural_name, tune_points)
 
-    # Should just work
-    spline = wt.kit.Spline(tune_points, offsets)
-    offsets_splined = spline(tune_points)
-    old_curve = curve.copy()
-    old_curve.convert("wn")
     motors = []
     for motor_index, motor_name in enumerate([m.name for m in old_curve.motors]):
         if motor_name in motor_axis_name.split("_"):
-            positions = old_curve.motors[motor_index].positions + offsets_splined
+            positions = old_curve.motors[motor_index].positions + offsets
             motor = attune_curve.Motor(positions, motor_name)
             motors.append(motor)
             tuned_motor_index = motor_index
@@ -116,7 +123,7 @@ def intensity(
         yi = offsets
         ax.plot(xi, yi, c="grey", lw=5, alpha=0.5)
         xi = curve.colors
-        yi = offsets_splined
+        yi = offsets
         ax.plot(xi, yi, c="k", lw=5, alpha=0.5)
 
         # units_string = r"$\mathsf{\left(" + wt.units.color_symbols[curve.units] + r"\right)}$"
