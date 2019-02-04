@@ -5,7 +5,7 @@ import copy
 from ._base import Curve, Motor, Linear
 import WrightTools as wt
 
-__all__ = ["TopasCurve", "read_topas"]
+__all__ = ["TopasCurve"]
 
 TOPAS_C_motor_names = {
     0: ["Crystal_1", "Delay_1", "Crystal_2", "Delay_2"],
@@ -49,7 +49,78 @@ TOPAS_interaction_by_kind = {"TOPAS-C": TOPAS_C_interactions, "TOPAS-800": TOPAS
 
 
 class TopasCurve(Curve):
+    @classmethod
+    def read(cls, filepaths, kind, interaction_string):
+        """Create a curve object from a TOPAS crv file.
 
+        Parameters
+        ----------
+        filepaths : list of str [base, mixer 1, mixer 2, mixer 3]
+            Paths to all crv files for OPA. Filepaths may be None if not needed /
+            not applicable.
+        kind : {'TOPAS-C', 'TOPAS-800'}
+            The kind of TOPAS represented.
+        interaction_string : str
+            Interaction string for this curve, in the style of Light Conversion -
+            e.g. 'NON-SF-NON-Sig'.
+
+        Returns
+        -------
+        WrightTools.tuning.curve.TopasCurve object
+        """
+        TOPAS_interactions = TOPAS_interaction_by_kind[kind]
+        # setup to recursively import data
+        interactions = interaction_string.split("-")
+        interaction_strings = []  # most subservient tuning curve comes first
+        idx = 3
+        while idx >= 0:
+            if not interactions[idx] == "NON":
+                interaction_strings.append("NON-" * idx + "-".join(interactions[idx:]))
+            idx -= 1
+        # create curve objects, starting from most subservient curve
+        subcurve = None
+        for interaction_string in interaction_strings:
+            # open appropriate crv
+            interactions = interaction_string.split("-")
+            curve_index = next((i for i, v in enumerate(interactions) if v != "NON"), -1)
+            crv_path = filepaths[-(curve_index + 1)]
+            with open(crv_path, "r") as crv:
+                crv_lines = crv.readlines()
+                # collect information from file
+            for i in range(len(crv_lines)):
+                if crv_lines[i].rstrip() == interaction_string:
+                    line_index = i + TOPAS_interactions[interaction_string][0]
+                    num_tune_points = int(crv_lines[line_index - 1])
+                    # get the actual array
+            lis = []
+            for i in range(line_index, line_index + num_tune_points):
+                line_arr = np.fromstring(crv_lines[i], sep="\t")
+                lis.append(line_arr)
+                arr = np.array(lis).T
+                # create the curve
+            source_colors = Motor(arr[0], "source colors")
+            colors = arr[1]
+            motors = []
+            for i in range(3, len(arr)):
+                motor_name = TOPAS_interactions[interaction_string][1][i - 3]
+                motor = Motor(arr[i], motor_name)
+                motors.append(motor)
+                name = pathlib.Path(crv_path).stem
+                curve = cls(
+                    colors,
+                    "nm",
+                    motors,
+                    name,
+                    interaction_string,
+                    kind,
+                    method=Linear,
+                    subcurve=subcurve,
+                    source_colors=source_colors,
+                )
+                subcurve = curve.copy()
+                # finish
+        setattr(curve, "old_filepaths", filepaths)
+        return curve
 
     def save(self, save_directory, full=True):
         """Save a curve object.
@@ -104,7 +175,7 @@ class TopasCurve(Curve):
                 num_tune_points = int(crv_lines[line_index - 1])
         # construct to_insert (dictionary of arrays)
         to_insert = {}
-        if interaction_string == 'NON-NON-NON-Sig':  # must generate idler
+        if interaction_string == "NON-NON-NON-Sig":  # must generate idler
             # read spitfire color from crv
             spitfire_output = float(crv_lines[line_index - 4].rstrip())
             # create signal array from curve
@@ -118,9 +189,9 @@ class TopasCurve(Curve):
             idler_arr = signal_arr.copy()
             idler_arr[1] = 1 / ((1 / spitfire_output) - (1 / curve.colors))
             # construct to_insert
-            to_insert['NON-NON-NON-Sig'] = signal_arr
-            to_insert['NON-NON-NON-Idl'] = idler_arr
-        elif interaction_string == 'NON-NON-NON-Idl':  # must generate signal
+            to_insert["NON-NON-NON-Sig"] = signal_arr
+            to_insert["NON-NON-NON-Idl"] = idler_arr
+        elif interaction_string == "NON-NON-NON-Idl":  # must generate signal
             # read spitfire color from crv
             spitfire_output = float(crv_lines[line_index - 4].rstrip())
             # create idler array from curve
@@ -134,10 +205,13 @@ class TopasCurve(Curve):
             signal_arr = idler_arr.copy()
             signal_arr[1] = 1 / ((1 / spitfire_output) - (1 / curve.colors))
             # construct to_insert
-            to_insert['NON-NON-NON-Sig'] = signal_arr
-            to_insert['NON-NON-NON-Idl'] = idler_arr
+            to_insert["NON-NON-NON-Sig"] = signal_arr
+            to_insert["NON-NON-NON-Idl"] = idler_arr
         # TOPAS800 DFG (3 motor mier)
-        elif interaction_string in ['DF1-NON-NON-Sig', 'DF2-NON-NON-Sig'] and curve.kind == 'TOPAS-800':
+        elif (
+            interaction_string in ["DF1-NON-NON-Sig", "DF2-NON-NON-Sig"]
+            and curve.kind == "TOPAS-800"
+        ):
             # create array from curve
             arr = np.zeros([6, len(curve.colors)])
             arr[0] = curve.source_colors.positions
@@ -171,102 +245,30 @@ class TopasCurve(Curve):
             if arr[0, 1] < arr[-1, 1]:
                 arr = np.flipud(arr)
             # remove old points
-            del out_lines[line_index - 1:line_index + num_tune_points]
+            del out_lines[line_index - 1 : line_index + num_tune_points]
             # add strings to out_lines
             for row in arr:
-                line = ''
+                line = ""
                 for value in row:
                     # the number of motors must be written as an integer for TOPAS
                     if value in [1, 3, 4]:
                         value_as_string = str(int(value))
                     else:
-                        value_as_string = '%f.6' % value
-                        portion_before_decimal = value_as_string.split('.')[0]
-                        portion_after_decimal = value_as_string.split('.')[1].ljust(6, '0')
-                        value_as_string = portion_before_decimal + '.' + portion_after_decimal
-                    line += value_as_string + '\t'
-                line += '\n'
+                        value_as_string = "%f.6" % value
+                        portion_before_decimal = value_as_string.split(".")[0]
+                        portion_after_decimal = value_as_string.split(".")[1].ljust(6, "0")
+                        value_as_string = portion_before_decimal + "." + portion_after_decimal
+                    line += value_as_string + "\t"
+                line += "\n"
                 out_lines.insert(line_index - 1, line)
-            out_lines.insert(line_index - 1, str(len(curve.colors)) +
-                             '\n')  # number of points of new curve
+            out_lines.insert(
+                line_index - 1, str(len(curve.colors)) + "\n"
+            )  # number of points of new curve
         # filename
         timestamp = wt.kit.TimeStamp().path
-        out_name = curve.name.split('-')[0] + '- ' + timestamp
-        out_path = (save_directory / out_name).with_suffix('.crv')
+        out_name = curve.name.split("-")[0] + "- " + timestamp
+        out_path = (save_directory / out_name).with_suffix(".crv")
         # save
-        with open(out_path, 'w') as new_crv:
-            new_crv.write(''.join(out_lines).rstrip())
+        with open(out_path, "w") as new_crv:
+            new_crv.write("".join(out_lines).rstrip())
         return out_path
-
-
-def read_topas(filepaths, kind, interaction_string):
-    """Create a curve object from a TOPAS crv file.
-
-    Parameters
-    ----------
-    filepaths : list of str [base, mixer 1, mixer 2, mixer 3]
-        Paths to all crv files for OPA. Filepaths may be None if not needed /
-        not applicable.
-    kind : {'TOPAS-C', 'TOPAS-800'}
-        The kind of TOPAS represented.
-    interaction_string : str
-        Interaction string for this curve, in the style of Light Conversion -
-        e.g. 'NON-SF-NON-Sig'.
-
-    Returns
-    -------
-    WrightTools.tuning.curve.TopasCurve object
-    """
-    TOPAS_interactions = TOPAS_interaction_by_kind[kind]
-    # setup to recursively import data
-    interactions = interaction_string.split("-")
-    interaction_strings = []  # most subservient tuning curve comes first
-    idx = 3
-    while idx >= 0:
-        if not interactions[idx] == "NON":
-            interaction_strings.append("NON-" * idx + "-".join(interactions[idx:]))
-        idx -= 1
-    # create curve objects, starting from most subservient curve
-    subcurve = None
-    for interaction_string in interaction_strings:
-        # open appropriate crv
-        interactions = interaction_string.split("-")
-        curve_index = next((i for i, v in enumerate(interactions) if v != "NON"), -1)
-        crv_path = filepaths[-(curve_index + 1)]
-        with open(crv_path, "r") as crv:
-            crv_lines = crv.readlines()
-        # collect information from file
-        for i in range(len(crv_lines)):
-            if crv_lines[i].rstrip() == interaction_string:
-                line_index = i + TOPAS_interactions[interaction_string][0]
-                num_tune_points = int(crv_lines[line_index - 1])
-        # get the actual array
-        lis = []
-        for i in range(line_index, line_index + num_tune_points):
-            line_arr = np.fromstring(crv_lines[i], sep="\t")
-            lis.append(line_arr)
-        arr = np.array(lis).T
-        # create the curve
-        source_colors = Motor(arr[0], "source colors")
-        colors = arr[1]
-        motors = []
-        for i in range(3, len(arr)):
-            motor_name = TOPAS_interactions[interaction_string][1][i - 3]
-            motor = Motor(arr[i], motor_name)
-            motors.append(motor)
-            name = pathlib.Path(crv_path).stem
-        curve = TopasCurve(
-            colors,
-            "nm",
-            motors,
-            name,
-            interaction_string,
-            kind,
-            method=Linear,
-            subcurve=subcurve,
-            source_colors=source_colors,
-        )
-        subcurve = curve.copy()
-    # finish
-    setattr(curve, "old_filepaths", filepaths)
-    return curve
