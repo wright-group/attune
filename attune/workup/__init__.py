@@ -27,6 +27,7 @@ cmap.set_under([0.75] * 3)
 
 # --- processing methods --------------------------------------------------------------------------
 
+
 def _intensity(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
     data.moment(axis=1, channel=channel_name, moment=1)
     offsets = data[f"{channel.natural_name}_1_moment_1"].points
@@ -38,6 +39,7 @@ def _intensity(data, channel_name, tune_points, *, spline=True, **spline_kwargs)
         return offsets
     else:
         raise ValueError("Data points and curve points do not match, and splining disabled")
+
 
 def intensity(
     data, curve, channel, *, level=False, cutoff_factor=0.1, autosave=True, save_directory=None
@@ -100,44 +102,9 @@ def intensity(
     # Why did we have to map colors?
     curve.map_colors(old_curve.colors)
 
-    # TODO: This is a common setup among tuning methods, should extract to a method
-    def _plot():
-        fig, gs = wt.artists.create_figure(nrows=2, default_aspect=0.5, cols=[1, "cbar"])
-        ax = plt.subplot(gs[0, 0])
-        xi = old_curve.colors
-        yi = old_curve.motors[tuned_motor_index].positions
-        ax.plot(xi, yi, c="k", lw=1)
-        xi = curve.colors
-        yi = curve.motors[tuned_motor_index].positions
-        ax.plot(xi, yi, c="k", lw=5, alpha=0.5)
-        ax.grid()
-        ax.set_xlim(tune_points.min(), tune_points.max())
-        ax.set_ylabel(curve.motor_names[tuned_motor_index], fontsize=18)
-        plt.setp(ax.get_xticklabels(), visible=False)
-
-        ax = plt.subplot(gs[1, 0])
-        ax.pcolor(data, channel=channel.natural_name, cmap=cmap)
-        ax.grid()
-        ax.axhline(c="k", lw=1)
-        xi = curve.colors
-        yi = offsets
-        ax.plot(xi, yi, c="grey", lw=5, alpha=0.5)
-        xi = curve.colors
-        yi = offsets
-        ax.plot(xi, yi, c="k", lw=5, alpha=0.5)
-
-        # units_string = r"$\mathsf{\left(" + wt.units.color_symbols[curve.units] + r"\right)}$"
-        # ax.set_xlabel(" ".join(["setpoint", units_string]), fontsize=18)
-        # ax.set_ylabel(
-        #    " ".join(["$\mathsf{\Delta}$", curve.motor_names[tuned_motor_index]]), fontsize=18
-        # )
-        cax = plt.subplot(gs[1, -1])
-        label = channel.natural_name
-        ticks = np.linspace(0, channel.max(), 7)
-        wt.artists.plot_colorbar(cax=cax, cmap=cmap, label=label, ticks=ticks)
-        return fig
-
-    fig = _plot()
+    fig, _ = _plot.plot_intensity(
+        data, channel, curve.motor_names[tuned_motor_index], curve, old_curve
+    )
 
     if autosave:
         if save_directory is None:

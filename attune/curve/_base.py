@@ -24,8 +24,8 @@ __all__ = ["Curve", "Motor", "read"]
 
 # --- interpolation classes -----------------------------------------------------------------------
 
-class Interpolator:
 
+class Interpolator:
     def __init__(self, colors, units, motors):
         """Create an Interoplator object.
 
@@ -58,6 +58,7 @@ class Interpolator:
         """
         return [f(color) for f in self.functions]
 
+
 class Linear(Interpolator):
     """Linear interpolation."""
 
@@ -65,8 +66,11 @@ class Linear(Interpolator):
     def functions(self):
         if self._functions is not None:
             return self._functions
-        self._functions = [wt.kit.Spline(self.colors, motor.positions, k=1, s=0) for motor in self.motors]
+        self._functions = [
+            wt.kit.Spline(self.colors, motor.positions, k=1, s=0) for motor in self.motors
+        ]
         return self._functions
+
 
 class Poly:
     """Polynomial interpolation."""
@@ -79,8 +83,12 @@ class Poly:
     def functions(self):
         if self._functions is not None:
             return self._functions
-        self._functions = [np.polynomial.Polynomial.fit(self.colors, motor.positions, self.deg) for motor in self.motors]
+        self._functions = [
+            np.polynomial.Polynomial.fit(self.colors, motor.positions, self.deg)
+            for motor in self.motors
+        ]
         return self._functions
+
 
 class Spline:
     """Spline interpolation."""
@@ -95,7 +103,8 @@ class Spline:
         ]
         return self._functions
 
-methods = {"Linear": Linear, "Spline": Spline, "Poly":Poly}
+
+methods = {"Linear": Linear, "Spline": Spline, "Poly": Poly}
 
 # --- curve class ---------------------------------------------------------------------------------
 
@@ -191,6 +200,9 @@ class Curve:
 
     def __getitem__(self, key):
         return self.motors[wt.kit.get_index(self.motor_names, key)]
+
+    def __call__(self, value, units=None, full=True):
+        return self.get_motor_positions(value, units, full=full)
 
     def coerce_motors(self):
         """Coerce the motor positions to lie exactly along the interpolation positions.
@@ -624,13 +636,13 @@ def read(filepath, subcurve=None):
     names = headers["name"]
     motors = []
     for a, n in zip(arr[1:], names[1:]):
-        motors.append(Motor(a,n))
+        motors.append(Motor(a, n))
     kwargs = {}
     kwargs["interaction"] = headers["interaction"]
     kwargs["kind"] = headers.get("kind", None)
     kwargs["method"] = methods.get(headers.get("method", ""), Linear)
     kwargs["name"] = headers.get("curve name", filepath.stem)
-    kwargs["fmt"] = headers.get("fmt", ["%.2f"] + ["%.5f"]*len(motors))
+    kwargs["fmt"] = headers.get("fmt", ["%.2f"] + ["%.5f"] * len(motors))
     units = re.match(r".*\((.*)\).*", names[0])[1]
     if subcurve is not None:
         kwargs["subcurve"] = subcurve
@@ -638,4 +650,3 @@ def read(filepath, subcurve=None):
     # finish
     curve = Curve(colors, units, motors, **kwargs)
     return curve
-
