@@ -1,7 +1,5 @@
-"""OPA tuning curves."""
+"""Base curve behavior."""
 
-
-# --- import --------------------------------------------------------------------------------------
 
 import re
 import os
@@ -20,9 +18,9 @@ import matplotlib.gridspec as grd
 import WrightTools as wt
 import tidy_headers
 
-__all__ = ["Curve", "Motor", "read"]
 
-# --- interpolation classes -----------------------------------------------------------------------
+__all__ = ["Curve", "Motor"]
+
 
 class Interpolator:
 
@@ -552,6 +550,30 @@ class Curve:
             plt.savefig(image_path, transparent=True, dpi=300)
             plt.close(fig)
 
+    @classmethod
+    def read(cls, filepath, subcurve=None):
+        filepath = pathlib.Path(filepath)
+        headers = tidy_headers.read(filepath)
+        arr = np.genfromtxt(filepath).T
+        colors = arr[0]
+        names = headers["name"]
+        motors = []
+        for a, n in zip(arr[1:], names[1:]):
+            motors.append(Motor(a,n))
+        kwargs = {}
+        kwargs["interaction"] = headers["interaction"]
+        kwargs["kind"] = headers.get("kind", None)
+        kwargs["method"] = methods.get(headers.get("method", ""), Linear)
+        kwargs["name"] = headers.get("curve name", filepath.stem)
+        kwargs["fmt"] = headers.get("fmt", ["%.2f"] + ["%.5f"]*len(motors))
+        units = re.match(r".*\((.*)\).*", names[0])[1]
+        if subcurve is not None:
+            kwargs["subcurve"] = subcurve
+            kwargs["source_colors"] = Motor(colors, units)
+        # finish
+        curve = cls(colors, units, motors, **kwargs)
+        return curve
+
     def save(self, save_directory=None, plot=True, verbose=True, full=False):
         """Save the curve.
 
@@ -608,28 +630,3 @@ class Curve:
         if verbose:
             print("curve saved at", out_path)
         return out_path
-
-
-def read(filepath, subcurve=None):
-    filepath = pathlib.Path(filepath)
-    headers = tidy_headers.read(filepath)
-    arr = np.genfromtxt(filepath).T
-    colors = arr[0]
-    names = headers["name"]
-    motors = []
-    for a, n in zip(arr[1:], names[1:]):
-        motors.append(Motor(a,n))
-    kwargs = {}
-    kwargs["interaction"] = headers["interaction"]
-    kwargs["kind"] = headers.get("kind", None)
-    kwargs["method"] = methods.get(headers.get("method", ""), Linear)
-    kwargs["name"] = headers.get("curve name", filepath.stem)
-    kwargs["fmt"] = headers.get("fmt", ["%.2f"] + ["%.5f"]*len(motors))
-    units = re.match(r".*\((.*)\).*", names[0])[1]
-    if subcurve is not None:
-        kwargs["subcurve"] = subcurve
-        kwargs["source_colors"] = Motor(colors, units)
-    # finish
-    curve = Curve(colors, units, motors, **kwargs)
-    return curve
-

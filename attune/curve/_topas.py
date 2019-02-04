@@ -270,7 +270,3 @@ def read_topas(filepaths, kind, interaction_string):
     # finish
     setattr(curve, "old_filepaths", filepaths)
     return curve
-
-
-
-

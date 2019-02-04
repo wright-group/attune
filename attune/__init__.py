@@ -7,5 +7,5 @@
 
 from .__version__ import *
 from . import coset
-from . import curve
+from .curve import *
 from . import workup
