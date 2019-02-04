@@ -1,0 +1,19 @@
+language: python
+matrix:
+    include:
+        - python: 3.6
+          dist: xenial
+        - python: 3.7
+          dist: xenial
+addons:
+    apt:
+        packages:
+            - libfreetype6-dev
+            - libopenblas-dev
+install:
+  - pip install cython
+  - pip install .
+  - pip install -U pytest "coverage<5"
+services:
+  - xvfb
+script: python setup.py test
