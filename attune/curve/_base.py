@@ -22,8 +22,8 @@ import tidy_headers
 __all__ = ["Curve", "Motor"]
 
 
-class Interpolator:
 
+class Interpolator:
     def __init__(self, colors, units, motors):
         """Create an Interoplator object.
 
@@ -56,6 +56,7 @@ class Interpolator:
         """
         return [f(color) for f in self.functions]
 
+
 class Linear(Interpolator):
     """Linear interpolation."""
 
@@ -63,8 +64,11 @@ class Linear(Interpolator):
     def functions(self):
         if self._functions is not None:
             return self._functions
-        self._functions = [wt.kit.Spline(self.colors, motor.positions, k=1, s=0) for motor in self.motors]
+        self._functions = [
+            wt.kit.Spline(self.colors, motor.positions, k=1, s=0) for motor in self.motors
+        ]
         return self._functions
+
 
 class Poly:
     """Polynomial interpolation."""
@@ -77,8 +81,12 @@ class Poly:
     def functions(self):
         if self._functions is not None:
             return self._functions
-        self._functions = [np.polynomial.Polynomial.fit(self.colors, motor.positions, self.deg) for motor in self.motors]
+        self._functions = [
+            np.polynomial.Polynomial.fit(self.colors, motor.positions, self.deg)
+            for motor in self.motors
+        ]
         return self._functions
+
 
 class Spline:
     """Spline interpolation."""
@@ -93,7 +101,8 @@ class Spline:
         ]
         return self._functions
 
-methods = {"Linear": Linear, "Spline": Spline, "Poly":Poly}
+
+methods = {"Linear": Linear, "Spline": Spline, "Poly": Poly}
 
 # --- curve class ---------------------------------------------------------------------------------
 
@@ -113,6 +122,9 @@ class Motor:
         """
         self.positions = positions
         self.name = name
+
+    def __getitem__(self, key):
+        return self.positions[key]
 
 
 class Curve:
@@ -183,6 +195,12 @@ class Curve:
         )
         outs.append("  number: " + str(len(self.colors)))
         return "\n".join(outs)
+
+    def __getitem__(self, key):
+        return self.motors[wt.kit.get_index(self.motor_names, key)]
+
+    def __call__(self, value, units=None, full=True):
+        return self.get_motor_positions(value, units, full=full)
 
     def coerce_motors(self):
         """Coerce the motor positions to lie exactly along the interpolation positions.
