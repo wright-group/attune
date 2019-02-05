@@ -506,7 +506,7 @@ class Curve:
         kwargs = {}
         kwargs["interaction"] = headers["interaction"]
         kwargs["kind"] = headers.get("kind", None)
-        kwargs["method"] = methods.get(headers.get("method", ""), Linear)
+        kwargs["method"] = builtins.get(headers.get("method", ""), Linear)
         kwargs["name"] = headers.get("curve name", filepath.stem)
         kwargs["fmt"] = headers.get("fmt", ["%.2f"] + ["%.5f"] * len(motors))
         units = re.match(r".*\((.*)\).*", names[0])[1]
