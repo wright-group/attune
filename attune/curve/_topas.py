@@ -2,7 +2,8 @@ import numpy as np
 import pathlib
 import shutil
 import copy
-from ._base import Curve, Motor, Linear
+from ._base import Curve, Linear
+from ._dependent import Dependent
 import WrightTools as wt
 
 __all__ = ["TopasCurve"]
@@ -98,18 +99,18 @@ class TopasCurve(Curve):
                 lis.append(line_arr)
                 arr = np.array(lis).T
                 # create the curve
-            source_setpoints = Motor(arr[0], "source setpoints")
+            source_setpoints = Dependent(arr[0], "source setpoints")
             setpoints = arr[1]
-            motors = []
+            dependents = []
             for i in range(3, len(arr)):
-                motor_name = TOPAS_interactions[interaction_string][1][i - 3]
-                motor = Motor(arr[i], motor_name)
-                motors.append(motor)
+                dependent_name = TOPAS_interactions[interaction_string][1][i - 3]
+                dependent = Dependent(arr[i], dependent_name)
+                dependents.append(dependent)
                 name = pathlib.Path(crv_path).stem
                 curve = cls(
                     setpoints,
                     "nm",
-                    motors,
+                    dependents,
                     name,
                     interaction_string,
                     kind,
@@ -184,7 +185,7 @@ class TopasCurve(Curve):
             signal_arr[1] = curve.setpoints
             signal_arr[2] = 4
             for i in range(4):
-                signal_arr[3 + i] = curve.motors[i].positions
+                signal_arr[3 + i] = curve.dependents[i].positions
             # create idler aray
             idler_arr = signal_arr.copy()
             idler_arr[1] = 1 / ((1 / spitfire_output) - (1 / curve.setpoints))
@@ -200,7 +201,7 @@ class TopasCurve(Curve):
             idler_arr[1] = curve.setpoints
             idler_arr[2] = 4
             for i in range(4):
-                idler_arr[3 + i] = curve.motors[i].positions
+                idler_arr[3 + i] = curve.dependents[i].positions
             # create idler aray
             signal_arr = idler_arr.copy()
             signal_arr[1] = 1 / ((1 / spitfire_output) - (1 / curve.setpoints))
@@ -217,9 +218,9 @@ class TopasCurve(Curve):
             arr[0] = curve.source_setpoints.positions
             arr[1] = curve.setpoints
             arr[2] = 3
-            arr[3] = curve.motors[0].positions
-            arr[4] = curve.motors[1].positions
-            arr[5] = curve.motors[2].positions
+            arr[3] = curve.dependents[0].positions
+            arr[4] = curve.dependents[1].positions
+            arr[5] = curve.dependents[2].positions
             to_insert[interaction_string] = arr
         else:  # all single-motor mixer processes
             # create array from curve
