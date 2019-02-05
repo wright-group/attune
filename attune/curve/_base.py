@@ -22,31 +22,30 @@ import tidy_headers
 __all__ = ["Curve", "Motor"]
 
 
-
 class Interpolator:
-    def __init__(self, colors, units, motors):
+    def __init__(self, setpoints, units, motors):
         """Create an Interoplator object.
 
         Parameters
         ----------
-        colors : 1D array
+        setpoints : 1D array
             Setpoints.
         units : string
             Units.
         motors : list of WrightTools.tuning.curve.Motor
             Motors.
         """
-        self.colors = colors
+        self.setpoints = setpoints
         self.units = units
         self.motors = motors
         self._functions = None
 
-    def get_motor_positions(self, color):
+    def get_motor_positions(self, setpoint):
         """Get motor positions.
 
         Parameters
         ----------
-        color : number
+        setpoint : number
             Destination, in units.
 
         Returns
@@ -54,7 +53,7 @@ class Interpolator:
         list of numbers
             Motor positions.
         """
-        return [f(color) for f in self.functions]
+        return [f(setpoint) for f in self.functions]
 
 
 class Linear(Interpolator):
@@ -65,7 +64,7 @@ class Linear(Interpolator):
         if self._functions is not None:
             return self._functions
         self._functions = [
-            wt.kit.Spline(self.colors, motor.positions, k=1, s=0) for motor in self.motors
+            wt.kit.Spline(self.setpoints, motor.positions, k=1, s=0) for motor in self.motors
         ]
         return self._functions
 
@@ -82,7 +81,7 @@ class Poly:
         if self._functions is not None:
             return self._functions
         self._functions = [
-            np.polynomial.Polynomial.fit(self.colors, motor.positions, self.deg)
+            np.polynomial.Polynomial.fit(self.setpoints, motor.positions, self.deg)
             for motor in self.motors
         ]
         return self._functions
@@ -96,7 +95,7 @@ class Spline:
         if self._functions is not None:
             return self._functions
         self._functions = [
-            scipy.interpolate.UnivariateSpline(colors, motor.positions, k=3, s=1000)
+            scipy.interpolate.UnivariateSpline(setpoints, motor.positions, k=3, s=1000)
             for motor in motors
         ]
         return self._functions
@@ -132,7 +131,7 @@ class Curve:
 
     def __init__(
         self,
-        colors,
+        setpoints,
         units,
         motors,
         name,
@@ -140,19 +139,19 @@ class Curve:
         kind,
         method=Linear,
         subcurve=None,
-        source_colors=None,
+        source_setpoints=None,
         fmt=None,
     ):
         """Create a ``Curve`` object.
 
         Parameters
         ----------
-        colors : array
-            The color destinations for the curve.
+        setpoints : array
+            The setpoint destinations for the curve.
         units : str
-            The color units.
+            The setpoint units.
         motors : list of Motor objects
-            Motor positions for each color.
+            Motor positions for each setpoint.
         name : str
             Name of curve.
         kind : string
@@ -165,13 +164,13 @@ class Curve:
 
         self.__version__ = __version__
         # inherit
-        self.colors = np.array(colors)  # needs to be array for some interpolation methods
+        self.setpoints = np.array(setpoints)  # needs to be array for some interpolation methods
         self.units = units
         self.motors = motors
         self.name = name
         self.kind = kind
         self.subcurve = subcurve
-        self.source_colors = source_colors
+        self.source_setpoints = source_setpoints
         self.interaction = interaction
         # set motors as attributes of self
         self.motor_names = [m.name for m in self.motors]
@@ -191,9 +190,11 @@ class Curve:
         outs.append("  name: " + self.name)
         outs.append("  interaction: " + self.interaction)
         outs.append(
-            "  range: {0} - {1} ({2})".format(self.colors.min(), self.colors.max(), self.units)
+            "  range: {0} - {1} ({2})".format(
+                self.setpoints.min(), self.setpoints.max(), self.units
+            )
         )
-        outs.append("  number: " + str(len(self.colors)))
+        outs.append("  number: " + str(len(self.setpoints)))
         return "\n".join(outs)
 
     def __getitem__(self, key):
@@ -207,20 +208,20 @@ class Curve:
 
         Can be thought of as 'smoothing' the curve.
         """
-        self.map_colors(self.colors, units="same")
+        self.map_setpoints(self.setpoints, units="same")
 
     def convert(self, units):
-        """Convert the colors to new units.
+        """Convert the setpoints to new units.
 
         Parameters
         ----------
         units : str
             The destination units.
         """
-        self.colors = wt.units.converter(self.colors, self.units, units)
+        self.setpoints = wt.units.converter(self.setpoints, self.units, units)
         if self.subcurve:
-            positions = self.source_colors.positions
-            self.source_colors.positions = wt.units.converter(positions, self.units, units)
+            positions = self.source_setpoints.positions
+            self.source_setpoints.positions = wt.units.converter(positions, self.units, units)
         self.units = units
         self.interpolate()  # how did it ever work if this wasn't here?  - Blaise 2017-03-22
 
@@ -234,27 +235,27 @@ class Curve:
         """
         return copy.deepcopy(self)
 
-    def get_color(self, motor_positions, units="same"):
-        """Get the color given a set of motor positions.
+    def get_setpoint(self, motor_positions, units="same"):
+        """Get the setpoint given a set of motor positions.
 
         Parameters
         ----------
         motor_positions : array
             The motor positions.
         units : str (optional)
-            The units of the returned color.
+            The units of the returned setpoint.
 
         Returns
         -------
         float
-            The current color.
+            The current setpoint.
         """
-        colors = []
+        setpoints = []
         for motor_index, motor_position in enumerate(motor_positions):
-            color = self.interpolator.get_color(motor_index, motor_position)
-            colors.append(color)
-        # TODO: decide how to handle case of disagreement between colors
-        return colors[0]
+            setpoint = self.interpolator.get_setpoint(motor_index, motor_position)
+            setpoints.append(setpoint)
+        # TODO: decide how to handle case of disagreement between setpoints
+        return setpoints[0]
 
     def get_limits(self, units="same"):
         """Get the edges of the curve.
@@ -270,10 +271,10 @@ class Curve:
             [min, max] in given units
         """
         if units == "same":
-            return [self.colors.min(), self.colors.max()]
+            return [self.setpoints.min(), self.setpoints.max()]
         else:
-            units_colors = wt.units.converter(self.colors, self.units, units)
-            return [units_colors.min(), units_colors.max()]
+            units_setpoints = wt.units.converter(self.setpoints, self.units, units)
+            return [units_setpoints.min(), units_setpoints.max()]
 
     def get_motor_names(self, full=True):
         """Get motor names.
@@ -294,83 +295,87 @@ class Curve:
             subcurve_motor_names = []
         return subcurve_motor_names + [m.name for m in self.motors]
 
-    def get_motor_positions(self, color, units="same", full=True):
-        """Get the motor positions for a destination color.
+    def get_motor_positions(self, setpoint, units="same", full=True):
+        """Get the motor positions for a destination setpoint.
 
         Parameters
         ----------
-        color : number
-            The destination color. May be 1D array.
+        setpoint : number
+            The destination setpoint. May be 1D array.
         units : str (optional)
-            The units of the input color.
+            The units of the input setpoint.
 
         Returns
         -------
         np.ndarray
-            The motor positions. If color is an array the output shape will
-            be (motors, colors).
+            The motor positions. If setpoint is an array the output shape will
+            be (motors, setpoints).
         """
-        # get color in units
+        # get setpoint in units
         if units == "same":
             pass
         else:
-            color = wt.units.converter(color, units, self.units)
-        # color must be array
+            setpoint = wt.units.converter(setpoint, units, self.units)
+        # setpoint must be array
 
         def is_numeric(obj):
             attrs = ["__add__", "__sub__", "__mul__", "__pow__"]
             return all([hasattr(obj, attr) for attr in attrs] + [not hasattr(obj, "__len__")])
 
-        if is_numeric(color):
-            color = np.array([color])
+        if is_numeric(setpoint):
+            setpoint = np.array([setpoint])
         # evaluate
         if full and self.subcurve:
             out = []
-            for c in color:
-                source_color = np.array(self.source_color_interpolator.get_motor_positions(c))
+            for c in setpoint:
+                source_setpoint = np.array(
+                    self.source_setpoint_interpolator.get_motor_positions(c)
+                )
                 source_motor_positions = np.array(
-                    self.subcurve.get_motor_positions(source_color, units=self.units, full=True)
+                    self.subcurve.get_motor_positions(source_setpoint, units=self.units, full=True)
                 ).squeeze()
                 own_motor_positions = np.array(self.interpolator.get_motor_positions(c)).flatten()
                 out.append(np.hstack((source_motor_positions, own_motor_positions)))
             out = np.array(out)
             return out.squeeze().T
         else:
-            out = np.array([self.interpolator.get_motor_positions(c) for c in color])
+            out = np.array([self.interpolator.get_motor_positions(c) for c in setpoint])
             return out.T
 
-    def get_source_color(self, color, units="same"):
-        """Get color of source curve.
+    def get_source_setpoint(self, setpoint, units="same"):
+        """Get setpoint of source curve.
 
         Parameters
         ----------
-        color : number or 1D array
-            Color(s).
+        setpoint : number or 1D array
+            Setpoint(s).
         units : string (optional)
             Units. Default is same.
 
         Returns
         -------
         number or 1D array
-            Source color(s).
+            Source setpoint(s).
         """
         if not self.subcurve:
             return None
-        # color must be array
+        # setpoint must be array
 
         def is_numeric(obj):
             attrs = ["__add__", "__sub__", "__mul__", "__div__", "__pow__"]
             return all([hasattr(obj, attr) for attr in attrs] + [not hasattr(obj, "__len__")])
 
-        if is_numeric(color):
-            color = np.array([color])
-        # get color in units
+        if is_numeric(setpoint):
+            setpoint = np.array([setpoint])
+        # get setpoint in units
         if units == "same":
             pass
         else:
-            color = wt.units.converter(color, units, self.units)
+            setpoint = wt.units.converter(setpoint, units, self.units)
         # evaluate
-        return np.array([self.source_color_interpolator.get_motor_positions(c) for c in color])
+        return np.array(
+            [self.source_setpoint_interpolator.get_motor_positions(c) for c in setpoint]
+        )
 
     def interpolate(self, interpolate_subcurve=True):
         """Generate the interploator object.
@@ -380,51 +385,51 @@ class Curve:
         interpolate_subcurve : boolean (optional)
             Toggle interpolation of subcurve. Default is True.
         """
-        self.interpolator = self.method(self.colors, self.units, self.motors)
+        self.interpolator = self.method(self.setpoints, self.units, self.motors)
         if self.subcurve and interpolate_subcurve:
-            self.source_color_interpolator = self.method(
-                self.colors, self.units, [self.source_colors]
+            self.source_setpoint_interpolator = self.method(
+                self.setpoints, self.units, [self.source_setpoints]
             )
 
-    def map_colors(self, colors, units="same"):
+    def map_setpoints(self, setpoints, units="same"):
         """Map the curve onto new tune points using the curve's own interpolation method.
 
         Parameters
         ----------
-        colors : int or array
+        setpoints : int or array
             The number of new points (between current limits) or the new points
             themselves.
         units : str (optional.)
             The input units if given as array. Default is same. Units of curve
-            object are not changed by map_colors.
+            object are not changed by map_setpoints.
         """
-        # get new colors in input units
-        if isinstance(colors, int):
+        # get new setpoints in input units
+        if isinstance(setpoints, int):
             limits = self.get_limits(units)
-            new_colors = np.linspace(limits[0], limits[1], colors)
+            new_setpoints = np.linspace(limits[0], limits[1], setpoints)
         else:
-            new_colors = colors
-        # convert new colors to local units
+            new_setpoints = setpoints
+        # convert new setpoints to local units
         if units == "same":
             units = self.units
-        new_colors = np.sort(wt.units.converter(new_colors, units, self.units))
+        new_setpoints = np.sort(wt.units.converter(new_setpoints, units, self.units))
         # ensure that motor interpolators agree with current motor positions
         self.interpolate(interpolate_subcurve=True)
         # map own motors
         new_motors = []
         for motor_index, motor in enumerate(self.motors):
-            positions = self.get_motor_positions(new_colors, full=False)[motor_index]
+            positions = self.get_motor_positions(new_setpoints, full=False)[motor_index]
             new_motor = Motor(positions, motor.name)  # new motor objects
             new_motors.append(new_motor)
-        # map source colors, subcurves
+        # map source setpoints, subcurves
         if self.subcurve:
-            new_source_colors = np.array(
-                self.source_color_interpolator.get_motor_positions(new_colors)
+            new_source_setpoints = np.array(
+                self.source_setpoint_interpolator.get_motor_positions(new_setpoints)
             ).squeeze()
-            self.subcurve.map_colors(new_source_colors, units=self.units)
-            self.source_colors.positions = new_source_colors
+            self.subcurve.map_setpoints(new_source_setpoints, units=self.units)
+            self.source_setpoints.positions = new_source_setpoints
         # finish
-        self.colors = new_colors
+        self.setpoints = new_setpoints
         self.motors = new_motors
         self.motor_names = [m.name for m in self.motors]
         for obj in self.motors:
@@ -452,19 +457,19 @@ class Curve:
         self.motors[motor_index].positions += amount
         self.interpolate()
 
-    def offset_to(self, motor, destination, color, color_units="same"):
-        """Offset a motor such that it evaluates to `destination` at `color`.
+    def offset_to(self, motor, destination, setpoint, setpoint_units="same"):
+        """Offset a motor such that it evaluates to `destination` at `setpoint`.
 
         Parameters
         ----------
         motor : number or str
             The motor index or name.
         amount : number
-            The motor position at color after offseting.
-        color : number
-            The color at-which to set the motor to amount.
-        color_units : str (optional)
-            The color units. Default is same.
+            The motor position at setpoint after offseting.
+        setpoint : number
+            The setpoint at-which to set the motor to amount.
+        setpoint_units : str (optional)
+            The setpoint units. Default is same.
 
         See Also
         --------
@@ -478,7 +483,7 @@ class Curve:
         else:
             print("motor type not recognized in curve.offset_to")
         # get offset
-        current_positions = self.get_motor_positions(color, color_units, full=False)
+        current_positions = self.get_motor_positions(setpoint, setpoint_units, full=False)
         offset = destination - current_positions[motor_index]
         # apply using offset_by
         self.offset_by(motor, offset)
@@ -514,11 +519,11 @@ class Curve:
         # add scatter
         for motor_index, motor_name in enumerate(self.get_motor_names()):
             ax = plt.subplot(ax_dictionary[motor_name])
-            xi = self.colors
+            xi = self.setpoints
             yi = self.get_motor_positions(xi)[motor_index]
             ax.scatter(xi, yi, c="k")
             ax.set_ylabel(motor_name)
-            plt.xticks(self.colors)
+            plt.xticks(self.setpoints)
             plt.setp(ax.get_xticklabels(), visible=False)
         # add lines
         for motor_index, motor_name in enumerate(self.get_motor_names()):
@@ -527,26 +532,26 @@ class Curve:
             xi = np.linspace(limits[0], limits[1], 1000)
             yi = self.get_motor_positions(xi)[motor_index].flatten()
             ax.plot(xi, yi, c="k")
-        # get appropriate source colors
-        source_color_arrs = {}
+        # get appropriate source setpoints
+        source_setpoint_arrs = {}
         for curve_index, curve in enumerate(all_curves):
             current_curve = self
-            current_arr = self.colors
+            current_arr = self.setpoints
             for _ in range(len(all_curves) - curve_index - 1):
-                current_arr = current_curve.get_source_color(current_arr)
+                current_arr = current_curve.get_source_setpoint(current_arr)
                 current_curve = current_curve.subcurve
-            source_color_arrs[current_curve.interaction] = np.array(current_arr).flatten()
+            source_setpoint_arrs[current_curve.interaction] = np.array(current_arr).flatten()
         # add labels
         for curve in all_curves:
             ax = plt.subplot(lowest_ax_dictionary[curve.interaction])
             plt.setp(ax.get_xticklabels(), visible=True)
-            ax.set_xlabel(curve.interaction + " color ({})".format(curve.units))
-            xtick_positions = self.colors
-            xtick_labels = [str(np.around(x, 1)) for x in source_color_arrs[curve.interaction]]
+            ax.set_xlabel(curve.interaction + " setpoint ({})".format(curve.units))
+            xtick_positions = self.setpoints
+            xtick_labels = [str(np.around(x, 1)) for x in source_setpoint_arrs[curve.interaction]]
             plt.xticks(xtick_positions, xtick_labels, rotation=45)
         # formatting details
-        xmin = self.colors.min() - np.abs(self.colors[0] - self.colors[1])
-        xmax = self.colors.max() + np.abs(self.colors[0] - self.colors[1])
+        xmin = self.setpoints.min() - np.abs(self.setpoints[0] - self.setpoints[1])
+        xmax = self.setpoints.max() + np.abs(self.setpoints[0] - self.setpoints[1])
         for ax in ax_dictionary.values():
             ax = plt.subplot(ax)
             plt.xlim(xmin, xmax)
@@ -573,23 +578,23 @@ class Curve:
         filepath = pathlib.Path(filepath)
         headers = tidy_headers.read(filepath)
         arr = np.genfromtxt(filepath).T
-        colors = arr[0]
+        setpoints = arr[0]
         names = headers["name"]
         motors = []
         for a, n in zip(arr[1:], names[1:]):
-            motors.append(Motor(a,n))
+            motors.append(Motor(a, n))
         kwargs = {}
         kwargs["interaction"] = headers["interaction"]
         kwargs["kind"] = headers.get("kind", None)
         kwargs["method"] = methods.get(headers.get("method", ""), Linear)
         kwargs["name"] = headers.get("curve name", filepath.stem)
-        kwargs["fmt"] = headers.get("fmt", ["%.2f"] + ["%.5f"]*len(motors))
+        kwargs["fmt"] = headers.get("fmt", ["%.2f"] + ["%.5f"] * len(motors))
         units = re.match(r".*\((.*)\).*", names[0])[1]
         if subcurve is not None:
             kwargs["subcurve"] = subcurve
-            kwargs["source_colors"] = Motor(colors, units)
+            kwargs["source_setpoints"] = Motor(setpoints, units)
         # finish
-        curve = cls(colors, units, motors, **kwargs)
+        curve = cls(setpoints, units, motors, **kwargs)
         return curve
 
     def save(self, save_directory=None, plot=True, verbose=True, full=False):
@@ -618,8 +623,8 @@ class Curve:
         else:
             save_directory = pathlib.Path(save_directory)
         # array
-        out_arr = np.zeros([len(self.motors) + 1, len(self.colors)])
-        out_arr[0] = self.colors
+        out_arr = np.zeros([len(self.motors) + 1, len(self.setpoints)])
+        out_arr[0] = self.setpoints
         out_arr[1:] = np.array([motor.positions for motor in self.motors])
         # filename
         timestamp = wt.kit.TimeStamp()
@@ -632,7 +637,7 @@ class Curve:
         headers["interaction"] = self.interaction
         headers["kind"] = self.kind
         headers["method"] = self.method.__name__
-        headers["name"] = [f"Color ({self.units})"] + [m.name for m in self.motors]
+        headers["name"] = [f"Setpoint ({self.units})"] + [m.name for m in self.motors]
         tidy_headers.write(out_path, headers)
         with open(out_path, "at") as f:
             np.savetxt(f, out_arr.T, fmt=self.fmt, delimiter="\t")
