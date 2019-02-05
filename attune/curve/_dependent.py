@@ -23,6 +23,6 @@ class Dependent:
     def __getitem__(self, key):
         return self.positions[key]
 
-    def convert(units):
+    def convert(self, units):
         wt.units.convert(self.positions, self.units, units)
         self.units = units
