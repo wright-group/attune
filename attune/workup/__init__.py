@@ -44,12 +44,12 @@ def _intensity(data, channel_name, tune_points, *, spline=True, **spline_kwargs)
 def intensity(
     data, curve, channel, *, level=False, cutoff_factor=0.1, autosave=True, save_directory=None
 ):
-    """Workup a generic intensity plot for a single motor.
+    """Workup a generic intensity plot for a single dependent.
 
     Parameters
     ----------
     data : wt.data.Data objeect
-        should be in (setpoint, motor)
+        should be in (setpoint, dependent)
 
     Returns
     -------
@@ -74,26 +74,26 @@ def intensity(
     channel.clip(min=cutoff)
 
     # TODO: not sure this is what we want
-    motor_axis_name = data.axes[1].natural_name
+    dependent_axis_name = data.axes[1].natural_name
 
     offsets = _intensity(data, channel.natural_name, tune_points)
 
-    motors = []
-    for motor_index, motor_name in enumerate([m.name for m in old_curve.motors]):
-        if motor_name in motor_axis_name.split("_"):
-            positions = old_curve.motors[motor_index].positions + offsets
-            motor = attune_curve.Motor(positions, motor_name)
-            motors.append(motor)
-            tuned_motor_index = motor_index
+    dependents = []
+    for dependent_index, dependent_name in enumerate([m.name for m in old_curve.dependents]):
+        if dependent_name in dependent_axis_name.split("_"):
+            positions = old_curve.dependents[dependent_index].positions + offsets
+            dependent = attune_curve.Dependent(positions, dependent_name)
+            dependents.append(dependent)
+            tuned_dependent_index = dependent_index
         else:
-            motors.append(old_curve.motors[motor_index])
+            dependents.append(old_curve.dependents[dependent_index])
 
     kind = old_curve.kind
     interaction = old_curve.interaction
     curve = attune_curve.Curve(
         tune_points,
         "wn",
-        motors,
+        dependents,
         name=old_curve.name.split("-")[0],
         kind=kind,
         interaction=interaction,
@@ -103,7 +103,7 @@ def intensity(
     curve.map_setpoints(old_curve.setpoints)
 
     fig, _ = _plot.plot_intensity(
-        data, channel, curve.motor_names[tuned_motor_index], curve, old_curve
+        data, channel, curve.dependent_names[tuned_dependent_index], curve, old_curve
     )
 
     if autosave:

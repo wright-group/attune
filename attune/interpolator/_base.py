@@ -2,7 +2,7 @@
 
 
 class Interpolator:
-    def __init__(self, setpoints, units, motors):
+    def __init__(self, setpoints, units, dependents):
         """Create an Interoplator object.
 
         Parameters
@@ -11,16 +11,16 @@ class Interpolator:
             Setpoints.
         units : string
             Units.
-        motors : list of WrightTools.tuning.curve.Motor
-            Motors.
+        dependents : list of WrightTools.tuning.curve.Dependent
+            Dependents.
         """
         self.setpoints = setpoints
         self.units = units
-        self.motors = motors
+        self.dependents = dependents
         self._functions = None
 
-    def get_motor_positions(self, setpoint):
-        """Get motor positions.
+    def get_dependent_positions(self, setpoint):
+        """Get dependent positions.
 
         Parameters
         ----------
@@ -30,6 +30,6 @@ class Interpolator:
         Returns
         -------
         list of numbers
-            Motor positions.
+            Dependent positions.
         """
         return [f(setpoint) for f in self.functions]

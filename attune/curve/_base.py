@@ -18,32 +18,13 @@ import matplotlib.gridspec as grd
 import WrightTools as wt
 import tidy_headers
 from ..interpolator import Linear, builtins
+from ._dependent import Dependent
 
 
-__all__ = ["Curve", "Motor"]
+__all__ = ["Curve"]
 
 
 # --- curve class ---------------------------------------------------------------------------------
-
-
-class Motor:
-    """Container class for motor arrays."""
-
-    def __init__(self, positions, name):
-        """Create a ``Motor`` object.
-
-        Parameters
-        ----------
-        positions : 1D array
-            Motor positions.
-        name : string
-            Name.
-        """
-        self.positions = positions
-        self.name = name
-
-    def __getitem__(self, key):
-        return self.positions[key]
 
 
 class Curve:
@@ -53,7 +34,7 @@ class Curve:
         self,
         setpoints,
         units,
-        motors,
+        dependents,
         name,
         interaction,
         kind,
@@ -70,8 +51,8 @@ class Curve:
             The setpoint destinations for the curve.
         units : str
             The setpoint units.
-        motors : list of Motor objects
-            Motor positions for each setpoint.
+        dependents : list of Dependent objects
+            Dependent positions for each setpoint.
         name : str
             Name of curve.
         kind : string
@@ -86,20 +67,20 @@ class Curve:
         # inherit
         self.setpoints = np.array(setpoints)  # needs to be array for some interpolation methods
         self.units = units
-        self.motors = motors
+        self.dependents = dependents
         self.name = name
         self.kind = kind
         self.subcurve = subcurve
         self.source_setpoints = source_setpoints
         self.interaction = interaction
-        # set motors as attributes of self
-        self.motor_names = [m.name for m in self.motors]
-        for obj in self.motors:
+        # set dependents as attributes of self
+        self.dependent_names = [m.name for m in self.dependents]
+        for obj in self.dependents:
             setattr(self, obj.name, obj)
         # initialize function object
         self.method = builtins.get(method, method)
         if fmt is None:
-            fmt = ["%.2f"] + ["%.5f"] * len(self.motors)
+            fmt = ["%.2f"] + ["%.5f"] * len(self.dependents)
         self.fmt = fmt
         self.interpolate()
 
@@ -118,13 +99,13 @@ class Curve:
         return "\n".join(outs)
 
     def __getitem__(self, key):
-        return self.motors[wt.kit.get_index(self.motor_names, key)]
+        return self.dependents[wt.kit.get_index(self.dependent_names, key)]
 
     def __call__(self, value, units=None, full=True):
-        return self.get_motor_positions(value, units, full=full)
+        return self.get_dependent_positions(value, units, full=full)
 
-    def coerce_motors(self):
-        """Coerce the motor positions to lie exactly along the interpolation positions.
+    def coerce_dependents(self):
+        """Coerce the dependent positions to lie exactly along the interpolation positions.
 
         Can be thought of as 'smoothing' the curve.
         """
@@ -155,13 +136,13 @@ class Curve:
         """
         return copy.deepcopy(self)
 
-    def get_setpoint(self, motor_positions, units="same"):
-        """Get the setpoint given a set of motor positions.
+    def get_setpoint(self, dependent_positions, units="same"):
+        """Get the setpoint given a set of dependent positions.
 
         Parameters
         ----------
-        motor_positions : array
-            The motor positions.
+        dependent_positions : array
+            The dependent positions.
         units : str (optional)
             The units of the returned setpoint.
 
@@ -171,8 +152,8 @@ class Curve:
             The current setpoint.
         """
         setpoints = []
-        for motor_index, motor_position in enumerate(motor_positions):
-            setpoint = self.interpolator.get_setpoint(motor_index, motor_position)
+        for dependent_index, dependent_position in enumerate(dependent_positions):
+            setpoint = self.interpolator.get_setpoint(dependent_index, dependent_position)
             setpoints.append(setpoint)
         # TODO: decide how to handle case of disagreement between setpoints
         return setpoints[0]
@@ -196,27 +177,27 @@ class Curve:
             units_setpoints = wt.units.converter(self.setpoints, self.units, units)
             return [units_setpoints.min(), units_setpoints.max()]
 
-    def get_motor_names(self, full=True):
-        """Get motor names.
+    def get_dependent_names(self, full=True):
+        """Get dependent names.
 
         Parameters
         ----------
         full : boolean (optional)
-            Toggle inclusion of motor names from subcurve.
+            Toggle inclusion of dependent names from subcurve.
 
         Returns
         -------
         list of strings
-            Motor names.
+            Dependent names.
         """
         if self.subcurve and full:
-            subcurve_motor_names = self.subcurve.get_motor_names()
+            subcurve_dependent_names = self.subcurve.get_dependent_names()
         else:
-            subcurve_motor_names = []
-        return subcurve_motor_names + [m.name for m in self.motors]
+            subcurve_dependent_names = []
+        return subcurve_dependent_names + [m.name for m in self.dependents]
 
-    def get_motor_positions(self, setpoint, units="same", full=True):
-        """Get the motor positions for a destination setpoint.
+    def get_dependent_positions(self, setpoint, units="same", full=True):
+        """Get the dependent positions for a destination setpoint.
 
         Parameters
         ----------
@@ -228,8 +209,8 @@ class Curve:
         Returns
         -------
         np.ndarray
-            The motor positions. If setpoint is an array the output shape will
-            be (motors, setpoints).
+            The dependent positions. If setpoint is an array the output shape will
+            be (dependents, setpoints).
         """
         # get setpoint in units
         if units == "same":
@@ -249,17 +230,21 @@ class Curve:
             out = []
             for c in setpoint:
                 source_setpoint = np.array(
-                    self.source_setpoint_interpolator.get_motor_positions(c)
+                    self.source_setpoint_interpolator.get_dependent_positions(c)
                 )
-                source_motor_positions = np.array(
-                    self.subcurve.get_motor_positions(source_setpoint, units=self.units, full=True)
+                source_dependent_positions = np.array(
+                    self.subcurve.get_dependent_positions(
+                        source_setpoint, units=self.units, full=True
+                    )
                 ).squeeze()
-                own_motor_positions = np.array(self.interpolator.get_motor_positions(c)).flatten()
-                out.append(np.hstack((source_motor_positions, own_motor_positions)))
+                own_dependent_positions = np.array(
+                    self.interpolator.get_dependent_positions(c)
+                ).flatten()
+                out.append(np.hstack((source_dependent_positions, own_dependent_positions)))
             out = np.array(out)
             return out.squeeze().T
         else:
-            out = np.array([self.interpolator.get_motor_positions(c) for c in setpoint])
+            out = np.array([self.interpolator.get_dependent_positions(c) for c in setpoint])
             return out.T
 
     def get_source_setpoint(self, setpoint, units="same"):
@@ -294,7 +279,7 @@ class Curve:
             setpoint = wt.units.converter(setpoint, units, self.units)
         # evaluate
         return np.array(
-            [self.source_setpoint_interpolator.get_motor_positions(c) for c in setpoint]
+            [self.source_setpoint_interpolator.get_dependent_positions(c) for c in setpoint]
         )
 
     def interpolate(self, interpolate_subcurve=True):
@@ -305,7 +290,7 @@ class Curve:
         interpolate_subcurve : boolean (optional)
             Toggle interpolation of subcurve. Default is True.
         """
-        self.interpolator = self.method(self.setpoints, self.units, self.motors)
+        self.interpolator = self.method(self.setpoints, self.units, self.dependents)
         if self.subcurve and interpolate_subcurve:
             self.source_setpoint_interpolator = self.method(
                 self.setpoints, self.units, [self.source_setpoints]
@@ -333,36 +318,36 @@ class Curve:
         if units == "same":
             units = self.units
         new_setpoints = np.sort(wt.units.converter(new_setpoints, units, self.units))
-        # ensure that motor interpolators agree with current motor positions
+        # ensure that dependent interpolators agree with current dependent positions
         self.interpolate(interpolate_subcurve=True)
-        # map own motors
-        new_motors = []
-        for motor_index, motor in enumerate(self.motors):
-            positions = self.get_motor_positions(new_setpoints, full=False)[motor_index]
-            new_motor = Motor(positions, motor.name)  # new motor objects
-            new_motors.append(new_motor)
+        # map own dependents
+        new_dependents = []
+        for dependent_index, dependent in enumerate(self.dependents):
+            positions = self.get_dependent_positions(new_setpoints, full=False)[dependent_index]
+            new_dependent = Dependent(positions, dependent.name)  # new dependent objects
+            new_dependents.append(new_dependent)
         # map source setpoints, subcurves
         if self.subcurve:
             new_source_setpoints = np.array(
-                self.source_setpoint_interpolator.get_motor_positions(new_setpoints)
+                self.source_setpoint_interpolator.get_dependent_positions(new_setpoints)
             ).squeeze()
             self.subcurve.map_setpoints(new_source_setpoints, units=self.units)
             self.source_setpoints.positions = new_source_setpoints
         # finish
         self.setpoints = new_setpoints
-        self.motors = new_motors
-        self.motor_names = [m.name for m in self.motors]
-        for obj in self.motors:
+        self.dependents = new_dependents
+        self.dependent_names = [m.name for m in self.dependents]
+        for obj in self.dependents:
             setattr(self, obj.name, obj)
         self.interpolate(interpolate_subcurve=True)
 
-    def offset_by(self, motor, amount):
-        """Offset a motor by some ammount.
+    def offset_by(self, dependent, amount):
+        """Offset a dependent by some ammount.
 
         Parameters
         ----------
-        motor : number or str
-            The motor index or name.
+        dependent : number or str
+            The dependent index or name.
         amount : number
             The offset.
 
@@ -370,24 +355,24 @@ class Curve:
         --------
         offset_to
         """
-        # get motor index
-        motor_index = wt.kit.get_index(self.motor_names, motor)
+        # get dependent index
+        dependent_index = wt.kit.get_index(self.dependent_names, dependent)
 
         # offset
-        self.motors[motor_index].positions += amount
+        self.dependents[dependent_index].positions += amount
         self.interpolate()
 
-    def offset_to(self, motor, destination, setpoint, setpoint_units="same"):
-        """Offset a motor such that it evaluates to `destination` at `setpoint`.
+    def offset_to(self, dependent, destination, setpoint, setpoint_units="same"):
+        """Offset a dependent such that it evaluates to `destination` at `setpoint`.
 
         Parameters
         ----------
-        motor : number or str
-            The motor index or name.
+        dependent : number or str
+            The dependent index or name.
         amount : number
-            The motor position at setpoint after offseting.
+            The dependent position at setpoint after offseting.
         setpoint : number
-            The setpoint at-which to set the motor to amount.
+            The setpoint at-which to set the dependent to amount.
         setpoint_units : str (optional)
             The setpoint units. Default is same.
 
@@ -395,34 +380,34 @@ class Curve:
         --------
         offset_by
         """
-        # get motor index
-        if type(motor) in [float, int]:
-            motor_index = motor
-        elif isinstance(motor, str):
-            motor_index = self.motor_names.index(motor)
+        # get dependent index
+        if type(dependent) in [float, int]:
+            dependent_index = dependent
+        elif isinstance(dependent, str):
+            dependent_index = self.dependent_names.index(dependent)
         else:
-            print("motor type not recognized in curve.offset_to")
+            print("dependent type not recognized in curve.offset_to")
         # get offset
-        current_positions = self.get_motor_positions(setpoint, setpoint_units, full=False)
-        offset = destination - current_positions[motor_index]
+        current_positions = self.get_dependent_positions(setpoint, setpoint_units, full=False)
+        offset = destination - current_positions[dependent_index]
         # apply using offset_by
-        self.offset_by(motor, offset)
+        self.offset_by(dependent, offset)
 
     def plot(self, autosave=False, save_path="", title=None):
         """Plot the curve."""
         # count number of subcurves
         subcurve_count = 0
-        total_motor_count = len(self.motors)
+        total_dependent_count = len(self.dependents)
         current_curve = self
         all_curves = [self]
         while current_curve.subcurve:
             subcurve_count += 1
-            total_motor_count += len(current_curve.subcurve.motors)
+            total_dependent_count += len(current_curve.subcurve.dependents)
             current_curve = current_curve.subcurve
             all_curves.append(current_curve)
         all_curves = all_curves[::-1]
         # prepare figure
-        num_subplots = total_motor_count + subcurve_count
+        num_subplots = total_dependent_count + subcurve_count
         fig = plt.figure(figsize=(8, 2 * num_subplots))
         axs = grd.GridSpec(num_subplots, 1, hspace=0)
         # assign subplot indicies
@@ -430,27 +415,27 @@ class Curve:
         ax_dictionary = {}
         lowest_ax_dictionary = {}
         for curve_index, curve in enumerate(all_curves):
-            for motor_index, motor in enumerate(curve.motors):
-                ax_dictionary[motor.name] = axs[ax_index]
+            for dependent_index, dependent in enumerate(curve.dependents):
+                ax_dictionary[dependent.name] = axs[ax_index]
                 lowest_ax_dictionary[curve.interaction] = axs[ax_index]
                 ax_index += 1
             if curve_index != len(all_curves):
                 ax_index += 1
         # add scatter
-        for motor_index, motor_name in enumerate(self.get_motor_names()):
-            ax = plt.subplot(ax_dictionary[motor_name])
+        for dependent_index, dependent_name in enumerate(self.get_dependent_names()):
+            ax = plt.subplot(ax_dictionary[dependent_name])
             xi = self.setpoints
-            yi = self.get_motor_positions(xi)[motor_index]
+            yi = self.get_dependent_positions(xi)[dependent_index]
             ax.scatter(xi, yi, c="k")
-            ax.set_ylabel(motor_name)
+            ax.set_ylabel(dependent_name)
             plt.xticks(self.setpoints)
             plt.setp(ax.get_xticklabels(), visible=False)
         # add lines
-        for motor_index, motor_name in enumerate(self.get_motor_names()):
-            ax = plt.subplot(ax_dictionary[motor_name])
+        for dependent_index, dependent_name in enumerate(self.get_dependent_names()):
+            ax = plt.subplot(ax_dictionary[dependent_name])
             limits = curve.get_limits()
             xi = np.linspace(limits[0], limits[1], 1000)
-            yi = self.get_motor_positions(xi)[motor_index].flatten()
+            yi = self.get_dependent_positions(xi)[dependent_index].flatten()
             ax.plot(xi, yi, c="k")
         # get appropriate source setpoints
         source_setpoint_arrs = {}
@@ -500,21 +485,21 @@ class Curve:
         arr = np.genfromtxt(filepath).T
         setpoints = arr[0]
         names = headers["name"]
-        motors = []
+        dependents = []
         for a, n in zip(arr[1:], names[1:]):
-            motors.append(Motor(a, n))
+            dependents.append(Dependent(a, n))
         kwargs = {}
         kwargs["interaction"] = headers["interaction"]
         kwargs["kind"] = headers.get("kind", None)
         kwargs["method"] = builtins.get(headers.get("method", ""), Linear)
         kwargs["name"] = headers.get("curve name", filepath.stem)
-        kwargs["fmt"] = headers.get("fmt", ["%.2f"] + ["%.5f"] * len(motors))
+        kwargs["fmt"] = headers.get("fmt", ["%.2f"] + ["%.5f"] * len(dependents))
         units = re.match(r".*\((.*)\).*", names[0])[1]
         if subcurve is not None:
             kwargs["subcurve"] = subcurve
-            kwargs["source_setpoints"] = Motor(setpoints, units)
+            kwargs["source_setpoints"] = Dependent(setpoints, units)
         # finish
-        curve = cls(setpoints, units, motors, **kwargs)
+        curve = cls(setpoints, units, dependents, **kwargs)
         return curve
 
     def save(self, save_directory=None, plot=True, verbose=True, full=False):
@@ -543,9 +528,9 @@ class Curve:
         else:
             save_directory = pathlib.Path(save_directory)
         # array
-        out_arr = np.zeros([len(self.motors) + 1, len(self.setpoints)])
+        out_arr = np.zeros([len(self.dependents) + 1, len(self.setpoints)])
         out_arr[0] = self.setpoints
-        out_arr[1:] = np.array([motor.positions for motor in self.motors])
+        out_arr[1:] = np.array([dependent.positions for dependent in self.dependents])
         # filename
         timestamp = wt.kit.TimeStamp()
         out_name = self.name.split("-")[0] + "- " + timestamp.path
@@ -557,7 +542,7 @@ class Curve:
         headers["interaction"] = self.interaction
         headers["kind"] = self.kind
         headers["method"] = self.method.__name__
-        headers["name"] = [f"Setpoint ({self.units})"] + [m.name for m in self.motors]
+        headers["name"] = [f"Setpoint ({self.units})"] + [m.name for m in self.dependents]
         tidy_headers.write(out_path, headers)
         with open(out_path, "at") as f:
             np.savetxt(f, out_arr.T, fmt=self.fmt, delimiter="\t")

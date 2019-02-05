@@ -14,7 +14,7 @@ class Poly:
         if self._functions is not None:
             return self._functions
         self._functions = [
-            np.polynomial.Polynomial.fit(self.setpoints, motor.positions, self.deg)
-            for motor in self.motors
+            np.polynomial.Polynomial.fit(self.setpoints, dependent.positions, self.deg)
+            for dependent in self.dependents
         ]
         return self._functions
