@@ -65,7 +65,7 @@ def intensity(
     if isinstance(channel, (int, str)):
         channel = data.channels[wt.kit.get_index(data.channel_names, channel)]
     channel_index = wt.kit.get_index(data.channels, channel)
-    tune_points = curve.colors
+    tune_points = curve.setpoints
 
     # TODO: check if level does what we want
     if level:
@@ -99,8 +99,8 @@ def intensity(
         interaction=interaction,
     )
 
-    # Why did we have to map colors?
-    curve.map_colors(old_curve.colors)
+    # Why did we have to map setpoints?
+    curve.map_setpoints(old_curve.setpoints)
 
     fig, _ = _plot.plot_intensity(
         data, channel, curve.motor_names[tuned_motor_index], curve, old_curve
@@ -168,11 +168,11 @@ def tune_test(
     yi = outs.points
     print(xi.shape, yi.shape)
     spline = wt.kit.Spline(xi, yi)
-    points = curve.colors.copy()
+    points = curve.setpoints.copy()
     offsets_splined = spline(points)  # wn
     # make curve ----------------------------------------------------------------------------------
-    curve.colors += offsets_splined
-    curve.map_colors(points, units="wn")
+    curve.setpoints += offsets_splined
+    curve.map_setpoints(points, units="wn")
     curve.convert(curve_native_units)
     # plot ----------------------------------------------------------------------------------------
     data.axes[1].convert(curve_native_units)

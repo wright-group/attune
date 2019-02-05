@@ -8,9 +8,9 @@ def plot_intensity(data, channel, motor, curve, prior_curve=None):
     ax = plt.subplot(gs[0, 0])
     curve_plot_kwargs = {"lw": 4, "c": "k", "alpha": .75}
     prior_curve_plot_kwargs = {"lw": 2, "c": "k"}
-    ax.plot(curve.colors, curve[motor][:], **curve_plot_kwargs)
+    ax.plot(curve.setpoints, curve[motor][:], **curve_plot_kwargs)
     if prior_curve:
-        ax.plot(prior_curve.colors, prior_curve[motor][:], **prior_curve_plot_kwargs)
+        ax.plot(prior_curve.setpoints, prior_curve[motor][:], **prior_curve_plot_kwargs)
     ax.set_ylabel(motor)
     wt.artists.plot_gridlines()
 
@@ -18,14 +18,14 @@ def plot_intensity(data, channel, motor, curve, prior_curve=None):
     ax.pcolor(data, channel=channel)
     if prior_curve:
         ypoints = (
-            prior_curve(curve.colors, curve.units, full=False)[
+            prior_curve(curve.setpoints, curve.units, full=False)[
                 wt.kit.get_index(prior_curve.motor_names, motor)
             ]
             - curve[motor][:]
         )
     else:
         ypoints = curve[motor][:]
-    ax.plot(curve.colors, ypoints, **curve_plot_kwargs)
+    ax.plot(curve.setpoints, ypoints, **curve_plot_kwargs)
     ax.axhline(0, **prior_curve_plot_kwargs)
     wt.artists.plot_gridlines()
     ax.set_ylabel(r"$\mathsf{{\Delta {motor}}}$".format(motor=motor))

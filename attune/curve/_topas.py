@@ -98,8 +98,8 @@ class TopasCurve(Curve):
                 lis.append(line_arr)
                 arr = np.array(lis).T
                 # create the curve
-            source_colors = Motor(arr[0], "source colors")
-            colors = arr[1]
+            source_setpoints = Motor(arr[0], "source setpoints")
+            setpoints = arr[1]
             motors = []
             for i in range(3, len(arr)):
                 motor_name = TOPAS_interactions[interaction_string][1][i - 3]
@@ -107,7 +107,7 @@ class TopasCurve(Curve):
                 motors.append(motor)
                 name = pathlib.Path(crv_path).stem
                 curve = cls(
-                    colors,
+                    setpoints,
                     "nm",
                     motors,
                     name,
@@ -115,7 +115,7 @@ class TopasCurve(Curve):
                     kind,
                     method=Linear,
                     subcurve=subcurve,
-                    source_colors=source_colors,
+                    source_setpoints=source_setpoints,
                 )
                 subcurve = curve.copy()
                 # finish
@@ -176,34 +176,34 @@ class TopasCurve(Curve):
         # construct to_insert (dictionary of arrays)
         to_insert = {}
         if interaction_string == "NON-NON-NON-Sig":  # must generate idler
-            # read spitfire color from crv
+            # read spitfire setpoint from crv
             spitfire_output = float(crv_lines[line_index - 4].rstrip())
             # create signal array from curve
-            signal_arr = np.zeros([7, len(curve.colors)])
+            signal_arr = np.zeros([7, len(curve.setpoints)])
             signal_arr[0] = spitfire_output
-            signal_arr[1] = curve.colors
+            signal_arr[1] = curve.setpoints
             signal_arr[2] = 4
             for i in range(4):
                 signal_arr[3 + i] = curve.motors[i].positions
             # create idler aray
             idler_arr = signal_arr.copy()
-            idler_arr[1] = 1 / ((1 / spitfire_output) - (1 / curve.colors))
+            idler_arr[1] = 1 / ((1 / spitfire_output) - (1 / curve.setpoints))
             # construct to_insert
             to_insert["NON-NON-NON-Sig"] = signal_arr
             to_insert["NON-NON-NON-Idl"] = idler_arr
         elif interaction_string == "NON-NON-NON-Idl":  # must generate signal
-            # read spitfire color from crv
+            # read spitfire setpoint from crv
             spitfire_output = float(crv_lines[line_index - 4].rstrip())
             # create idler array from curve
-            idler_arr = np.zeros([7, len(curve.colors)])
+            idler_arr = np.zeros([7, len(curve.setpoints)])
             idler_arr[0] = spitfire_output
-            idler_arr[1] = curve.colors
+            idler_arr[1] = curve.setpoints
             idler_arr[2] = 4
             for i in range(4):
                 idler_arr[3 + i] = curve.motors[i].positions
             # create idler aray
             signal_arr = idler_arr.copy()
-            signal_arr[1] = 1 / ((1 / spitfire_output) - (1 / curve.colors))
+            signal_arr[1] = 1 / ((1 / spitfire_output) - (1 / curve.setpoints))
             # construct to_insert
             to_insert["NON-NON-NON-Sig"] = signal_arr
             to_insert["NON-NON-NON-Idl"] = idler_arr
@@ -213,9 +213,9 @@ class TopasCurve(Curve):
             and curve.kind == "TOPAS-800"
         ):
             # create array from curve
-            arr = np.zeros([6, len(curve.colors)])
-            arr[0] = curve.source_colors.positions
-            arr[1] = curve.colors
+            arr = np.zeros([6, len(curve.setpoints)])
+            arr[0] = curve.source_setpoints.positions
+            arr[1] = curve.setpoints
             arr[2] = 3
             arr[3] = curve.motors[0].positions
             arr[4] = curve.motors[1].positions
@@ -223,9 +223,9 @@ class TopasCurve(Curve):
             to_insert[interaction_string] = arr
         else:  # all single-motor mixer processes
             # create array from curve
-            arr = np.zeros([4, len(curve.colors)])
-            arr[0] = curve.source_colors.positions
-            arr[1] = curve.colors
+            arr = np.zeros([4, len(curve.setpoints)])
+            arr[0] = curve.source_setpoints.positions
+            arr[1] = curve.setpoints
             arr[2] = 1
             arr[3] = curve.motors[0].positions
             to_insert[interaction_string] = arr
@@ -262,7 +262,7 @@ class TopasCurve(Curve):
                 line += "\n"
                 out_lines.insert(line_index - 1, line)
             out_lines.insert(
-                line_index - 1, str(len(curve.colors)) + "\n"
+                line_index - 1, str(len(curve.setpoints)) + "\n"
             )  # number of points of new curve
         # filename
         timestamp = wt.kit.TimeStamp().path

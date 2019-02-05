@@ -17,91 +17,11 @@ import matplotlib.gridspec as grd
 
 import WrightTools as wt
 import tidy_headers
+from ..interpolator import Linear, builtins
 
 
 __all__ = ["Curve", "Motor"]
 
-
-class Interpolator:
-    def __init__(self, setpoints, units, motors):
-        """Create an Interoplator object.
-
-        Parameters
-        ----------
-        setpoints : 1D array
-            Setpoints.
-        units : string
-            Units.
-        motors : list of WrightTools.tuning.curve.Motor
-            Motors.
-        """
-        self.setpoints = setpoints
-        self.units = units
-        self.motors = motors
-        self._functions = None
-
-    def get_motor_positions(self, setpoint):
-        """Get motor positions.
-
-        Parameters
-        ----------
-        setpoint : number
-            Destination, in units.
-
-        Returns
-        -------
-        list of numbers
-            Motor positions.
-        """
-        return [f(setpoint) for f in self.functions]
-
-
-class Linear(Interpolator):
-    """Linear interpolation."""
-
-    @property
-    def functions(self):
-        if self._functions is not None:
-            return self._functions
-        self._functions = [
-            wt.kit.Spline(self.setpoints, motor.positions, k=1, s=0) for motor in self.motors
-        ]
-        return self._functions
-
-
-class Poly:
-    """Polynomial interpolation."""
-
-    def __init__(self, *args, **kwargs):
-        self.deg = kwargs.pop("deg", 8)
-        super(self, Interpolator).__init__(*args, **kwargs)
-
-    @property
-    def functions(self):
-        if self._functions is not None:
-            return self._functions
-        self._functions = [
-            np.polynomial.Polynomial.fit(self.setpoints, motor.positions, self.deg)
-            for motor in self.motors
-        ]
-        return self._functions
-
-
-class Spline:
-    """Spline interpolation."""
-
-    @property
-    def functions(self):
-        if self._functions is not None:
-            return self._functions
-        self._functions = [
-            scipy.interpolate.UnivariateSpline(setpoints, motor.positions, k=3, s=1000)
-            for motor in motors
-        ]
-        return self._functions
-
-
-methods = {"Linear": Linear, "Spline": Spline, "Poly": Poly}
 
 # --- curve class ---------------------------------------------------------------------------------
 
@@ -177,7 +97,7 @@ class Curve:
         for obj in self.motors:
             setattr(self, obj.name, obj)
         # initialize function object
-        self.method = method
+        self.method = builtins.get(method, method)
         if fmt is None:
             fmt = ["%.2f"] + ["%.5f"] * len(self.motors)
         self.fmt = fmt

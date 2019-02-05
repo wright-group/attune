@@ -27,7 +27,7 @@ def process_wigner(
     control_name,
     offset_name,
     coset_name=None,
-    color_units="nm",
+    setpoint_units="nm",
     delay_units="fs",
     global_cutoff_factor=0.05,
     slice_cutoff_factor=0.1,
@@ -50,7 +50,7 @@ def process_wigner(
     coset_name : string
         Coset name.
         Default is "{control_name}_{offset_name}"
-    color_units : string (optional)
+    setpoint_units : string (optional)
         Color units. Default is nm.
     delay_units : string (optional)
         Delay uints. Default is fs.
@@ -70,8 +70,8 @@ def process_wigner(
         coset_name = f"{control_name}_{offset_name}"
     # get data
     if data.axes[0].units_kind == "energy":
-        data.transform(*data.axis_names[::-1])  # prefered shape - delay then color
-    data.convert(color_units)
+        data.transform(*data.axis_names[::-1])  # prefered shape - delay then setpoint
+    data.convert(setpoint_units)
     data.convert(delay_units)
     ws = data.axes[1].points
     # get channel index
@@ -103,7 +103,7 @@ def process_wigner(
     ax.plot(xi, yi, alpha=1)
     # make coset
     coset = attune_coset.CoSet(
-        control_name, color_units, ws, offset_name, delay_units, corrections, coset_name
+        control_name, setpoint_units, ws, offset_name, delay_units, corrections, coset_name
     )
     # save
     if save_directory is None:
@@ -117,7 +117,7 @@ def process_brute_force(
     data_filepath,
     opa_index,
     channel,
-    color_units="nm",
+    setpoint_units="nm",
     delay_units="fs",
     amplitude_cutoff_factor=0.5,
     plot=True,
@@ -143,7 +143,7 @@ def process_brute_force(
 
     # pre-process data
     data.normalize(channel_index)
-    data.convert(color_units, verbose=False)
+    data.convert(setpoint_units, verbose=False)
     data.convert(delay_units, verbose=False)
     # slice data
     ws = getattr(data, "w{}".format(opa_index)).points
@@ -271,7 +271,7 @@ def process_brute_force(
     # TODO: generalize
     x_coset = attune_coset.CoSet(
         "OPA2 TOPAS-C",
-        color_units,
+        setpoint_units,
         ws,
         "D1 SMC100",
         delay_units,
@@ -280,7 +280,7 @@ def process_brute_force(
     )
     y_coset = attune_coset.CoSet(
         "OPA2 TOPAS-C",
-        color_units,
+        setpoint_units,
         ws,
         "D2 SMC100",
         delay_units,
