@@ -499,7 +499,7 @@ class Curve:
         names = headers["name"]
         units = headers.get("units", [None] * len(names))
         dependents = []
-        for a, n in zip(arr[1:], names[1:], units[1:]):
+        for a, n, u in zip(arr[1:], names[1:], units[1:]):
             dependents.append(Dependent(a, n, units=u))
         kwargs = {}
         kwargs["interaction"] = headers["interaction"]
