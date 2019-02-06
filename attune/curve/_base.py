@@ -42,6 +42,7 @@ class Curve:
         subcurve=None,
         source_setpoints=None,
         fmt=None,
+        setpoint_name="Setpoint",
     ):
         """Create a ``Curve`` object.
 
@@ -74,7 +75,6 @@ class Curve:
         self.source_setpoints = source_setpoints
         self.interaction = interaction
         # set dependents as attributes of self
-        self.dependent_names = [m.name for m in self.dependents]
         for obj in self.dependents:
             setattr(self, obj.name, obj)
         # initialize function object
@@ -82,6 +82,7 @@ class Curve:
         if fmt is None:
             fmt = ["%.2f"] + ["%.5f"] * len(self.dependents)
         self.fmt = fmt
+        self.setpoint_name = setpoint_name
         self.interpolate()
 
     def __repr__(self):
@@ -104,6 +105,46 @@ class Curve:
     def __call__(self, value, units=None, full=True):
         return self.get_dependent_positions(value, units, full=full)
 
+    @property
+    def dependent_names(self, full=True):
+        """Get dependent names.
+
+        Parameters
+        ----------
+        full : boolean (optional)
+            Toggle inclusion of dependent names from subcurve.
+
+        Returns
+        -------
+        list of strings
+            Dependent names.
+        """
+        if self.subcurve and full:
+            subcurve_dependent_names = self.subcurve.dependent_names
+        else:
+            subcurve_dependent_names = []
+        return subcurve_dependent_names + [m.name for m in self.dependents]
+
+    @property
+    def dependent_units(self, full=True):
+        """Get dependent names.
+
+        Parameters
+        ----------
+        full : boolean (optional)
+            Toggle inclusion of dependent names from subcurve.
+
+        Returns
+        -------
+        list of strings
+            Dependent names.
+        """
+        if self.subcurve and full:
+            subcurve_dependent_units = self.subcurve.dependent_units
+        else:
+            subcurve_dependent_units = []
+        return subcurve_dependent_units + [m.units for m in self.dependents]
+
     def coerce_dependents(self):
         """Coerce the dependent positions to lie exactly along the interpolation positions.
 
@@ -111,7 +152,7 @@ class Curve:
         """
         self.map_setpoints(self.setpoints, units="same")
 
-    def convert(self, units):
+    def convert(self, units, *, convert_dependents=False):
         """Convert the setpoints to new units.
 
         Parameters
@@ -124,7 +165,12 @@ class Curve:
             positions = self.source_setpoints.positions
             self.source_setpoints.positions = wt.units.converter(positions, self.units, units)
         self.units = units
-        self.interpolate()  # how did it ever work if this wasn't here?  - Blaise 2017-03-22
+        if convert_dependents:
+            for d in self.dependents:
+                if wt.units.is_valed_conversion(d.units, units):
+                    d.convert(units)
+
+        self.interpolate()
 
     def copy(self):
         """Copy the curve object.
@@ -177,25 +223,6 @@ class Curve:
             units_setpoints = wt.units.converter(self.setpoints, self.units, units)
             return [units_setpoints.min(), units_setpoints.max()]
 
-    def get_dependent_names(self, full=True):
-        """Get dependent names.
-
-        Parameters
-        ----------
-        full : boolean (optional)
-            Toggle inclusion of dependent names from subcurve.
-
-        Returns
-        -------
-        list of strings
-            Dependent names.
-        """
-        if self.subcurve and full:
-            subcurve_dependent_names = self.subcurve.get_dependent_names()
-        else:
-            subcurve_dependent_names = []
-        return subcurve_dependent_names + [m.name for m in self.dependents]
-
     def get_dependent_positions(self, setpoint, units="same", full=True):
         """Get the dependent positions for a destination setpoint.
 
@@ -219,11 +246,7 @@ class Curve:
             setpoint = wt.units.converter(setpoint, units, self.units)
         # setpoint must be array
 
-        def is_numeric(obj):
-            attrs = ["__add__", "__sub__", "__mul__", "__pow__"]
-            return all([hasattr(obj, attr) for attr in attrs] + [not hasattr(obj, "__len__")])
-
-        if is_numeric(setpoint):
+        if _is_numeric(setpoint):
             setpoint = np.array([setpoint])
         # evaluate
         if full and self.subcurve:
@@ -265,12 +288,7 @@ class Curve:
         if not self.subcurve:
             return None
         # setpoint must be array
-
-        def is_numeric(obj):
-            attrs = ["__add__", "__sub__", "__mul__", "__div__", "__pow__"]
-            return all([hasattr(obj, attr) for attr in attrs] + [not hasattr(obj, "__len__")])
-
-        if is_numeric(setpoint):
+        if _is_numeric(setpoint):
             setpoint = np.array([setpoint])
         # get setpoint in units
         if units == "same":
@@ -336,7 +354,6 @@ class Curve:
         # finish
         self.setpoints = new_setpoints
         self.dependents = new_dependents
-        self.dependent_names = [m.name for m in self.dependents]
         for obj in self.dependents:
             setattr(self, obj.name, obj)
         self.interpolate(interpolate_subcurve=True)
@@ -381,12 +398,7 @@ class Curve:
         offset_by
         """
         # get dependent index
-        if type(dependent) in [float, int]:
-            dependent_index = dependent
-        elif isinstance(dependent, str):
-            dependent_index = self.dependent_names.index(dependent)
-        else:
-            print("dependent type not recognized in curve.offset_to")
+        dependent_index = wt.kit.get_index(self.dependent_names, dependent)
         # get offset
         current_positions = self.get_dependent_positions(setpoint, setpoint_units, full=False)
         offset = destination - current_positions[dependent_index]
@@ -422,7 +434,7 @@ class Curve:
             if curve_index != len(all_curves):
                 ax_index += 1
         # add scatter
-        for dependent_index, dependent_name in enumerate(self.get_dependent_names()):
+        for dependent_index, dependent_name in enumerate(self.dependent_names):
             ax = plt.subplot(ax_dictionary[dependent_name])
             xi = self.setpoints
             yi = self.get_dependent_positions(xi)[dependent_index]
@@ -431,7 +443,7 @@ class Curve:
             plt.xticks(self.setpoints)
             plt.setp(ax.get_xticklabels(), visible=False)
         # add lines
-        for dependent_index, dependent_name in enumerate(self.get_dependent_names()):
+        for dependent_index, dependent_name in enumerate(self.dependent_names):
             ax = plt.subplot(ax_dictionary[dependent_name])
             limits = curve.get_limits()
             xi = np.linspace(limits[0], limits[1], 1000)
@@ -542,7 +554,9 @@ class Curve:
         headers["interaction"] = self.interaction
         headers["kind"] = self.kind
         headers["method"] = self.method.__name__
-        headers["name"] = [f"Setpoint ({self.units})"] + [m.name for m in self.dependents]
+        headers["name"] = [f"{self.setpoint_name} ({self.units})"] + [
+            m.name for m in self.dependents
+        ]
         tidy_headers.write(out_path, headers)
         with open(out_path, "at") as f:
             np.savetxt(f, out_arr.T, fmt=self.fmt, delimiter="\t")
@@ -558,3 +572,8 @@ class Curve:
         if verbose:
             print("curve saved at", out_path)
         return out_path
+
+
+def _is_numeric(obj):
+    attrs = ["__add__", "__sub__", "__mul__", "__pow__"]
+    return all([hasattr(obj, attr) for attr in attrs] + [not hasattr(obj, "__len__")])

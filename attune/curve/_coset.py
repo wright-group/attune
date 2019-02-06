@@ -4,8 +4,6 @@
 # --- import --------------------------------------------------------------------------------------
 
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import os
 import copy
 import collections
@@ -96,13 +94,6 @@ class CoSet(Curve):
         outs.append("  control: " + self.control_name)
         outs.append("  offset: " + self.offset_name)
         return "\n".join(outs)
-
-    def coerce_offsets(self):
-        """Coerce the offsets to lie exactly along the interpolation positions.
-
-        Can be thought of as 'smoothing' the coset.
-        """
-        self.map_control_points(self.control_points, units="same")
 
     def save(self, save_directory=None, plot=True, verbose=True):
         """Save to a .coset file.
