@@ -497,21 +497,31 @@ class Curve:
         arr = np.genfromtxt(filepath).T
         setpoints = arr[0]
         names = headers["name"]
+        units = headers.get("units", [None] * len(names))
         dependents = []
-        for a, n in zip(arr[1:], names[1:]):
-            dependents.append(Dependent(a, n))
+        for a, n in zip(arr[1:], names[1:], units[1:]):
+            dependents.append(Dependent(a, n, units=u))
         kwargs = {}
         kwargs["interaction"] = headers["interaction"]
         kwargs["kind"] = headers.get("kind", None)
         kwargs["method"] = builtins.get(headers.get("method", ""), Linear)
         kwargs["name"] = headers.get("curve name", filepath.stem)
         kwargs["fmt"] = headers.get("fmt", ["%.2f"] + ["%.5f"] * len(dependents))
-        units = re.match(r".*\((.*)\).*", names[0])[1]
+        setpoint_name = names[0]
+        # Handle pre-attune release curves
+        if units[0] is None:
+            try:
+                match = re.match(r"(.*)\((.*)\).*", names[0])
+                setpoint_name = match[1].strip()
+                units[0] = match[2].strip()
+            except TypeError:
+                pass  # No units
+        kwargs["setpoint_name"] = setpoint_name
         if subcurve is not None:
             kwargs["subcurve"] = subcurve
-            kwargs["source_setpoints"] = Dependent(setpoints, units)
+            kwargs["source_setpoints"] = Dependent(setpoints, setpoint_name, units=units[0])
         # finish
-        curve = cls(setpoints, units, dependents, **kwargs)
+        curve = cls(setpoints, units[0], dependents, **kwargs)
         return curve
 
     def save(self, save_directory=None, plot=True, verbose=True, full=False):
@@ -554,9 +564,8 @@ class Curve:
         headers["interaction"] = self.interaction
         headers["kind"] = self.kind
         headers["method"] = self.method.__name__
-        headers["name"] = [f"{self.setpoint_name} ({self.units})"] + [
-            m.name for m in self.dependents
-        ]
+        headers["units"] = [self.setpoint_units] + self.dependent_units
+        headers["name"] = [f"{self.setpoint_name}"] + self.dependent_names
         tidy_headers.write(out_path, headers)
         with open(out_path, "at") as f:
             np.savetxt(f, out_arr.T, fmt=self.fmt, delimiter="\t")
