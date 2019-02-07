@@ -2,15 +2,10 @@
 
 
 import re
-import os
 import pathlib
-import copy
-import shutil
-import collections
+import copy as copy_
 
 import numpy as np
-
-import scipy
 
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as grd
@@ -123,7 +118,7 @@ class Curve:
             subcurve_dependent_names = self.subcurve.dependent_names
         else:
             subcurve_dependent_names = []
-        return subcurve_dependent_names + [m.name for m in self.dependents]
+        return [m.name for m in self.dependents] + subcurve_dependent_names
 
     @property
     def dependent_units(self, full=True):
@@ -143,7 +138,7 @@ class Curve:
             subcurve_dependent_units = self.subcurve.dependent_units
         else:
             subcurve_dependent_units = []
-        return subcurve_dependent_units + [m.units for m in self.dependents]
+        return [m.units for m in self.dependents] + subcurve_dependent_units
 
     def coerce_dependents(self):
         """Coerce the dependent positions to lie exactly along the interpolation positions.
@@ -180,7 +175,7 @@ class Curve:
         curve
             A deep copy of the curve object.
         """
-        return copy.deepcopy(self)
+        return copy_.deepcopy(self)
 
     def get_setpoint(self, dependent_positions, units="same"):
         """Get the setpoint given a set of dependent positions.
@@ -263,7 +258,7 @@ class Curve:
                 own_dependent_positions = np.array(
                     self.interpolator.get_dependent_positions(c)
                 ).flatten()
-                out.append(np.hstack((source_dependent_positions, own_dependent_positions)))
+                out.append(np.hstack((own_dependent_positions, source_dependent_positions)))
             out = np.array(out)
             return out.squeeze().T
         else:
