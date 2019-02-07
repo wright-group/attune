@@ -16,6 +16,7 @@ import WrightTools as wt
 import tidy_headers
 
 from ._base import Curve
+from ._dependent import Dependent
 
 
 # --- coset class ---------------------------------------------------------------------------------
@@ -27,11 +28,11 @@ class CoSet(Curve):
     def __add__(self, coset):
         # TODO: proper checks and warnings...
         # copy
-        other_copy = coset.__copy__()
-        self_copy = self.__copy__()
+        other_copy = coset.copy()
+        self_copy = self.copy()
         # coerce other to own units
-        other_copy.convert_control_units(self.control_units)
-        other_copy.convert_offset_units(self.offset_units)
+        other_copy.convert(self.units)
+        other_copy[0].convert(self[0].units)
         # find new control points
         other_limits = other_copy.get_limits()
         self_limits = self_copy.get_limits()
@@ -40,10 +41,10 @@ class CoSet(Curve):
         num_points = max(other_copy.control_points.size, self_copy.control_points.size)
         new_control_points = np.linspace(min_limit, max_limit, num_points)
         # coerce to new control points
-        other_copy.map_control_points(new_control_points)
-        self_copy.map_control_points(new_control_points)
+        other_copy.map_setpoints(new_control_points)
+        self_copy.map_setpoints(new_control_points)
         # add
-        self_copy.offset_points += other_copy.offset_points
+        self_copy[0][:] += other_copy[0][:]
         return self_copy
 
     def __init__(
@@ -75,15 +76,17 @@ class CoSet(Curve):
         name : string (optional)
             Name. Default is 'coset'.
         """
-        self.control_name = control_name
-        self.control_units = control_units
-        self.control_points = control_points
-        self.offset_name = offset_name
-        self.offset_units = offset_units
-        self.offset_points = offset_points
-        self.name = name
-        self.sort()
-        self.interpolate()
+        dependent = Dependent(offset_points, offset_name, units=offset_units)
+        super(self, Curve).__init__(
+            control_points,
+            control_units,
+            [dependent],
+            name,
+            None,
+            "coset",
+            Spline,
+            setpoint_name=control_name,
+        )
 
     def __repr__(self):
         """Unambiguous representation."""
@@ -111,18 +114,18 @@ class CoSet(Curve):
             save_directory = os.getcwd()
         time_stamp = wt.kit.TimeStamp()
         file_name = " - ".join([self.name, time_stamp.path]) + ".coset"
-        file_path = os.path.join(save_directory, file_name)
-        headers = collections.OrderedDict()
-        headers["control"] = self.control_name
-        headers["control units"] = self.control_units
-        headers["offset"] = self.offset_name
-        headers["offset units"] = self.offset_units
+        file_path = pathlib.Path(save_directory) / file_name
+        headers = {}
+        headers["control"] = self.setpoint_name
+        headers["control units"] = self.units
+        headers["offset"] = self[0].name
+        headers["offset units"] = self[0].units
         tidy_headers.write(file_path, headers)
-        X = np.vstack([self.control_points, self.offset_points]).T
+        X = np.vstack([self.setpoints, self[0][:]]).T
         with open(file_path, "ab") as f:
             np.savetxt(f, X, fmt=str("%8.6f"), delimiter="\t")
         if plot:
-            image_path = file_path.replace(".coset", ".png")
+            image_path = file_path.with_suffix(".png")
             self.plot(autosave=True, save_path=image_path)
         if verbose:
             print("coset saved at {}".format(file_path))
