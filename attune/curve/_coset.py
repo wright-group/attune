@@ -4,13 +4,10 @@
 # --- import --------------------------------------------------------------------------------------
 
 
-import os
-import copy
-import collections
+import pathlib
 
 import numpy as np
 
-import scipy
 
 import WrightTools as wt
 import tidy_headers
@@ -111,7 +108,7 @@ class CoSet(Curve):
             Toggle talkback. Default is True.
         """
         if save_directory is None:
-            save_directory = os.getcwd()
+            save_directory = pathlib.Path.cwd()
         time_stamp = wt.kit.TimeStamp()
         file_name = " - ".join([self.name, time_stamp.path]) + ".coset"
         file_path = pathlib.Path(save_directory) / file_name
@@ -144,9 +141,10 @@ class CoSet(Curve):
         WrightTools.tuning.coset.Coset
         """
         # get raw information from file
+        path = pathlib.Path(path)
         headers = tidy_headers.read_headers(path)
         arr = np.genfromtxt(path).T
-        name = os.path.basename(path).split(" - ")[0]
+        name = path.name.split(" - ")[0]
         # construct coset object
         control_name = headers["control"]
         control_units = headers["control units"]
