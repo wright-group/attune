@@ -14,6 +14,7 @@ import tidy_headers
 
 from ._base import Curve
 from ._dependent import Dependent
+from ..interpolator import Spline
 
 
 # --- coset class ---------------------------------------------------------------------------------
@@ -74,12 +75,12 @@ class CoSet(Curve):
             Name. Default is 'coset'.
         """
         dependent = Dependent(offset_points, offset_name, units=offset_units)
-        super(self, Curve).__init__(
+        super(CoSet, self).__init__(
             control_points,
             control_units,
             [dependent],
             name,
-            None,
+            "coset",
             "coset",
             Spline,
             setpoint_name=control_name,
@@ -128,7 +129,7 @@ class CoSet(Curve):
             print("coset saved at {}".format(file_path))
 
     @classmethod
-    def read(path):
+    def read(cls, path):
         """Create a coset object from file.
 
         Parameters
@@ -142,7 +143,7 @@ class CoSet(Curve):
         """
         # get raw information from file
         path = pathlib.Path(path)
-        headers = tidy_headers.read_headers(path)
+        headers = tidy_headers.read(path)
         arr = np.genfromtxt(path).T
         name = path.name.split(" - ")[0]
         # construct coset object
@@ -152,7 +153,7 @@ class CoSet(Curve):
         offset_name = headers["offset"]
         offset_units = headers["offset units"]
         offset_points = arr[1]
-        coset = CoSet(
+        coset = cls(
             control_name,
             control_units,
             control_points,

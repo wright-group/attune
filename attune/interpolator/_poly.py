@@ -3,8 +3,10 @@
 
 import numpy as np
 
+from ._base import Interpolator
 
-class Poly:
+
+class Poly(Interpolator):
     def __init__(self, *args, **kwargs):
         self.deg = kwargs.pop("deg", 8)
         super(self, Interpolator).__init__(*args, **kwargs)

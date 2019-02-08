@@ -1,7 +1,7 @@
 """Base Interpolator class and associated."""
 
 
-class Interpolator:
+class Interpolator(object):
     def __init__(self, setpoints, units, dependents):
         """Create an Interoplator object.
 
