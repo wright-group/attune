@@ -478,10 +478,8 @@ class Curve:
         plt.suptitle(title)
         # save
         if autosave:
-            if save_path[-3:] != "png":
-                image_path = save_path + self.name + ".png"
-            else:
-                image_path = save_path
+            save_path = pathlib.Path(save_path)
+            image_path = save_path.with_suffix(".png")
             plt.savefig(image_path, transparent=True, dpi=300)
             plt.close(fig)
 
@@ -559,7 +557,7 @@ class Curve:
         headers["interaction"] = self.interaction
         headers["kind"] = self.kind
         headers["method"] = self.method.__name__
-        headers["units"] = [self.setpoint_units] + self.dependent_units
+        headers["units"] = [self.units] + self.dependent_units
         headers["name"] = [f"{self.setpoint_name}"] + self.dependent_names
         tidy_headers.write(out_path, headers)
         with open(out_path, "at") as f:
@@ -569,8 +567,8 @@ class Curve:
             self.subcurve.save(save_directory=save_directory)
         # plot
         if plot:
-            image_path = os.path.splitext(out_path)[0] + ".png"
-            title = os.path.basename(os.path.splitext(out_path)[0])
+            image_path = out_path.with_suffix(".png")
+            title = out_path.stem
             self.plot(autosave=True, save_path=image_path, title=title)
         # finish
         if verbose:
