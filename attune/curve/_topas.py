@@ -3,7 +3,7 @@ import pathlib
 import shutil
 import copy
 from ._base import Curve, Linear
-from ._dependent import Dependent
+from ._dependent import Setpoints, Dependent
 import WrightTools as wt
 
 __all__ = ["TopasCurve"]
@@ -100,16 +100,15 @@ class TopasCurve(Curve):
                 arr = np.array(lis).T
                 # create the curve
             source_setpoints = Dependent(arr[0], "source setpoints")
-            setpoints = arr[1]
             dependents = []
             for i in range(3, len(arr)):
                 dependent_name = TOPAS_interactions[interaction_string][1][i - 3]
                 dependent = Dependent(arr[i], dependent_name)
                 dependents.append(dependent)
                 name = pathlib.Path(crv_path).stem
+                setpoints = Setpoints(arr[1], "Setpoints", "nm")
                 curve = cls(
                     setpoints,
-                    "nm",
                     dependents,
                     name,
                     interaction_string,

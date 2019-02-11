@@ -12,11 +12,10 @@ class Poly(Interpolator):
         super(self, Interpolator).__init__(*args, **kwargs)
 
     @property
-    def functions(self):
-        if self._functions is not None:
-            return self._functions
-        self._functions = [
-            np.polynomial.Polynomial.fit(self.setpoints, dependent.positions, self.deg)
-            for dependent in self.dependents
-        ]
-        return self._functions
+    def function(self):
+        if self._function is not None:
+            return self._function
+        self._function = np.polynomial.Polynomial.fit(
+            self.setpoints[:], self.dependent[:], self.deg
+        )
+        return self._function

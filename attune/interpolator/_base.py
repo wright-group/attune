@@ -1,8 +1,9 @@
 """Base Interpolator class and associated."""
+import WrightTools as wt
 
 
 class Interpolator(object):
-    def __init__(self, setpoints, units, dependents):
+    def __init__(self, setpoints, dependent):
         """Create an Interoplator object.
 
         Parameters
@@ -15,21 +16,10 @@ class Interpolator(object):
             Dependents.
         """
         self.setpoints = setpoints
-        self.units = units
-        self.dependents = dependents
-        self._functions = None
+        self.dependent = dependent
+        self._function = None
 
-    def get_dependent_positions(self, setpoint):
-        """Get dependent positions.
-
-        Parameters
-        ----------
-        setpoint : number
-            Destination, in units.
-
-        Returns
-        -------
-        list of numbers
-            Dependent positions.
-        """
-        return [f(setpoint) for f in self.functions]
+    def __call__(self, setpoint, units="same"):
+        if units == "same":
+            units = self.setpoints.units
+        return self.function(wt.units.convert(setpoint, units, self.setpoints.units))
