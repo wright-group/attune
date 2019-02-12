@@ -15,7 +15,8 @@ import numpy as np
 from scipy.interpolate import UnivariateSpline
 
 import WrightTools as wt
-from .. import coset as attune_coset
+
+# from .. import coset as attune_coset
 
 
 # --- processing methods --------------------------------------------------------------------------
