@@ -93,25 +93,20 @@ class Curve:
         self_keys = set(self_.dependents.keys())
         other_keys = set(other.dependents.keys())
 
-        deps = {}
         for k in self_keys | other_keys:
             if k in self_keys and k in other_keys:
                 other[k].convert(self[k].units)
-                print(self_[k].differential, other[k].differential)
-
                 if self_[k].differential and other[k].differential:
-                    print("AND")
                     self_[k][:] += other[k][:]
                 elif self_[k].differential or other[k].differential:
-                    print("OR")
                     self_[k][:] += other[k][:]
                     self_[k].differential = False
                 else:
                     raise ValueError(f"Cannot add two Dependents which are both absolute: {k}")
             elif k in other_keys:
-                self.dependents[k] = copy.deepcopy(other[k])
+                self_.dependents[k] = copy.deepcopy(other[k])
 
-        self.interpolate()
+        self_.interpolate()
         return self_
 
     def __repr__(self):
