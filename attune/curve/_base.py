@@ -65,6 +65,8 @@ class Curve:
         self.interaction = interaction
         # set dependents as attributes of self
         for obj in self.dependents.values():
+            if len(obj[:]) != len(self.setpoints[:]):
+                raise ValueError("Dependents must be the same length as setpoints")
             setattr(self, obj.name, obj)
         # initialize function object
         self.method = builtins.get(method, method)
@@ -84,6 +86,8 @@ class Curve:
         self_limits = self_.get_limits()
         min_limit = max(other_limits[0], self_limits[0])
         max_limit = min(other_limits[1], self_limits[1])
+        if min_limit > max_limit:
+            raise ValueError("Curves must overlap")
         num_points = max(other.setpoints[:].size, self_.setpoints[:].size)
         new_setpoints = np.linspace(min_limit, max_limit, num_points)
         # coerce to new control points
@@ -95,7 +99,10 @@ class Curve:
 
         for k in self_keys | other_keys:
             if k in self_keys and k in other_keys:
-                other[k].convert(self[k].units)
+                if wt.units.is_valid_conversion(other[k].units, self[k].units):
+                    other[k].convert(self[k].units)
+                else:
+                    raise ValueError("Invalid unit conversion")
                 if self_[k].differential and other[k].differential:
                     self_[k][:] += other[k][:]
                 elif self_[k].differential or other[k].differential:
@@ -104,24 +111,10 @@ class Curve:
                 else:
                     raise ValueError(f"Cannot add two Dependents which are both absolute: {k}")
             elif k in other_keys:
-                self_.dependents[k] = copy.deepcopy(other[k])
+                self_.dependents[k] = copy_.deepcopy(other[k])
 
         self_.interpolate()
         return self_
-
-    def __repr__(self):
-        # when you inspect the object
-        outs = []
-        outs.append("WrightTools.tuning.curve.Curve object at " + str(id(self)))
-        outs.append("  name: " + self.name)
-        outs.append("  interaction: " + self.interaction)
-        outs.append(
-            "  range: {0} - {1} ({2})".format(
-                self.setpoints.min(), self.setpoints.max(), self.setpoints.units
-            )
-        )
-        outs.append("  number: " + str(len(self.setpoints)))
-        return "\n".join(outs)
 
     def __getitem__(self, key):
         return self.dependents[key]

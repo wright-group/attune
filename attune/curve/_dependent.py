@@ -16,7 +16,7 @@ class Variable(object):
         self.positions[key] = value
 
     def convert(self, units):
-        wt.units.convert(self.positions, self.units, units)
+        self.positions = wt.units.convert(self.positions, self.units, units)
         self.units = units
 
 
