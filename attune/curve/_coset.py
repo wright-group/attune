@@ -23,28 +23,6 @@ from ..interpolator import Spline
 class CoSet(Curve):
     """Interpolated correspondance between axes."""
 
-    def __add__(self, coset):
-        # TODO: proper checks and warnings...
-        # copy
-        other_copy = coset.copy()
-        self_copy = self.copy()
-        # coerce other to own units
-        other_copy.convert(self.units)
-        other_copy[0].convert(self[0].units)
-        # find new control points
-        other_limits = other_copy.get_limits()
-        self_limits = self_copy.get_limits()
-        min_limit = max(other_limits[0], self_limits[0])
-        max_limit = min(other_limits[1], self_limits[1])
-        num_points = max(other_copy.control_points.size, self_copy.control_points.size)
-        new_control_points = np.linspace(min_limit, max_limit, num_points)
-        # coerce to new control points
-        other_copy.map_setpoints(new_control_points)
-        self_copy.map_setpoints(new_control_points)
-        # add
-        self_copy[0][:] += other_copy[0][:]
-        return self_copy
-
     def __init__(
         self,
         control_name,

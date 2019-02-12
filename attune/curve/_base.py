@@ -73,6 +73,47 @@ class Curve:
         self.fmt = fmt
         self.interpolate()
 
+    def __add__(self, other):
+        # copy
+        self_ = self.copy()
+        other = other.copy()
+        # coerce other to own units
+        other.convert(self_.setpoints.units)
+        # find new control points
+        other_limits = other.get_limits()
+        self_limits = self_.get_limits()
+        min_limit = max(other_limits[0], self_limits[0])
+        max_limit = min(other_limits[1], self_limits[1])
+        num_points = max(other.setpoints[:].size, self_.setpoints[:].size)
+        new_setpoints = np.linspace(min_limit, max_limit, num_points)
+        # coerce to new control points
+        other.map_setpoints(new_setpoints)
+        self_.map_setpoints(new_setpoints)
+        # add
+        self_keys = set(self_.dependents.keys())
+        other_keys = set(other.dependents.keys())
+
+        deps = {}
+        for k in self_keys | other_keys:
+            if k in self_keys and k in other_keys:
+                other[k].convert(self[k].units)
+                print(self_[k].differential, other[k].differential)
+
+                if self_[k].differential and other[k].differential:
+                    print("AND")
+                    self_[k][:] += other[k][:]
+                elif self_[k].differential or other[k].differential:
+                    print("OR")
+                    self_[k][:] += other[k][:]
+                    self_[k].differential = False
+                else:
+                    raise ValueError(f"Cannot add two Dependents which are both absolute: {k}")
+            elif k in other_keys:
+                self.dependents[k] = copy.deepcopy(other[k])
+
+        self.interpolate()
+        return self_
+
     def __repr__(self):
         # when you inspect the object
         outs = []
@@ -271,7 +312,9 @@ class Curve:
         new_dependents = {}
         for k, v in self.dependents.items():
             positions = v(new_setpoints)
-            new_dependent = Dependent(positions, k, v.units)  # new dependent objects
+            new_dependent = Dependent(
+                positions, k, v.units, v.differential
+            )  # new dependent objects
             new_dependents.update({k: new_dependent})
         # map source setpoints, subcurves
         if self.subcurve:
@@ -280,7 +323,7 @@ class Curve:
                 new_source_setpoints, self.source_setpoints.name, self.source_setpoints.units
             )
         # finish
-        self.setpoints = Setpoint(new_setpoints, self.setpoints.name, self.setpoints.units)
+        self.setpoints = Setpoints(new_setpoints, self.setpoints.name, self.setpoints.units)
         self.dependents = new_dependents
         for obj in self.dependents.values():
             setattr(self, obj.name, obj)
