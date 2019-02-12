@@ -13,7 +13,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import WrightTools as wt
+
 from .. import curve as attune_curve
+from ._plot import plot_intensity
 
 # from . import fit
 
@@ -30,7 +32,7 @@ cmap.set_under([0.75] * 3)
 
 def _intensity(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
     data.moment(axis=1, channel=channel_name, moment=1)
-    offsets = data[f"{channel.natural_name}_1_moment_1"].points
+    offsets = data[f"{channel_name}_1_moment_1"].points
 
     if spline:
         spline = wt.kit.Spline(tune_points, offsets, **spline_kwargs)
@@ -64,7 +66,6 @@ def intensity(
     # TODO: transform?
     if isinstance(channel, (int, str)):
         channel = data.channels[wt.kit.get_index(data.channel_names, channel)]
-    channel_index = wt.kit.get_index(data.channels, channel)
     tune_points = curve.setpoints
 
     # TODO: check if level does what we want
@@ -177,14 +178,13 @@ def tune_test(
     # plot ----------------------------------------------------------------------------------------
     data.axes[1].convert(curve_native_units)
     fig, gs = wt.artists.create_figure(default_aspect=0.5, cols=[1, "cbar"])
-    fig, gs = wt.artists.create_figure(default_aspect=0.5, cols=[1, "cbar"])
     # heatmap
     ax = plt.subplot(gs[0, 0])
     xi = data.axes[1].points
     yi = data.axes[0].points
     zi = data.channels[channel_index][:]
-    X, Y, Z = wt.artists.pcolor_helper(xi, yi, zi)
-    ax.pcolor(X, Y, Z, vmin=0, vmax=np.nanmax(zi), cmap=cmap)
+    X, Y = wt.artists.pcolor_helper(xi, yi)
+    ax.pcolor(X, Y, zi, vmin=0, vmax=np.nanmax(zi), cmap=cmap)
     ax.set_xlim(xi.min(), xi.max())
     ax.set_ylim(yi.min(), yi.max())
     # lines
