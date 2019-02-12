@@ -151,7 +151,7 @@ class Curve:
         self.setpoints.convert(units)
         if self.subcurve:
             if wt.units.is_valed_conversion(self.source_setpoints.units, units):
-                positions = self.source_setpoints.convert(units)
+                self.source_setpoints.convert(units)
         if convert_dependents:
             for d in self.dependents:
                 if wt.units.is_valed_conversion(d.units, units):
