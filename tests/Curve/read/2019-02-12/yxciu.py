@@ -23,6 +23,7 @@ def test_round_trip():
         curve.save(save_directory=td)
         read_curve = attune.Curve.read(next(td.glob("*.curve")))
         assert np.allclose(curve.setpoints[:], read_curve.setpoints[:])
-        assert curve.dependent_names == read_curve.dependent_names
-        for d1, d2 in zip(curve.dependents, read_curve.dependents):
-            assert np.allclose(curve[d1][:], read_curve[d2][:])
+        assert set(curve.dependent_names) == set(read_curve.dependent_names)
+        for d in curve.dependents:
+            assert np.allclose(curve[d][:], read_curve[d][:])
+            assert curve[d].differential and read_curve[d].differential

@@ -1,7 +1,6 @@
 """Linear interpolation."""
 
-
-import WrightTools as wt
+from scipy.interpolate import interp1d
 
 from ._base import Interpolator
 
@@ -10,11 +9,8 @@ class Linear(Interpolator):
     """Linear interpolation."""
 
     @property
-    def functions(self):
-        if self._functions is not None:
-            return self._functions
-        self._functions = [
-            wt.kit.Spline(self.setpoints, dependent.positions, k=1, s=0)
-            for dependent in self.dependents
-        ]
-        return self._functions
+    def function(self):
+        if self._function is not None:
+            return self._function
+        self._function = interp1d(self.setpoints[:], self.dependent[:], fill_value="extrapolate")
+        return self._function
