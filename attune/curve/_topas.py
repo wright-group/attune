@@ -175,60 +175,13 @@ class TopasCurve(Curve):
                 num_tune_points = int(crv_lines[line_index - 1])
         # construct to_insert (dictionary of arrays)
         to_insert = {}
-        if interaction_string == "NON-NON-NON-Sig":  # must generate idler
-            # read spitfire setpoint from crv
+        if interaction_string == "NON-NON-NON-Idl":
             spitfire_output = float(crv_lines[line_index - 4].rstrip())
-            # create signal array from curve
-            signal_arr = np.zeros([7, len(curve.setpoints)])
-            signal_arr[0] = spitfire_output
-            signal_arr[1] = curve.setpoints
-            signal_arr[2] = 4
-            for i in range(4):
-                signal_arr[3 + i] = curve.dependents[i].positions
-            # create idler aray
-            idler_arr = signal_arr.copy()
-            idler_arr[1] = 1 / ((1 / spitfire_output) - (1 / curve.setpoints))
-            # construct to_insert
-            to_insert["NON-NON-NON-Sig"] = signal_arr
-            to_insert["NON-NON-NON-Idl"] = idler_arr
-        elif interaction_string == "NON-NON-NON-Idl":  # must generate signal
-            # read spitfire setpoint from crv
+            to_insert["NON-NON-NON-Sig"] = _convert(_insert(curve, TOPAS_interactions[interaction_string][1]), spitfire_output)
+        to_insert[interaction_string] = _insert(curve, TOPAS_interactions[interaction_string][1])
+        if interaction_string == "NON-NON-NON-Sig":
             spitfire_output = float(crv_lines[line_index - 4].rstrip())
-            # create idler array from curve
-            idler_arr = np.zeros([7, len(curve.setpoints)])
-            idler_arr[0] = spitfire_output
-            idler_arr[1] = curve.setpoints
-            idler_arr[2] = 4
-            for i in range(4):
-                idler_arr[3 + i] = curve.dependents[i].positions
-            # create idler aray
-            signal_arr = idler_arr.copy()
-            signal_arr[1] = 1 / ((1 / spitfire_output) - (1 / curve.setpoints))
-            # construct to_insert
-            to_insert["NON-NON-NON-Sig"] = signal_arr
-            to_insert["NON-NON-NON-Idl"] = idler_arr
-        # TOPAS800 DFG (3 motor mier)
-        elif (
-            interaction_string in ["DF1-NON-NON-Sig", "DF2-NON-NON-Sig"]
-            and curve.kind == "TOPAS-800"
-        ):
-            # create array from curve
-            arr = np.zeros([6, len(curve.setpoints)])
-            arr[0] = curve.source_setpoints.positions
-            arr[1] = curve.setpoints
-            arr[2] = 3
-            arr[3] = curve.dependents[0].positions
-            arr[4] = curve.dependents[1].positions
-            arr[5] = curve.dependents[2].positions
-            to_insert[interaction_string] = arr
-        else:  # all single-motor mixer processes
-            # create array from curve
-            arr = np.zeros([4, len(curve.setpoints)])
-            arr[0] = curve.source_setpoints.positions
-            arr[1] = curve.setpoints
-            arr[2] = 1
-            arr[3] = curve.motors[0].positions
-            to_insert[interaction_string] = arr
+            to_insert["NON-NON-NON-Idl"] = _convert(_insert(curve, TOPAS_interactions[interaction_string][1]), spitfire_output)
         # generate output
         out_lines = copy.copy(crv_lines)
         for interaction_string, arr in to_insert.items():
@@ -262,7 +215,7 @@ class TopasCurve(Curve):
                 line += "\n"
                 out_lines.insert(line_index - 1, line)
             out_lines.insert(
-                line_index - 1, str(len(curve.setpoints)) + "\n"
+                line_index - 1, str(len(arr)) + "\n"
             )  # number of points of new curve
         # filename
         timestamp = wt.kit.TimeStamp().path
@@ -272,3 +225,17 @@ class TopasCurve(Curve):
         with open(out_path, "w") as new_crv:
             new_crv.write("".join(out_lines).rstrip())
         return out_path
+
+def _insert(curve, motors):
+    arr = np.empty((len(motors) + 3, len(curve.setpoints[:])))
+    arr[0] = curve.source_setpoints[:]
+    arr[1] = curve.setpoints[:]
+    arr[2] = len(motors)
+    for i, m in enumerate(motors):
+        arr[3 + i] = curve[m][:]
+    return arr
+
+def _convert(arr, sum_):
+    arr = np.copy(arr)
+    arr[1] = 1 / ((1 / sum_) - (1 / arr[0]))
+    return arr
