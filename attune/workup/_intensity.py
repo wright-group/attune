@@ -11,6 +11,8 @@ from ._plot import plot_intensity
 
 # --- processing methods --------------------------------------------------------------------------
 
+__all__ = ["intensity"]
+
 
 def _intensity(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
     data.moment(axis=1, channel=channel_name, moment=1)
