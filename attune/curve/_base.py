@@ -136,7 +136,7 @@ class Curve:
         list of strings
             Dependent names.
         """
-        if self.subcurve and full:
+        if self.subcurve:
             subcurve_dependent_names = self.subcurve.dependent_names
         else:
             subcurve_dependent_names = []
@@ -156,7 +156,7 @@ class Curve:
         list of strings
             Dependent names.
         """
-        if self.subcurve and full:
+        if self.subcurve:
             subcurve_dependent_units = self.subcurve.dependent_units
         else:
             subcurve_dependent_units = []
@@ -179,11 +179,11 @@ class Curve:
         """
         self.setpoints.convert(units)
         if self.subcurve:
-            if wt.units.is_valed_conversion(self.source_setpoints.units, units):
+            if wt.units.is_valid_conversion(self.source_setpoints.units, units):
                 self.source_setpoints.convert(units)
         if convert_dependents:
             for d in self.dependents:
-                if wt.units.is_valed_conversion(d.units, units):
+                if wt.units.is_valid_conversion(d.units, units):
                     d.convert(units)
 
         self.interpolate()
