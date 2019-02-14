@@ -1,12 +1,33 @@
 import WrightTools as wt
 
-__all__ = ["Dependent"]
+__all__ = ["Setpoints", "Dependent"]
 
 
-class Dependent:
+class Variable(object):
+    def __init__(self, positions, name, units=None):
+        self.positions = positions
+        self.name = name
+        self.units = units
+
+    def __getitem__(self, key):
+        return self.positions[key]
+
+    def __setitem__(self, key, value):
+        self.positions[key] = value
+
+    def convert(self, units):
+        self.positions = wt.units.convert(self.positions, self.units, units)
+        self.units = units
+
+
+class Setpoints(Variable):
+    pass
+
+
+class Dependent(Variable):
     """Container class for dependent arrays."""
 
-    def __init__(self, positions, name, units=None):
+    def __init__(self, positions, name, units=None, differential=False):
         """Create a ``Dependent`` object.
 
         Parameters
@@ -16,13 +37,9 @@ class Dependent:
         name : string
             Name.
         """
-        self.positions = positions
-        self.name = name
-        self.units = units
+        super(Dependent, self).__init__(positions, name, units=units)
+        self.interpolator = None
+        self.differential = differential
 
-    def __getitem__(self, key):
-        return self.positions[key]
-
-    def convert(self, units):
-        wt.units.convert(self.positions, self.units, units)
-        self.units = units
+    def __call__(self, val, units="same"):
+        return self.interpolator(val, units)
