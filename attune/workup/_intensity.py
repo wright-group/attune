@@ -13,8 +13,12 @@ from ._plot import plot_intensity
 # --- processing methods --------------------------------------------------------------------------
 
 
-def _intensity(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
-    data.moment(axis=1, channel=channel_name, moment=1)
+def _intensity(data, channel_name, tune_points, *, along=None, spline=True, **spline_kwargs):
+    if along is not None:
+        axis = (along, 1)
+    else:
+        axis = 1
+    data.moment(axis=axis, channel=channel_name, moment=1)
     offsets = data[f"{channel_name}_1_moment_1"].points
 
     if spline:
@@ -56,6 +60,7 @@ def intensity(
         old_curve.convert("wn")
         setpoints = old_curve.setpoints
     else:
+        old_curve = None
         setpoints = Setpoints(data.axes[0].points, data.axes[0].expression, data.axes[0].units)
     # TODO: units
 
@@ -70,7 +75,14 @@ def intensity(
     cutoff = channel.max() * cutoff_factor
     channel.clip(min=cutoff)
 
-    offsets = _intensity(data, channel.natural_name, setpoints[:])
+    kwargs = {}
+    if data.axes[1].points.ndim > 1:
+        kwargs["along"] = [
+            i
+            for i in range(data.ndim)
+            if data.axes[1].shape[i] > 1 and not data.axes[0].shape[i] > 1
+        ][0]
+    offsets = _intensity(data, channel.natural_name, setpoints[:], **kwargs)
     print(offsets)
 
     units = data.axes[1].units
