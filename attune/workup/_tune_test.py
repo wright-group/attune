@@ -3,12 +3,10 @@
 
 import pathlib
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 import WrightTools as wt
 
-from .. import curve as attune_curve
 from ._plot import plot_tune_test
 
 __all__ = ["tune_test"]
