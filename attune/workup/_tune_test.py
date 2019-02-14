@@ -11,6 +11,8 @@ import WrightTools as wt
 from .. import curve as attune_curve
 from ._plot import plot_tune_test
 
+__all__ = ["tune_test"]
+
 def _offsets(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
     data.moment(axis=1, channel=channel_name, moment=1)
     offsets = data[f"{channel_name}_1_moment_1"].points
