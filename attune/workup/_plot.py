@@ -18,7 +18,7 @@ def plot_intensity(data, channel, dependent, curve, prior_curve=None):
 
     ax = plt.subplot(gs[1, 0])
     ax.pcolor(data, channel=channel)
-    x.im = ax.get_xlim()
+    xlim = ax.get_xlim()
     if prior_curve:
         ypoints = (
             prior_curve(curve.setpoints[:], curve.setpoints.units, full=False)[dependent]
