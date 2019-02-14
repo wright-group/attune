@@ -55,6 +55,7 @@ def intensity(
         old_curve.convert("wn")
         setpoints = old_curve.setpoints
     else:
+        old_curve = None   
         setpoints = Setpoints(data.axes[0].points, data.axes[0].expression, data.axes[0].units)
     # TODO: units
 

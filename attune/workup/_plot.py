@@ -18,6 +18,7 @@ def plot_intensity(data, channel, dependent, curve, prior_curve=None):
 
     ax = plt.subplot(gs[1, 0])
     ax.pcolor(data, channel=channel)
+    x.im = ax.get_xlim()
     if prior_curve:
         ypoints = (
             prior_curve(curve.setpoints[:], curve.setpoints.units, full=False)[dependent]
@@ -30,6 +31,7 @@ def plot_intensity(data, channel, dependent, curve, prior_curve=None):
     wt.artists.plot_gridlines()
     ax.set_ylabel(r"$\mathsf{{\Delta {dependent}}}$".format(dependent=dependent))
     ax.set_xlabel(f"Setpoint ({curve.setpoints.units})")
+    ax.set_xlim(xlim)
 
     cax = plt.subplot(gs[1, 1])
     ticks = np.linspace(data[channel].null, data[channel].max(), 11)
