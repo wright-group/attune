@@ -80,6 +80,7 @@ def tune_test(
     # make curve ----------------------------------------------------------------------------------
     new_curve = old_curve.copy()
     new_curve.setpoints.positions += offsets
+    new_curve.interpolate()
 
     # plot ----------------------------------------------------------------------------------------
 
@@ -93,7 +94,7 @@ def tune_test(
         if save_directory is None:
             save_directory = "."
         save_directory = pathlib.Path(save_directory)
-        curve.save(save_directory=save_directory, full=True)
+        new_curve.save(save_directory=save_directory, full=True)
         p = save_directory / "tune_test.png"
         wt.artists.savefig(p, fig=fig)
     return new_curve
