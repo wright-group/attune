@@ -15,6 +15,9 @@ class Variable(object):
     def __setitem__(self, key, value):
         self.positions[key] = value
 
+    def __len__(self):
+        return len(self.positions)
+
     def convert(self, units):
         self.positions = wt.units.convert(self.positions, self.units, units)
         self.units = units
