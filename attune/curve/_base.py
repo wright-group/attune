@@ -107,7 +107,10 @@ class Curve:
                 if wt.units.is_valid_conversion(other[k].units, self[k].units):
                     other[k].convert(self[k].units)
                 else:
-                    raise ValueError("Invalid unit conversion")
+                    print(type(other[k].units), type(self[k].units))
+                    raise ValueError(
+                        f"Invalid unit conversion: {other[k].units} -> {self[k].units}"
+                    )
                 if self_[k].differential and other[k].differential:
                     self_[k][:] += other[k][:]
                 elif self_[k].differential or other[k].differential:
