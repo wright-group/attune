@@ -36,6 +36,7 @@ class Curve:
         subcurve=None,
         source_setpoints=None,
         fmt=None,
+        **kwargs,
     ):
         """Create a ``Curve`` object.
 
@@ -79,6 +80,8 @@ class Curve:
             fmt = ["%.2f"] + ["%.5f"] * len(self.dependents)
         self.fmt = fmt
         self.interpolate()
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
     def __add__(self, other):
         # copy
@@ -130,7 +133,9 @@ class Curve:
         if value.interpolator is not None:
             value.positions = value(self.setpoints[:], self.setpoints.units)
         elif len(value) != len(self.setpoints):
-            raise ValueError(f"Incorrect number of points in dependent: {len(value)} for number of setpoints: {len(self.setpoints)}")
+            raise ValueError(
+                f"Incorrect number of points in dependent: {len(value)} for number of setpoints: {len(self.setpoints)}"
+            )
         value.interpolator = self.method(self.setpoints, value)
         self.dependents[key] = value
 
