@@ -184,38 +184,38 @@ class TopasCurve(Curve):
         out_path = (save_directory / out_name).with_suffix(".crv")
 
         with open(out_path, "w") as new_crv:
-            new_crv.write("600\r\n")
+            new_crv.write("600\n")
             if curve.kind in "OPA/NOPA":
-                new_crv.write("OPA/NOPA\r\n")
-                new_crv.write(f"{int(curve.kind=='NOPA')}\r\n")
-                new_crv.write(f"{int(curve.config.get('use grating equation', 0))}\r\n")
-                new_crv.write(f"{curve.config.get('grating motor index', -1)}\r\n")
-                new_crv.write(f"{curve.config.get('grating constant', 0)}\r\n")
-                new_crv.write(f"{curve.config.get('maximum grating position', 0)}\r\n")
+                new_crv.write("OPA/NOPA\n")
+                new_crv.write(f"{int(curve.kind=='NOPA')}\n")
+                new_crv.write(f"{int(curve.config.get('use grating equation', 0))}\n")
+                new_crv.write(f"{curve.config.get('grating motor index', -1)}\n")
+                new_crv.write(f"{curve.config.get('grating constant', 0)}\n")
+                new_crv.write(f"{curve.config.get('maximum grating position', 0)}\n")
             else:
-                new_crv.write(f"{curve.kind}\r\n")
-            new_crv.write(f"{len(curve.dependents)}\r\n")
+                new_crv.write(f"{curve.kind}\n")
+            new_crv.write(f"{len(curve.dependents)}\n")
             new_crv.write("\t".join(str(i) for i in curve.motor_indexes))
-            new_crv.write("\r\n")
-            new_crv.write(f"{len(to_insert)}\r\n")
+            new_crv.write("\n")
+            new_crv.write(f"{len(to_insert)}\n")
             for k, v in to_insert.items():
                 array, polarization = v
                 array = array.T
-                new_crv.write(k + "\r\n")
+                new_crv.write(k + "\n")
                 if curve.comment[-1] != "\n":
-                    curve.comment += "\r\n"
+                    curve.comment += "\n"
                 num_lines = curve.comment.count("\n")
-                new_crv.write(f"{num_lines}\r\n")
+                new_crv.write(f"{num_lines}\n")
                 new_crv.write(curve.comment)
-                new_crv.write(f"{int(polarization=='H')}\r\n")
-                new_crv.write(f"{curve.pump_wavelength}\r\n")
-                new_crv.write(f"{len(curve.dependents)}\r\n")
+                new_crv.write(f"{int(polarization=='H')}\n")
+                new_crv.write(f"{curve.pump_wavelength}\n")
+                new_crv.write(f"{len(curve.dependents)}\n")
                 new_crv.write("\t".join(str(i) for i in curve.offsets))
-                new_crv.write("\r\n")
-                new_crv.write(f"{len(array)}\r\n")
+                new_crv.write("\n")
+                new_crv.write(f"{len(array)}\n")
                 fmt = ["%0.6f"] * len(array.T)
                 fmt[2] = "%0.f"  # this field is an int
-                np.savetxt(new_crv, array, fmt=fmt, delimiter="\t", newline="\r\n")
+                np.savetxt(new_crv, array, fmt=fmt, delimiter="\t", newline="\n")
         return out_path
 
 
