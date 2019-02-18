@@ -193,6 +193,8 @@ class TopasCurve(Curve):
                 new_crv.write(f"{curve.config.get('grating motor index', -1)}\r\n")
                 new_crv.write(f"{curve.config.get('grating constant', 0)}\r\n")
                 new_crv.write(f"{curve.config.get('maximum grating position', 0)}\r\n")
+            else:
+                new_crv.write(f"{curve.kind}\r\n")
             new_crv.write(f"{len(curve.dependents)}\r\n")
             new_crv.write("\t".join(str(i) for i in curve.motor_indexes))
             new_crv.write("\r\n")
