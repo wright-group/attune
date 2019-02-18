@@ -1,8 +1,6 @@
 import numpy as np
 import pathlib
-import shutil
-import copy
-from ._base import Curve, Linear
+from ._base import Curve
 from ._dependent import Setpoints, Dependent
 import WrightTools as wt
 
@@ -141,6 +139,7 @@ class TopasCurve(Curve):
                 comment=comment,
                 offsets=offsets,
             )
+        f.close()
         return curves
 
     def save(self, save_directory, full=True):
