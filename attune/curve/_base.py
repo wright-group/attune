@@ -336,6 +336,16 @@ class Curve:
         for obj in self.dependents.values():
             setattr(self, obj.name, obj)
         self.interpolate()
+    
+    def sort(self):
+        order = self.setpoints[:].argsort()
+        self.setpoints[:] = self.setpoints[order]
+        if self.subcurve_setpoints:
+            self.subcurve_setpoints[:] = self.subcurve_setpoints[order]
+
+        for d in self.dependents.values():
+            d[:] = d[order]
+
 
     def offset_by(self, dependent, amount):
         """Offset a dependent by some ammount.

@@ -29,7 +29,7 @@ def test_round_trip():
     curve = attune.TopasCurve.read(paths, interaction_string="NON-SH-NON-Sig")
     with tempfile.TemporaryDirectory() as td:
         td = pathlib.Path(td)
-        paths[2] = curve.save(save_directory=td)
+        paths = curve.save(save_directory=td)
         read_curve = attune.TopasCurve.read(paths, interaction_string="NON-SH-NON-Sig")
         assert np.allclose(curve.setpoints[:], read_curve.setpoints[:])
         assert curve.dependent_names == read_curve.dependent_names

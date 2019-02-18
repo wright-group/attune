@@ -81,6 +81,7 @@ class TopasCurve(Curve):
             interaction = "-".join(interaction)
             if interaction in curves:
                 c.subcurve = curves[interaction]
+                curves[interaction].supercurves.append(c)
         return curves
 
     @classmethod
@@ -139,6 +140,9 @@ class TopasCurve(Curve):
                 comment=comment,
                 offsets=offsets,
             )
+        for key,value in curves.items():
+            setattr(value, "siblings", [v for k,v in curves.items() if key != k])
+            setattr(value, "supercurves", [])
         f.close()
         return curves
 
@@ -165,59 +169,54 @@ class TopasCurve(Curve):
         interaction_string = curve.interaction
 
         to_insert = {}
+        if full:
+            to_insert = curve._get_family_dict()
         if interaction_string == "NON-NON-NON-Idl":
-            to_insert["NON-NON-NON-Sig"] = (
-                _convert(_insert(curve), curve.pump_wavelength),
-                not curve.polarization,
-            )
-        to_insert[interaction_string] = (_insert(curve), curve.polarization)
+            to_insert["NON-NON-NON-Sig"] = _convert(curve)
+        to_insert[interaction_string] = curve
         if interaction_string == "NON-NON-NON-Sig":
-            to_insert["NON-NON-NON-Idl"] = (
-                _convert(_insert(curve), curve.pump_wavelength),
-                not curve.polarization,
-            )
+            to_insert["NON-NON-NON-Idl"] = _convert(curve)
 
         save_directory = pathlib.Path(save_directory)
         save_directory.mkdir(parents=True, exist_ok=True)
         timestamp = wt.kit.TimeStamp().path
-        out_name = curve.name.split("-")[0] + "- " + timestamp
-        out_path = (save_directory / out_name).with_suffix(".crv")
+        out_paths = []
 
-        with open(out_path, "w") as new_crv:
-            new_crv.write("600\n")
-            if curve.kind in "OPA/NOPA":
-                new_crv.write("OPA/NOPA\n")
-                new_crv.write(f"{int(curve.kind=='NOPA')}\n")
-                new_crv.write(f"{int(curve.config.get('use grating equation', 0))}\n")
-                new_crv.write(f"{curve.config.get('grating motor index', -1)}\n")
-                new_crv.write(f"{curve.config.get('grating constant', 0)}\n")
-                new_crv.write(f"{curve.config.get('maximum grating position', 0)}\n")
-            else:
-                new_crv.write(f"{curve.kind}\n")
-            new_crv.write(f"{len(curve.dependents)}\n")
-            new_crv.write("\t".join(str(i) for i in curve.motor_indexes))
-            new_crv.write("\n")
-            new_crv.write(f"{len(to_insert)}\n")
-            for k, v in to_insert.items():
-                array, polarization = v
-                array = array.T
-                new_crv.write(k + "\n")
-                if curve.comment[-1] != "\n":
-                    curve.comment += "\n"
-                num_lines = curve.comment.count("\n")
-                new_crv.write(f"{num_lines}\n")
-                new_crv.write(curve.comment)
-                new_crv.write(f"{int(polarization=='H')}\n")
-                new_crv.write(f"{curve.pump_wavelength}\n")
-                new_crv.write(f"{len(curve.dependents)}\n")
-                new_crv.write("\t".join(str(i) for i in curve.offsets))
-                new_crv.write("\n")
-                new_crv.write(f"{len(array)}\n")
-                fmt = ["%0.6f"] * len(array.T)
-                fmt[2] = "%0.f"  # this field is an int
-                np.savetxt(new_crv, array, fmt=fmt, delimiter="\t", newline="\n")
-        return out_path
+        while len(to_insert):
+            _, curve = to_insert.popitem()
+            out_name = curve.kind + "- " + timestamp
+            out_path = (save_directory / out_name).with_suffix(".crv")
+            out_paths.append(out_path)
+            all_sibs = [curve]
+            if curve.siblings:
+                all_sibs += curve.siblings
 
+            with open(out_path, "w") as new_crv:
+                _write_headers(new_crv, curve)
+                new_crv.write(f"{len(all_sibs)}\n")
+                for c in all_sibs:
+                    _write_curve(new_crv, c)
+                    to_insert.pop(c.interaction, None)
+                    
+        return out_paths
+
+    def _get_family_dict(self, start=None):
+        if start is None:
+            start = {}
+        d = {k:v for k,v in start.items()}
+        d.update({self.interaction: self})
+        if self.siblings:
+            for s in self.siblings:
+                if s.interaction not in d:
+                    d.update(s._get_family_dict(d))
+        if self.subcurve:
+            if self.subcurve.interaction not in d:
+                d.update(self.subcurve._get_family_dict(d))
+        if self.supercurves:
+            for s in self.supercurves:
+                if s.interaction not in d:
+                    d.update(s._get_family_dict(d))
+        return d
 
 def _insert(curve):
     motor_indexes = curve.motor_indexes
@@ -225,14 +224,47 @@ def _insert(curve):
     arr[0] = curve.source_setpoints[:]
     arr[1] = curve.setpoints[:]
     arr[2] = len(motor_indexes)
-    print(motor_indexes)
     for i, m in enumerate(motor_indexes):
         arr[3 + i] = next(d for d in curve.dependents.values() if d.index == m)[:]
-    return arr
+    return arr.T
 
 
-def _convert(arr, sum_):
-    arr = np.copy(arr)
-    arr[1] = 1 / ((1 / sum_) - (1 / arr[1]))
-    arr = arr[:, ::-1]
+def _convert(curve):
+    curve = curve.copy()
+    curve.setpoints[:] = 1 / ((1 / curve.pump_wavelength) - (1 / curve.setpoints[:]))
+    curve.polarization = "V" if curve.polarization == "H" else "H"
+    curve.sort()
     return arr
+
+def _write_headers(f, curve):
+    f.write("600\n")
+    if curve.kind in "OPA/NOPA":
+        f.write("OPA/NOPA\n")
+        f.write(f"{int(curve.kind=='NOPA')}\n")
+        f.write(f"{int(curve.config.get('use grating equation', 0))}\n")
+        f.write(f"{curve.config.get('grating motor index', -1)}\n")
+        f.write(f"{curve.config.get('grating constant', 0)}\n")
+        f.write(f"{curve.config.get('maximum grating position', 0)}\n")
+    else:
+        f.write(f"{curve.kind}\n")
+    f.write(f"{len(curve.dependents)}\n")
+    f.write("\t".join(str(i) for i in curve.motor_indexes))
+    f.write("\n")
+
+def _write_curve(f, curve):
+    f.write(f"{curve.interaction}\n")
+    if curve.comment[-1] != "\n":
+        curve.comment += "\n"
+    num_lines = curve.comment.count("\n")
+    f.write(f"{num_lines}\n")
+    f.write(curve.comment)
+    f.write(f"{int(curve.polarization=='H')}\n")
+    f.write(f"{curve.pump_wavelength}\n")
+    f.write(f"{len(curve.dependents)}\n")
+    f.write("\t".join(str(i) for i in curve.offsets))
+    f.write("\n")
+    array = _insert(curve)
+    f.write(f"{len(array)}\n")
+    fmt = ["%0.6f"] * len(array.T)
+    fmt[2] = "%0.f"  # this field is an int
+    np.savetxt(f, array, fmt=fmt, delimiter="\t", newline="\n")
