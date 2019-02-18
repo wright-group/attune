@@ -226,6 +226,8 @@ def _insert(curve):
     arr[0] = curve.source_setpoints[:]
     arr[1] = curve.setpoints[:]
     arr[2] = len(motor_indexes)
+    print(motor_indexes)
+    print([d.index for d in curve.dependents.values()])
     for i, m in enumerate(motor_indexes):
         arr[3 + i] = next(d for d in curve.dependents.values() if d.index == m)[:]
     return arr.T

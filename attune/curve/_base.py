@@ -110,7 +110,6 @@ class Curve:
                 if wt.units.is_valid_conversion(other[k].units, self[k].units):
                     other[k].convert(self[k].units)
                 else:
-                    print(type(other[k].units), type(self[k].units))
                     raise ValueError(
                         f"Invalid unit conversion: {other[k].units} -> {self[k].units}"
                     )
@@ -324,14 +323,14 @@ class Curve:
         for k, v in self.dependents.items():
             positions = v(new_setpoints)
             new_dependent = Dependent(
-                positions, k, v.units, v.differential
+                positions, k, v.units, v.differential, v.index
             )  # new dependent objects
             new_dependents.update({k: new_dependent})
         # map source setpoints, subcurves
         if self.subcurve:
             new_source_setpoints = self.source_setpoints(new_setpoints)
             self.source_setpoints = Dependent(
-                new_source_setpoints, self.source_setpoints.name, self.source_setpoints.units
+                new_source_setpoints, self.source_setpoints.name, self.source_setpoints.units, index=self.source_setpoints.index
             )
         # finish
         self.setpoints = Setpoints(new_setpoints, self.setpoints.name, self.setpoints.units)

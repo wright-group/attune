@@ -14,11 +14,10 @@ def test():
     data.moment("wa_points", moment=0)
     data.transform("w1=wm", "w1_Delay_2_points")
     old = attune.TopasCurve.read(
-        [__here__ / "old.crv", None, None, None],
-        kind="TOPAS-C",
+        [__here__ / "old.crv"],
         interaction_string="NON-NON-NON-Sig",
     )
-    new = attune.workup.intensity(data, -1, "Delay_2", curve=old)
+    new = attune.workup.intensity(data, -1, "3", curve=old)
     print(new)
 
 
