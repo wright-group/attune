@@ -171,11 +171,13 @@ class TopasCurve(Curve):
         to_insert = {}
         if full:
             to_insert = curve._get_family_dict()
+        to_insert[interaction_string] = curve
         if interaction_string == "NON-NON-NON-Idl":
             to_insert["NON-NON-NON-Sig"] = _convert(curve)
-        to_insert[interaction_string] = curve
+            to_insert["NON-NON-NON-Sig"].interaction = "NON-NON-NON-Sig"
         if interaction_string == "NON-NON-NON-Sig":
             to_insert["NON-NON-NON-Idl"] = _convert(curve)
+            to_insert["NON-NON-NON-Idl"].interaction = "NON-NON-NON-Idl"
 
         save_directory = pathlib.Path(save_directory)
         save_directory.mkdir(parents=True, exist_ok=True)
@@ -231,10 +233,9 @@ def _insert(curve):
 
 def _convert(curve):
     curve = curve.copy()
-    curve.setpoints[:] = 1 / ((1 / curve.pump_wavelength) - (1 / curve.setpoints[:]))
+    curve.setpoints.positions = 1 / ((1 / curve.pump_wavelength) - (1 / curve.setpoints[:]))
     curve.polarization = "V" if curve.polarization == "H" else "H"
-    curve.sort()
-    return arr
+    return curve
 
 def _write_headers(f, curve):
     f.write("600\n")
@@ -252,6 +253,9 @@ def _write_headers(f, curve):
     f.write("\n")
 
 def _write_curve(f, curve):
+    curve = curve.copy()
+    curve.convert("nm")
+    curve.sort()
     f.write(f"{curve.interaction}\n")
     if curve.comment[-1] != "\n":
         curve.comment += "\n"

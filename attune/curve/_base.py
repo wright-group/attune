@@ -340,9 +340,10 @@ class Curve:
     def sort(self):
         order = self.setpoints[:].argsort()
         self.setpoints[:] = self.setpoints[order]
-        if self.subcurve_setpoints:
+        try:
             self.subcurve_setpoints[:] = self.subcurve_setpoints[order]
-
+        except (AttributeError, TypeError):
+            pass  # no subcurve setpoints
         for d in self.dependents.values():
             d[:] = d[order]
 
