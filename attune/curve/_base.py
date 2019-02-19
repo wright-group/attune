@@ -125,7 +125,7 @@ class Curve:
         return self_
 
     def __getitem__(self, key):
-        if key in self.dependents
+        if key in self.dependents:
             return self.dependents[key]
         return self.subcurve[key]
 
