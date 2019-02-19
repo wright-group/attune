@@ -127,7 +127,9 @@ class Curve:
         return self_
 
     def __getitem__(self, key):
-        return self.dependents[key]
+        if key in self.dependents:
+            return self.dependents[key]
+        return self.subcurve[key]
 
     def __setitem__(self, key, value):
         value = copy_.deepcopy(value)
