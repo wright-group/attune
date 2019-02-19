@@ -1,5 +1,6 @@
 import numpy as np
 import pathlib
+import warnings
 from ._base import Curve
 from ._dependent import Setpoints, Dependent
 import WrightTools as wt
