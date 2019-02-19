@@ -500,7 +500,7 @@ class Curve:
         setpoints = Setpoints(arr[0], setpoint_name, units[0])
         if subcurve is not None:
             kwargs["subcurve"] = subcurve
-            kwargs["source_setpoints"] = Dependent(setpoints, setpoint_name, units=units[0])
+            kwargs["source_setpoints"] = Dependent(setpoints[:], setpoint_name, units=units[0])
         # finish
         curve = cls(setpoints, dependents, **kwargs)
         return curve
