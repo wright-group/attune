@@ -3,17 +3,29 @@
 
 import pathlib
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 import WrightTools as wt
 
-from .. import curve as attune_curve
-from ._plot import plot_intensity
+from ._plot import plot_tune_test
+
+__all__ = ["tune_test"]
+
+def _offsets(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
+    data.moment(axis=1, channel=channel_name, moment=1)
+    offsets = data[f"{channel_name}_1_moment_1"].points
+
+    if spline:
+        spline = wt.kit.Spline(data.axes[0].points, offsets, **spline_kwargs)
+        return spline(tune_points)
+    if np.allclose(data.axes[0].points, tune_points):
+        return offsets
+    else:
+        raise ValueError("Data points and curve points do not match, and splining disabled")
 
 
 def tune_test(
-    data, curve, channel_name, level=False, cutoff_factor=0.01, autosave=True, save_directory=None
+    data, channel, curve=None, *, level=False, cutoff_factor=0.01, autosave=True, save_directory=None
 ):
     """Workup a Tune Test.
 
@@ -41,68 +53,48 @@ def tune_test(
     curve
         New curve object.
     """
-    # make data object
-    curve = curve.copy()
-    curve_native_units = curve.units
-    curve.convert("wn")
     data = data.copy()
-    data.bring_to_front(channel_name)
-    data.transform(*data.axis_names[::-1])
     data.convert("wn")
-    # process data --------------------------------------------------------------------------------
-    # cutoff
-    channel_index = data.channel_names.index(channel_name)
-    channel = data.channels[channel_index]
+    # make data object
+    if curve is not None:
+        old_curve = curve.copy()
+        old_curve.convert("wn")
+        setpoints = old_curve.setpoints
+    else:
+        old_curve = None
+        setpoints = Setpoints(data.axes[0].points, data.axes[0].expression, data.axes[0].units)
+
+    if isinstance(channel, (int, str)):
+        channel = data.channels[wt.kit.get_index(data.channel_names, channel)]
+
+    # TODO: check if level does what we want
+    if level:
+        data.level(channel.natural_name, 0, -3)
+
     cutoff = channel.max() * cutoff_factor
-    channel[channel < cutoff] = np.nan
-    # fit
-    data.moment(axis=0, channel=channel_name, moment=1)
-    outs = data.channels[-1]
-    # spline
-    xi = data.axes[1].points
-    yi = outs.points
-    print(xi.shape, yi.shape)
-    spline = wt.kit.Spline(xi, yi)
-    points = curve.setpoints.copy()
-    offsets_splined = spline(points)  # wn
+    channel.clip(min=cutoff)
+
+    offsets = _offsets(data, channel.natural_name, setpoints[:])
+    raw_offsets = _offsets(data, channel.natural_name, data.axes[0].points, spline=False)
+
     # make curve ----------------------------------------------------------------------------------
-    curve.setpoints += offsets_splined
-    curve.map_setpoints(points, units="wn")
-    curve.convert(curve_native_units)
+    new_curve = old_curve.copy()
+    new_curve.setpoints.positions += offsets
+    new_curve.interpolate()
+
     # plot ----------------------------------------------------------------------------------------
-    data.axes[1].convert(curve_native_units)
-    fig, gs = wt.artists.create_figure(default_aspect=0.5, cols=[1, "cbar"])
-    # heatmap
-    ax = plt.subplot(gs[0, 0])
-    xi = data.axes[1].points
-    yi = data.axes[0].points
-    zi = data.channels[channel_index][:]
-    X, Y = wt.artists.pcolor_helper(xi, yi)
-    ax.pcolor(X, Y, zi, vmin=0, vmax=np.nanmax(zi), cmap=cmap)
-    ax.set_xlim(xi.min(), xi.max())
-    ax.set_ylim(yi.min(), yi.max())
-    # lines
-    print(outs.units, outs.natural_name)
-    # outs.convert(curve_native_units)
-    xi = data.axes[1].points
-    yi = outs.points
-    ax.plot(xi, yi, c="grey", lw=5, alpha=0.5)
-    ax.plot(xi, offsets_splined, c="k", lw=5, alpha=0.5)
-    ax.axhline(c="k", lw=1)
-    ax.grid()
-    # units_string = "$\mathsf{(" + wt.units.color_symbols[curve.units] + ")}$"
-    # ax.set_xlabel(r" ".join(["setpoint", units_string]), fontsize=18)
-    # ax.set_ylabel(r"$\mathsf{\Delta" + wt.units.color_symbols["wn"] + "}$", fontsize=18)
-    # colorbar
-    cax = plt.subplot(gs[:, -1])
-    label = channel_name
-    ticks = np.linspace(0, np.nanmax(zi), 7)
-    wt.artists.plot_colorbar(cax=cax, cmap=cmap, label=label, ticks=ticks)
+
+    fig, _ = plot_tune_test(data, channel.natural_name, new_curve, prior_curve=curve, raw_offsets=raw_offsets)
+
+    new_curve.map_setpoints(setpoints[:], units=setpoints.units)
+    new_curve.convert(curve.setpoints.units)
+    data.axes[0].convert(curve.setpoints.units)
     # finish --------------------------------------------------------------------------------------
     if autosave:
         if save_directory is None:
-            save_directory = os.path.dirname(data.source)
-        curve.save(save_directory=save_directory, full=True)
-        p = os.path.join(save_directory, "tune test.png")
+            save_directory = "."
+        save_directory = pathlib.Path(save_directory)
+        new_curve.save(save_directory=save_directory, full=True)
+        p = save_directory / "tune_test.png"
         wt.artists.savefig(p, fig=fig)
-    return curve
+    return new_curve

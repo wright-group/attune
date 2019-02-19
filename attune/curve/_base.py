@@ -57,7 +57,12 @@ class Curve:
 
         self.__version__ = __version__
         self.setpoints = setpoints
-        self.dependents = {d.name: d for d in dependents}
+        if isinstance(dependents, Dependent):
+            dependents = [dependents]
+        if isinstance(dependents, dict):
+            self.dependents = dependents
+        else:
+            self.dependents = {d.name: d for d in dependents}
         self.name = name
         self.kind = kind
         self.subcurve = subcurve
@@ -65,7 +70,7 @@ class Curve:
         self.interaction = interaction
         # set dependents as attributes of self
         for obj in self.dependents.values():
-            if len(obj[:]) != len(self.setpoints[:]):
+            if len(obj) != len(self.setpoints):
                 raise ValueError("Dependents must be the same length as setpoints")
             setattr(self, obj.name, obj)
         # initialize function object
@@ -121,6 +126,16 @@ class Curve:
 
     def __getitem__(self, key):
         return self.dependents[key]
+
+    def __setitem__(self, key, value):
+        value = copy_.deepcopy(value)
+        value.name = key
+        if value.interpolator is not None:
+            value.positions = value(self.setpoints[:], self.setpoints.units)
+        elif len(value) != len(self.setpoints):
+            raise ValueError(f"Incorrect number of points in dependent: {len(value)} for number of setpoints: {len(self.setpoints)}")
+        value.interpolator = self.method(self.setpoints, value)
+        self.dependents[key] = value
 
     def __call__(self, value, units=None, full=True):
         return self.get_dependent_positions(value, units, full=full)
@@ -501,7 +516,7 @@ class Curve:
         else:
             save_directory = pathlib.Path(save_directory)
         # array
-        out_arr = np.zeros([len(self.dependents) + 1, len(self.setpoints[:])])
+        out_arr = np.zeros([len(self.dependents) + 1, len(self.setpoints)])
         out_arr[0] = self.setpoints[:]
         out_arr[1:] = np.array([dependent.positions for dependent in self.dependents.values()])
         # filename

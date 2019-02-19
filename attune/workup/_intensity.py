@@ -2,7 +2,6 @@
 
 import pathlib
 
-import matplotlib.pyplot as plt
 import numpy as np
 import WrightTools as wt
 
@@ -11,6 +10,8 @@ from ._plot import plot_intensity
 
 
 # --- processing methods --------------------------------------------------------------------------
+
+__all__ = ["intensity"]
 
 
 def _intensity(data, channel_name, tune_points, *, along=None, spline=True, **spline_kwargs):
