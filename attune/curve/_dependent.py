@@ -30,7 +30,7 @@ class Setpoints(Variable):
 class Dependent(Variable):
     """Container class for dependent arrays."""
 
-    def __init__(self, positions, name, units=None, differential=False):
+    def __init__(self, positions, name, units=None, differential=False, index=None):
         """Create a ``Dependent`` object.
 
         Parameters
@@ -43,6 +43,7 @@ class Dependent(Variable):
         super(Dependent, self).__init__(positions, name, units=units)
         self.interpolator = None
         self.differential = differential
+        self.index = index
 
     def __call__(self, val, units="same"):
         return self.interpolator(val, units)

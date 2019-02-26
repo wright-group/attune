@@ -15,8 +15,9 @@ def test_is_instance():
         __here__ / "OPA1 (10743) mixer2 - 2018-10-07 47923.crv",
         __here__ / "OPA1 (10743) mixer3 - 2013.06.01.crv",
     ]
-    curve = attune.TopasCurve.read(paths, kind="TOPAS-C", interaction_string="NON-NON-NON-Sig")
+    curve = attune.TopasCurve.read(paths, interaction_string="NON-NON-NON-Sig")
     assert isinstance(curve, attune.TopasCurve)
+
 
 def test_round_trip():
     paths = [
@@ -25,15 +26,16 @@ def test_round_trip():
         __here__ / "OPA1 (10743) mixer2 - 2018-10-07 47923.crv",
         __here__ / "OPA1 (10743) mixer3 - 2013.06.01.crv",
     ]
-    curve = attune.TopasCurve.read(paths, kind="TOPAS-C", interaction_string="NON-SH-NON-Sig")
+    curve = attune.TopasCurve.read(paths, interaction_string="NON-SH-NON-Sig")
     with tempfile.TemporaryDirectory() as td:
         td = pathlib.Path(td)
-        paths[2] = curve.save(save_directory=td)
-        read_curve = attune.TopasCurve.read(paths, kind="TOPAS-C", interaction_string="NON-SH-NON-Sig")
+        paths = curve.save(save_directory=td)
+        read_curve = attune.TopasCurve.read(paths, interaction_string="NON-SH-NON-Sig")
         assert np.allclose(curve.setpoints[:], read_curve.setpoints[:])
         assert curve.dependent_names == read_curve.dependent_names
         for d1, d2 in zip(curve.dependents, read_curve.dependents):
             assert np.allclose(curve[d1][:], read_curve[d2][:])
+
 
 if __name__ == "__main__":
     test_is_instance()

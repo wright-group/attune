@@ -1,8 +1,7 @@
 import numpy as np
 import pathlib
-import shutil
-import copy
-from ._base import Curve, Linear
+import warnings
+from ._base import Curve
 from ._dependent import Setpoints, Dependent
 import WrightTools as wt
 
@@ -51,7 +50,7 @@ TOPAS_interaction_by_kind = {"TOPAS-C": TOPAS_C_interactions, "TOPAS-800": TOPAS
 
 class TopasCurve(Curve):
     @classmethod
-    def read(cls, filepaths, kind, interaction_string):
+    def read(cls, filepaths, interaction_string):
         """Create a curve object from a TOPAS crv file.
 
         Parameters
@@ -59,8 +58,6 @@ class TopasCurve(Curve):
         filepaths : list of str [base, mixer 1, mixer 2, mixer 3]
             Paths to all crv files for OPA. Filepaths may be None if not needed /
             not applicable.
-        kind : {'TOPAS-C', 'TOPAS-800'}
-            The kind of TOPAS represented.
         interaction_string : str
             Interaction string for this curve, in the style of Light Conversion -
             e.g. 'NON-SF-NON-Sig'.
@@ -69,58 +66,86 @@ class TopasCurve(Curve):
         -------
         WrightTools.tuning.curve.TopasCurve object
         """
-        TOPAS_interactions = TOPAS_interaction_by_kind[kind]
-        # setup to recursively import data
-        interactions = interaction_string.split("-")
-        interaction_strings = []  # most subservient tuning curve comes first
-        idx = 3
-        while idx >= 0:
-            if not interactions[idx] == "NON":
-                interaction_strings.append("NON-" * idx + "-".join(interactions[idx:]))
-            idx -= 1
-        # create curve objects, starting from most subservient curve
-        subcurve = None
-        for interaction_string in interaction_strings:
-            # open appropriate crv
-            interactions = interaction_string.split("-")
-            curve_index = next((i for i, v in enumerate(interactions) if v != "NON"), -1)
-            crv_path = filepaths[-(curve_index + 1)]
-            with open(crv_path, "r") as crv:
-                crv_lines = crv.readlines()
-                # collect information from file
-            for i in range(len(crv_lines)):
-                if crv_lines[i].rstrip() == interaction_string:
-                    line_index = i + TOPAS_interactions[interaction_string][0]
-                    num_tune_points = int(crv_lines[line_index - 1])
-                    # get the actual array
-            lis = []
-            for i in range(line_index, line_index + num_tune_points):
-                line_arr = np.fromstring(crv_lines[i], sep="\t")
-                lis.append(line_arr)
-                arr = np.array(lis).T
-                # create the curve
-            source_setpoints = Dependent(arr[0], "source setpoints")
+        return cls.read_all(filepaths)[interaction_string]
+
+    @classmethod
+    def read_all(cls, filepaths):
+        curves = {}
+        for f in filepaths:
+            curves.update(cls._read_file(f))
+        for i, c in curves.items():
+            interaction = i.split("-")
+            for j, part in enumerate(interaction):
+                if part != "NON":
+                    interaction[j] = "NON"
+                    break
+            interaction = "-".join(interaction)
+            if interaction in curves:
+                c.subcurve = curves[interaction]
+                curves[interaction].supercurves.append(c)
+        return curves
+
+    @classmethod
+    def _read_file(cls, filepath):
+        ds = np.DataSource(None)
+        f = ds.open(str(filepath), "rt")
+        head = f.readline().strip()
+        if head != "600":
+            warnings.warn(f"Unexpected header {head}, expected '600'")
+        kind = f.readline().strip()
+        config = {}
+        if kind == "OPA/NOPA":
+            kind = "OPA" if f.readline().strip() == "0" else "NOPA"
+            config["use grating equation"] = f.readline().strip() == "1"
+            config["grating motor index"] = int(f.readline())
+            config["grating constant"] = float(f.readline())
+            config["maximum grating position"] = float(f.readline())
+        n_motors = int(f.readline())
+        motor_indexes = np.fromstring(f.readline(), dtype=int, sep="\t")
+        n_curves = int(f.readline().strip())
+        curves = {}
+        for _ in range(n_curves):
+            interaction_string = f.readline().strip()
+            comment = ""
+            for _a in range(int(f.readline())):
+                comment += f.readline()
+
+            # TODO: Check H/V
+            polarization = "H" if int(f.readline()) else "V"
+            pump_wavelength = float(f.readline())
+            f.readline()  # n_motors
+            offsets = np.fromstring(f.readline(), dtype=float, sep="\t")
+            npts = int(f.readline())
+            strings = [f.readline().strip() for _ in range(npts)]
+            arr = np.genfromtxt(strings, delimiter="\t", max_rows=npts, filling_values=np.nan).T
+            source_setpoints = Dependent(arr[0], "source", "nm")
+            setpoints = Setpoints(arr[1], "output", "nm")
             dependents = []
-            for i in range(3, len(arr)):
-                dependent_name = TOPAS_interactions[interaction_string][1][i - 3]
-                dependent = Dependent(arr[i], dependent_name)
-                dependents.append(dependent)
-                name = pathlib.Path(crv_path).stem
-                setpoints = Setpoints(arr[1], "Setpoints", "nm")
-                curve = cls(
-                    setpoints,
-                    dependents,
-                    name,
-                    interaction_string,
-                    kind,
-                    method=Linear,
-                    subcurve=subcurve,
-                    source_setpoints=source_setpoints,
-                )
-                subcurve = curve.copy()
-                # finish
-        setattr(curve, "old_filepaths", filepaths)
-        return curve
+            for i in range(n_motors):
+                name = str(motor_indexes[i])
+                units = None
+                dependents.append(Dependent(arr[i + 3], name, units, index=motor_indexes[i]))
+            # TODO: figure out what namem should default to
+            name = interaction_string
+            curves[interaction_string] = cls(
+                setpoints,
+                dependents,
+                name=name,
+                interaction=interaction_string,
+                kind=kind,
+                source_setpoints=source_setpoints,
+                polarization=polarization,
+                pump_wavelength=pump_wavelength,
+                config=config,
+                motor_indexes=motor_indexes,
+                comment=comment,
+                offsets=offsets,
+            )
+        for key,value in curves.items():
+            setattr(value, "siblings", [v for k,v in curves.items() if key != k])
+            setattr(value, "supercurves", [])
+        f.close()
+        return curves
 
     def save(self, save_directory, full=True):
         """Save a curve object.
@@ -139,103 +164,114 @@ class TopasCurve(Curve):
         string
             Output path.
         """
-        TOPAS_interactions = TOPAS_interaction_by_kind[self.kind]
         # unpack
         curve = self.copy()
         curve.convert("nm")
-        old_filepaths = self.old_filepaths
         interaction_string = curve.interaction
-        # open appropriate crv
-        interactions = interaction_string.split("-")
-        curve_index = next((i for i, v in enumerate(interactions) if v != "NON"), -1)
-        curve_index += 1
-        curve_index = len(old_filepaths) - curve_index
-        crv_path = old_filepaths[curve_index]
+
+        to_insert = {}
+        if full:
+            to_insert = curve._get_family_dict()
+        to_insert[interaction_string] = curve
+        if interaction_string == "NON-NON-NON-Idl":
+            to_insert["NON-NON-NON-Sig"] = _convert(curve)
+            to_insert["NON-NON-NON-Sig"].interaction = "NON-NON-NON-Sig"
+        if interaction_string == "NON-NON-NON-Sig":
+            to_insert["NON-NON-NON-Idl"] = _convert(curve)
+            to_insert["NON-NON-NON-Idl"].interaction = "NON-NON-NON-Idl"
+
         save_directory = pathlib.Path(save_directory)
         save_directory.mkdir(parents=True, exist_ok=True)
-        if full:
-            # copy other curves over as well
-            for i, p in enumerate(old_filepaths):
-                print(i, p, curve_index)
-                if i == curve_index:
-                    continue
-                if p is None:
-                    continue
-                print(i, p)
-                p = pathlib.Path(p)
-                d = save_directory / p.name
-                shutil.copy(p, d)
-        with open(crv_path, "r") as crv:
-            crv_lines = crv.readlines()
-        # collect information from file
-        for i in range(len(crv_lines)):
-            if crv_lines[i].rstrip() == interaction_string:
-                line_index = i + TOPAS_interactions[interaction_string][0]
-
-                num_tune_points = int(crv_lines[line_index - 1])
-        # construct to_insert (dictionary of arrays)
-        to_insert = {}
-        if interaction_string == "NON-NON-NON-Idl":
-            spitfire_output = float(crv_lines[line_index - 4].rstrip())
-            to_insert["NON-NON-NON-Sig"] = _convert(_insert(curve, TOPAS_interactions[interaction_string][1]), spitfire_output)
-        to_insert[interaction_string] = _insert(curve, TOPAS_interactions[interaction_string][1])
-        if interaction_string == "NON-NON-NON-Sig":
-            spitfire_output = float(crv_lines[line_index - 4].rstrip())
-            to_insert["NON-NON-NON-Idl"] = _convert(_insert(curve, TOPAS_interactions[interaction_string][1]), spitfire_output)
-        # generate output
-        out_lines = copy.copy(crv_lines)
-        for interaction_string, arr in to_insert.items():
-            # get current properties of out_lines
-            for i in range(len(crv_lines)):
-                if crv_lines[i].rstrip() == interaction_string:
-                    line_index = i + TOPAS_interactions[interaction_string][0]
-                    num_tune_points = int(crv_lines[line_index - 1])
-            # prepare array for addition
-            arr = arr.T
-            # TOPAS wants curves to be ascending in nm
-            #   curves get added 'backwards' here
-            #   so arr should be decending in nm
-            if arr[0, 1] < arr[-1, 1]:
-                arr = np.flipud(arr)
-            # remove old points
-            del out_lines[line_index - 1 : line_index + num_tune_points]
-            # add strings to out_lines
-            for row in arr:
-                line = ""
-                for value in row:
-                    # the number of motors must be written as an integer for TOPAS
-                    if value in [1, 3, 4]:
-                        value_as_string = str(int(value))
-                    else:
-                        value_as_string = "%f.6" % value
-                        portion_before_decimal = value_as_string.split(".")[0]
-                        portion_after_decimal = value_as_string.split(".")[1].ljust(6, "0")
-                        value_as_string = portion_before_decimal + "." + portion_after_decimal
-                    line += value_as_string + "\t"
-                line += "\n"
-                out_lines.insert(line_index - 1, line)
-            out_lines.insert(
-                line_index - 1, str(len(arr)) + "\n"
-            )  # number of points of new curve
-        # filename
         timestamp = wt.kit.TimeStamp().path
-        out_name = curve.name.split("-")[0] + "- " + timestamp
-        out_path = (save_directory / out_name).with_suffix(".crv")
-        # save
-        with open(out_path, "w") as new_crv:
-            new_crv.write("".join(out_lines).rstrip())
-        return out_path
+        out_paths = []
 
-def _insert(curve, motors):
-    arr = np.empty((len(motors) + 3, len(curve.setpoints[:])))
+        while len(to_insert):
+            _, curve = to_insert.popitem()
+            out_name = curve.kind + "- " + timestamp
+            out_path = (save_directory / out_name).with_suffix(".crv")
+            out_paths.append(out_path)
+            all_sibs = [curve]
+            if curve.siblings:
+                all_sibs += curve.siblings
+
+            with open(out_path, "w") as new_crv:
+                _write_headers(new_crv, curve)
+                new_crv.write(f"{len(all_sibs)}\n")
+                for c in all_sibs:
+                    _write_curve(new_crv, c)
+                    to_insert.pop(c.interaction, None)
+                    
+        return out_paths
+
+    def _get_family_dict(self, start=None):
+        if start is None:
+            start = {}
+        d = {k:v for k,v in start.items()}
+        d.update({self.interaction: self})
+        if self.siblings:
+            for s in self.siblings:
+                if s.interaction not in d:
+                    d.update(s._get_family_dict(d))
+        if self.subcurve:
+            if self.subcurve.interaction not in d:
+                d.update(self.subcurve._get_family_dict(d))
+        if self.supercurves:
+            for s in self.supercurves:
+                if s.interaction not in d:
+                    d.update(s._get_family_dict(d))
+        return d
+
+def _insert(curve):
+    motor_indexes = curve.motor_indexes
+    arr = np.empty((len(motor_indexes) + 3, len(curve.setpoints)))
     arr[0] = curve.source_setpoints[:]
     arr[1] = curve.setpoints[:]
-    arr[2] = len(motors)
-    for i, m in enumerate(motors):
-        arr[3 + i] = curve[m][:]
-    return arr
+    arr[2] = len(motor_indexes)
+    print(motor_indexes)
+    print([d.index for d in curve.dependents.values()])
+    for i, m in enumerate(motor_indexes):
+        arr[3 + i] = next(d for d in curve.dependents.values() if d.index == m)[:]
+    return arr.T
 
-def _convert(arr, sum_):
-    arr = np.copy(arr)
-    arr[1] = 1 / ((1 / sum_) - (1 / arr[0]))
-    return arr
+
+def _convert(curve):
+    curve = curve.copy()
+    curve.setpoints.positions = 1 / ((1 / curve.pump_wavelength) - (1 / curve.setpoints[:]))
+    curve.polarization = "V" if curve.polarization == "H" else "H"
+    return curve
+
+def _write_headers(f, curve):
+    f.write("600\n")
+    if curve.kind in "OPA/NOPA":
+        f.write("OPA/NOPA\n")
+        f.write(f"{int(curve.kind=='NOPA')}\n")
+        f.write(f"{int(curve.config.get('use grating equation', 0))}\n")
+        f.write(f"{curve.config.get('grating motor index', -1)}\n")
+        f.write(f"{curve.config.get('grating constant', 0)}\n")
+        f.write(f"{curve.config.get('maximum grating position', 0)}\n")
+    else:
+        f.write(f"{curve.kind}\n")
+    f.write(f"{len(curve.dependents)}\n")
+    f.write("\t".join(str(i) for i in curve.motor_indexes))
+    f.write("\n")
+
+def _write_curve(f, curve):
+    curve = curve.copy()
+    curve.convert("nm")
+    curve.sort()
+    f.write(f"{curve.interaction}\n")
+    if curve.comment[-1] != "\n":
+        curve.comment += "\n"
+    num_lines = curve.comment.count("\n")
+    f.write(f"{num_lines}\n")
+    f.write(curve.comment)
+    f.write(f"{int(curve.polarization=='H')}\n")
+    f.write(f"{curve.pump_wavelength}\n")
+    f.write(f"{len(curve.dependents)}\n")
+    f.write("\t".join(str(i) for i in curve.offsets))
+    f.write("\n")
+    array = _insert(curve)
+    f.write(f"{len(array)}\n")
+    fmt = ["%0.6f"] * len(array.T)
+    fmt[2] = "%0.f"  # this field is an int
+    np.savetxt(f, array, fmt=fmt, delimiter="\t", newline="\n")

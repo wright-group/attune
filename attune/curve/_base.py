@@ -36,6 +36,7 @@ class Curve:
         subcurve=None,
         source_setpoints=None,
         fmt=None,
+        **kwargs,
     ):
         """Create a ``Curve`` object.
 
@@ -79,6 +80,8 @@ class Curve:
             fmt = ["%.2f"] + ["%.5f"] * len(self.dependents)
         self.fmt = fmt
         self.interpolate()
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
     def __add__(self, other):
         # copy
@@ -107,7 +110,6 @@ class Curve:
                 if wt.units.is_valid_conversion(other[k].units, self[k].units):
                     other[k].convert(self[k].units)
                 else:
-                    print(type(other[k].units), type(self[k].units))
                     raise ValueError(
                         f"Invalid unit conversion: {other[k].units} -> {self[k].units}"
                     )
@@ -135,7 +137,9 @@ class Curve:
         if value.interpolator is not None:
             value.positions = value(self.setpoints[:], self.setpoints.units)
         elif len(value) != len(self.setpoints):
-            raise ValueError(f"Incorrect number of points in dependent: {len(value)} for number of setpoints: {len(self.setpoints)}")
+            raise ValueError(
+                f"Incorrect number of points in dependent: {len(value)} for number of setpoints: {len(self.setpoints)}"
+            )
         value.interpolator = self.method(self.setpoints, value)
         self.dependents[key] = value
 
@@ -321,14 +325,14 @@ class Curve:
         for k, v in self.dependents.items():
             positions = v(new_setpoints)
             new_dependent = Dependent(
-                positions, k, v.units, v.differential
+                positions, k, v.units, v.differential, v.index
             )  # new dependent objects
             new_dependents.update({k: new_dependent})
         # map source setpoints, subcurves
         if self.subcurve:
             new_source_setpoints = self.source_setpoints(new_setpoints)
             self.source_setpoints = Dependent(
-                new_source_setpoints, self.source_setpoints.name, self.source_setpoints.units
+                new_source_setpoints, self.source_setpoints.name, self.source_setpoints.units, index=self.source_setpoints.index
             )
         # finish
         self.setpoints = Setpoints(new_setpoints, self.setpoints.name, self.setpoints.units)
@@ -336,6 +340,17 @@ class Curve:
         for obj in self.dependents.values():
             setattr(self, obj.name, obj)
         self.interpolate()
+    
+    def sort(self):
+        order = self.setpoints[:].argsort()
+        self.setpoints[:] = self.setpoints[order]
+        try:
+            self.subcurve_setpoints[:] = self.subcurve_setpoints[order]
+        except (AttributeError, TypeError):
+            pass  # no subcurve setpoints
+        for d in self.dependents.values():
+            d[:] = d[order]
+
 
     def offset_by(self, dependent, amount):
         """Offset a dependent by some ammount.
@@ -487,7 +502,7 @@ class Curve:
         setpoints = Setpoints(arr[0], setpoint_name, units[0])
         if subcurve is not None:
             kwargs["subcurve"] = subcurve
-            kwargs["source_setpoints"] = Dependent(setpoints, setpoint_name, units=units[0])
+            kwargs["source_setpoints"] = Dependent(setpoints[:], setpoint_name, units=units[0])
         # finish
         curve = cls(setpoints, dependents, **kwargs)
         return curve
