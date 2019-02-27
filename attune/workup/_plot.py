@@ -51,7 +51,7 @@ def plot_tune_test(data, channel, curve, prior_curve, raw_offsets=None):
     if raw_offsets is not None:
         ax.plot(curve.setpoints[:], raw_offsets, c="grey", lw=5, alpha=0.5)
 
-    ax.plot(curve.setpoints[:], curve.setpoints[:] - prior_curve.setpoints[:] , c="k", lw=5, alpha=0.5)
+    ax.plot(curve.setpoints[:], curve.setpoints[:] - prior_curve.setpoints[:], c="k", lw=5, alpha=0.5)
     ax.axhline(c="k", lw=1)
     ax.grid()
 
