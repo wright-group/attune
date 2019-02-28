@@ -83,6 +83,7 @@ class TopasCurve(Curve):
             if interaction in curves:
                 c.subcurve = curves[interaction]
                 curves[interaction].supercurves.append(c)
+                c.interpolate()
         return curves
 
     @classmethod
@@ -260,7 +261,7 @@ def _write_curve(f, curve):
     curve.convert("nm")
     curve.sort()
     f.write(f"{curve.interaction}\n")
-    if curve.comment[-1] != "\n":
+    if len(curve.comment) == 0 or curve.comment[-1] != "\n":
         curve.comment += "\n"
     num_lines = curve.comment.count("\n")
     f.write(f"{num_lines}\n")

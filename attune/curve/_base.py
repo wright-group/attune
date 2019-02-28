@@ -261,7 +261,7 @@ class Curve:
         for k, v in self.dependents.items():
             out[k] = v(setpoint, units)
         if full and self.subcurve:
-            out.update(self.subcurve(setpoint, units, full))
+            out.update(self.subcurve(self.source_setpoints(setpoint, units), self.source_setpoints.units,  full))
         return out
 
     def get_source_setpoint(self, setpoint, units="same"):
@@ -345,11 +345,12 @@ class Curve:
         order = self.setpoints[:].argsort()
         self.setpoints[:] = self.setpoints[order]
         try:
-            self.subcurve_setpoints[:] = self.subcurve_setpoints[order]
+            self.source_setpoints[:] = self.source_setpoints[order]
         except (AttributeError, TypeError):
             pass  # no subcurve setpoints
         for d in self.dependents.values():
             d[:] = d[order]
+        self.interpolate()
 
 
     def offset_by(self, dependent, amount):

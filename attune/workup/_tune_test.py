@@ -84,7 +84,7 @@ def tune_test(
 
     # plot ----------------------------------------------------------------------------------------
 
-    fig, _ = plot_tune_test(data, channel.natural_name, new_curve, prior_curve=curve, raw_offsets=raw_offsets)
+    fig, _ = plot_tune_test(data, channel.natural_name, new_curve, prior_curve=old_curve, raw_offsets=raw_offsets)
 
     new_curve.map_setpoints(setpoints[:], units=setpoints.units)
     new_curve.convert(curve.setpoints.units)
