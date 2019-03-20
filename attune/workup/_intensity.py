@@ -37,6 +37,7 @@ def intensity(
     cutoff_factor=0.1,
     autosave=True,
     save_directory=None,
+    **spline_kwargs,
 ):
     """Workup a generic intensity plot for a single dependent.
 
@@ -72,8 +73,11 @@ def intensity(
     cutoff = channel.max() * cutoff_factor
     channel.clip(min=cutoff)
 
-    offsets = _intensity(data, channel.natural_name, setpoints[:])
-    print(offsets)
+    offsets = _intensity(data, channel.natural_name, setpoints[:], **spline_kwargs)
+    try:
+        raw_offsets = _intensity(data, channel.natural_name, setpoints[:], spline=False)
+    except ValueError:
+        raw_offsets = None
 
     units = data.axes[1].units
     if units == "None":
@@ -91,7 +95,7 @@ def intensity(
     # Why did we have to map setpoints?
     curve.map_setpoints(setpoints[:])
 
-    fig, _ = plot_intensity(data, channel.natural_name, dependent, curve, old_curve)
+    fig, _ = plot_intensity(data, channel.natural_name, dependent, curve, old_curve, raw_offsets)
 
     if autosave:
         if save_directory is None:

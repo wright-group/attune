@@ -75,7 +75,10 @@ def tune_test(
     channel.clip(min=cutoff)
 
     offsets = _offsets(data, channel.natural_name, setpoints[:])
-    raw_offsets = _offsets(data, channel.natural_name, data.axes[0].points, spline=False)
+    try:
+        raw_offsets = _offsets(data, channel.natural_name, data.axes[0].points, spline=False)
+    except ValueError:
+        raw_offsets = None
 
     # make curve ----------------------------------------------------------------------------------
     new_curve = old_curve.copy()
