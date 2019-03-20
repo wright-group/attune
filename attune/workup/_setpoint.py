@@ -15,10 +15,6 @@ __all__ = ["setpoint"]
 
 
 def _setpoint(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
-    dims = [1] * data.ndim
-    dims[0] = tune_points.size # TODO: be more robust, don't assume 0 index
-    print(data[channel_name][:], tune_points)
-    data[channel_name][:] -= tune_points.reshape(dims)
     offsets = []
     chops = data.chop(1)
     for c in chops.values():
@@ -32,12 +28,11 @@ def _setpoint(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
             offsets.append(np.nan)
 
     offsets = np.array(offsets)
-    print(tune_points, offsets)
     if spline:
-        spline = wt.kit.Spline(tune_points, offsets, **spline_kwargs)
+        spline = wt.kit.Spline(data.axes[0].points, offsets, **spline_kwargs)
         return spline(tune_points)
     if np.allclose(data.axes[0].points, tune_points):
-        return offsets
+        return offsets[::-1]
     else:
         raise ValueError("Data points and curve points do not match, and splining disabled")
 
@@ -50,6 +45,7 @@ def setpoint(
     *,
     autosave=True,
     save_directory=None,
+    **spline_kwargs,
 ):
     """Workup a generic intensity plot for a single dependent.
 
@@ -77,7 +73,15 @@ def setpoint(
     if isinstance(channel, (int, str)):
         channel = data.channels[wt.kit.get_index(data.channel_names, channel)]
 
-    offsets = _setpoint(data, channel.natural_name, setpoints[:], k=2, s=1000)
+    dims = [1] * data.ndim
+    dims[0] = setpoints[:].size # TODO: be more robust, don't assume 0 index
+    channel -= setpoints[:].reshape(dims)
+
+    offsets = _setpoint(data, channel.natural_name, setpoints[:], **spline_kwargs)
+    try:
+        raw_offsets = _setpoint(data, channel.natural_name, setpoints[:], spline=False)
+    except ValueError:
+        raw_offsets = None
 
     units = data.axes[1].units
     if units == "None":
@@ -95,7 +99,7 @@ def setpoint(
     # Why did we have to map setpoints?
     curve.map_setpoints(setpoints[:])
 
-    fig, _ = plot_setpoint(data, channel.natural_name, dependent, curve, old_curve)
+    fig, _ = plot_setpoint(data, channel.natural_name, dependent, curve, old_curve, raw_offsets)
 
     if autosave:
         if save_directory is None:
