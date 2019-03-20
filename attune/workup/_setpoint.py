@@ -6,7 +6,7 @@ import numpy as np
 import WrightTools as wt
 
 from .. import Curve, Dependent, Setpoints
-from ._plot import plot_intensity
+from ._plot import plot_setpoint
 
 
 # --- processing methods --------------------------------------------------------------------------
@@ -25,7 +25,7 @@ def _setpoint(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
         xi = c.axes[0].points
         yi = c[channel_name].points
         xi, yi = wt.kit.remove_nans_1D(xi, yi)
-        if yi.min() <= 0 <= yi.max():
+        if np.nanmin(yi) <= 0 <= np.nanmax(yi):
             p = np.polynomial.Polynomial.fit(yi, xi, 2)
             offsets.append(p(0))
         else:
@@ -77,7 +77,7 @@ def setpoint(
     if isinstance(channel, (int, str)):
         channel = data.channels[wt.kit.get_index(data.channel_names, channel)]
 
-    offsets = _setpoint(data, channel.natural_name, setpoints[:])
+    offsets = _setpoint(data, channel.natural_name, setpoints[:], k=2, s=1000)
 
     units = data.axes[1].units
     if units == "None":
