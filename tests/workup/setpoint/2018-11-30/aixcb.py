@@ -19,7 +19,7 @@ def test():
     data.array_signal.clip(min=0)
     data.transform("w1=wm", "w1_Crystal_2_points", "wa")
     data.moment("wa", moment=1, resultant=wt.kit.joint_shape(data.w1, data.w1_Crystal_2))
-    data.transform("w1=wm", "w1_Crystal_2")
+    data.transform("w1=wm", "w1_Crystal_2_points")
     data.channels[-1].clip(min=data.w1.min()-1000, max=data.w1.max()+1000)
     data.channels[-1].null = data.wa.min()
 
