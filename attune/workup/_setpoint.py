@@ -15,12 +15,15 @@ __all__ = ["setpoint"]
 
 
 def _setpoint(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
-    data[channel_name] -= tune_points
+    dims = [1] * data.ndim
+    dims[0] = tune_points.size # TODO: be more robust, don't assume 0 index
+    print(data[channel_name][:], tune_points)
+    data[channel_name][:] -= tune_points.reshape(dims)
     offsets = []
     chops = data.chop(1)
-    for c in chops:
-        xi = data.axes[0].points
-        yi = data[channel_name].points
+    for c in chops.values():
+        xi = c.axes[0].points
+        yi = c[channel_name].points
         xi, yi = wt.kit.remove_nans_1D(xi, yi)
         if yi.min() <= 0 <= yi.max():
             p = np.polynomial.Polynomial.fit(yi, xi, 2)
@@ -29,6 +32,7 @@ def _setpoint(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
             offsets.append(np.nan)
 
     offsets = np.array(offsets)
+    print(tune_points, offsets)
     if spline:
         spline = wt.kit.Spline(tune_points, offsets, **spline_kwargs)
         return spline(tune_points)
