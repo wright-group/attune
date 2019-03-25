@@ -421,14 +421,14 @@ class Curve:
             if curve_index != len(all_curves):
                 ax_index += 1
         # add scatter
-        for dependent in self.dependents:
+        for dependent in self.dependent_names:
             ax = plt.subplot(ax_dictionary[dependent])
             xi = self.setpoints[:]
-            yi = self[dependent][:]
+            yi = self(xi)[dependent]
             ax.scatter(xi, yi, c="k")
             limits = curve.get_limits()
             xi = np.linspace(limits[0], limits[1], 1000)
-            yi = self[dependent](xi)
+            yi = self(xi)[dependent]
             ax.plot(xi, yi, c="k")
             ax.set_ylabel(dependent)
             plt.xticks(self.setpoints[:])
@@ -446,9 +446,9 @@ class Curve:
         for curve in all_curves:
             ax = plt.subplot(lowest_ax_dictionary[curve.name])
             plt.setp(ax.get_xticklabels(), visible=True)
-            ax.set_xlabel(curve.name + " setpoint ({})".format(curve.setpoints.units))
+            ax.set_xlabel(curve.name + " setpoint ({})".format(self.setpoints.units))
             if curve.interaction is not None:
-                ax.set_xlabel(curve.interaction + " setpoint ({})".format(curve.setpoints.units))
+                ax.set_xlabel(curve.interaction + " setpoint ({})".format(self.setpoints.units))
             xtick_positions = self.setpoints[:]
             xtick_labels = [str(np.around(x, 1)) for x in source_setpoint_arrs[curve.name]]
             plt.xticks(xtick_positions, xtick_labels, rotation=45)
