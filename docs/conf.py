@@ -86,7 +86,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "attune"
-copyright = "2016-2019, attune Developers"
+copyright = "2018-2019, attune Developers"
 author = "attune Developers"
 
 # The version info for the project you're documenting, acts as replacement for

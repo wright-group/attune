@@ -5,6 +5,11 @@ Module contents
 ---------------
 
 .. automodule:: attune.interpolator
-    :members:
-    :undoc-members:
-    :show-inheritance:
+
+.. autosummary::
+   :toctree: ../api
+
+    Interpolator
+    Linear
+    Poly
+    Spline

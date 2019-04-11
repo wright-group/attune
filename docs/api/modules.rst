@@ -1,7 +1,9 @@
-attune
-======
+attune API
+==========
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 6
 
-   attune
+   attune.curve
+   attune.interpolator
+   attune.workup

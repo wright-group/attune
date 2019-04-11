@@ -5,6 +5,9 @@ Module contents
 ---------------
 
 .. automodule:: attune.workup
-    :members:
-    :undoc-members:
-    :show-inheritance:
+
+.. autosummary::
+   :toctree: ../api
+
+    intensity
+    tune_test
