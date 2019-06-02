@@ -31,7 +31,7 @@ setup(
     setup_requires=["pytest-runner"],
     tests_require=["pytest", "pytest-cov"],
     install_requires=["WrightTools>=3.2.2", "numpy", "scipy", "matplotlib", "tidy_headers"],
-    extras_require={"dev": ["black", "pre-commit"]},
+    extras_require={"dev": ["black", "pre-commit"], "docs": ["sphinx-gallery>0.3.0", "sphinx", "sphinx-rtd-theme"]},
     version=version,
     description="Tools for tuning optical parametric amplifiers and multidimensional spectrometers.",
     long_description=read("README.rst"),
