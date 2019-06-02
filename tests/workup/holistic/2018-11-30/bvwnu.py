@@ -8,10 +8,14 @@ import pathlib
 __here__ = pathlib.Path(__file__).parent
 
 
-def test_tune_test():
-    d = wt.open(__here__ / "data.wt5")
-    print(d, d.shape)
-
-
-if __name__ == '__main__':
-    test_tune_test()
+# collect
+d = wt.open(__here__ / "data.wt5")
+curve_paths = [__here__ / "old" / "OPA1 (10743) base - 2018-10-26 40490.crv",
+                __here__ / "old" / "OPA1 (10743) mixer1 - 2018-09-07 66539.crv",
+                __here__ / "old" / "OPA1 (10743) mixer2 - 2018-10-07 47923.crv",
+                __here__ / "old" / "OPA1 (10743) mixer3 - 2013.06.01.crv",
+                ]
+old = attune.TopasCurve.read(curve_paths, interaction_string='NON-NON-NON-Sig')
+# do calculation
+new = attune.workup.holistic(d, "array_signal", old)
+# check

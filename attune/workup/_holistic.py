@@ -1,49 +1,63 @@
-"""Function for processing multi-motor tuning data."""
+"""Function for processing multi-dependent tuning data."""
 
+
+import matplotlib.pyplot as plt
 
 import WrightTools as wt
 
 
 __all__ = ["holistic"]
 
+def holistic(
+    data,
+    channel,
+    curve,
+    *,
+    level=False,
+    cutoff_factor=0.1,
+    autosave=True,
+    save_directory=None,
+    **spline_kwargs,
+):
+    """Workup multi-dependent tuning data."""
+    # TODO: docstring
+    # HACKS
+    data = data.copy()
+    opa_index = 1
+    # take channel moments
+    data.moment(axis="wa", channel=channel, resultant=wt.kit.joint_shape(*data.axes[:-1]), moment=0)
+    data.moment(axis="wa", channel=channel, resultant=wt.kit.joint_shape(*data.axes[:-1]), moment=1)
+    amplitudes = data.channels[-2]
+    centers = data.channels[-1]
 
-def holistic(OPA_index, data_filepath, curves, save=True):
-    """Process preamp motortune.
-    Parameters
-    ----------
-    opa_index : integer
-        OPA index.
-    data_filepath : string
-        Data filepath.
-    curves : list of strings
-        Old curves.
-    save : boolean (optional)
-        Toggle saving. Default is True.
-    Returns
-    -------
-    WrightTools.tuning.curve.Curve
-    """
-    # extract information from file
-    headers = wt_kit.read_headers(data_filepath)
-    arr = np.genfromtxt(data_filepath).T
-    old_curve = wt_curve.from_TOPAS_crvs(curves, 'TOPAS-C', 'NON-NON-NON-Sig')
-    # get array data
-    array_colors = arr[headers['name'].index('wa')]
-    array_data = arr[headers['name'].index('array_signal')]
-    array_colors.shape = (-1, 256)
-    array_data.shape = (-1, 256)
-    array_colors = wt_units.converter(array_colors, 'nm', 'wn')
-    # fit array data
-    outs = []
-    for i in range(len(array_data)):
-        xi = array_colors[i]
-        yi = array_data[i]
-        function = wt_fit.Gaussian()
-        mean, width, amplitude, baseline = function.fit(yi, xi)
-        mean = wt_units.converter(mean, 'wn', 'nm')
-        outs.append([amplitude, mean, width])
-    outs = np.array(outs).T
-    amps, centers, widths = outs
+    # would be nice if this was retained in the file I'm using, but it can be hacked
+    C1 = curve.dependents['0']
+    data.create_variable("w1_Crystal_1", values=C1[:, None, None])
+
+    data.transform("w1_Crystal_1", "w1_Delay_1", "wa")
+
+    # this suprises me... Kyle can you resolve?
+    assert data.w1_Delay_1.shape == (25, 51, 1)
+
+
+
+    # preapre for plot
+    fig, gs = wt.artists.create_figure(width='single', cols=[1, 'cbar'])
+    cmap = wt.artists.colormaps['default']
+    cmap.set_bad([0.75] * 3, 1.)
+    cmap.set_under([0.75] * 3, 1.)
+
+    ax = plt.subplot(gs[0, 0])
+    X, Y, Z = wt.artists.pcolor_helper(data.axes[0].points, data.axes[1].points, amplitudes.points)
+    ax.pcolor(X, Y, Z)
+
+    plt.show()
+
+
+
+
+
+def old():
     # get crystal 1 data
     array_c1 = arr[headers['name'].index('w{}_Crystal_1'.format(OPA_index))]
     array_c1.shape = (-1, 256)
