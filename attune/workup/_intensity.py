@@ -34,7 +34,7 @@ def intensity(
     curve=None,
     *,
     level=False,
-    cutoff_factor=0.1,
+    cutoff_factor=0.01,
     autosave=True,
     save_directory=None,
     **spline_kwargs,
