@@ -34,7 +34,8 @@ def intensity(
     curve=None,
     *,
     level=False,
-    cutoff_factor=0.1,
+    gtol = 0.01,
+    ltol = 0.1,
     autosave=True,
     save_directory=None,
     **spline_kwargs,
@@ -43,8 +44,29 @@ def intensity(
 
     Parameters
     ----------
-    data : wt.data.Data objeect
+    data : wt.data.Data
         should be in (setpoint, dependent)
+    channel: wt.data.Channel or int or str
+        channel to process
+    dependent: str
+        name of the dependent to modify in the curve
+    curve: attune.Curve
+        curve object to modify (Default None: make a new curve)
+
+    Keyword Parameters
+    ------------------
+    level: bool
+        toggle leveling data (Defalts to False)
+    gtol: float
+        global tolerance for rejecting noise level relative to global maximum
+    ltol: float
+        local tolerance for rejecting data relative to slice maximum
+    autosave: bool
+        toggles saving of curve file and images (Defaults to True)
+    save_directory: Path-like
+        where to save (Defaults to current working directory)
+    **spline_kwargs:
+        extra arguments to pass to spline creation (e.g. s=0, k=1 for linear interpolation)
 
     Returns
     -------
@@ -64,13 +86,17 @@ def intensity(
 
     if isinstance(channel, (int, str)):
         channel = data.channels[wt.kit.get_index(data.channel_names, channel)]
+        orig_channel = channel.copy(data, name=f"{channel.name}_orig")
 
     # TODO: check if level does what we want
     if level:
         data.level(channel.natural_name, 0, -3)
 
-    # TODO: gtol/ltol
-    cutoff = channel.max() * cutoff_factor
+    # TODO: gtol/ltol should maybe be moved to wt
+    cutoff = channel.max() * gtol
+    channel.clip(min=cutoff)
+    max_axis = tuple(i for i, v in enumerate(data.axes[0].shape) if v > 1)
+    cutoff = np.amax(channel[:], axis=1, keepdims=True) * ltol
     channel.clip(min=cutoff)
 
     offsets = _intensity(data, channel.natural_name, setpoints[:], **spline_kwargs)

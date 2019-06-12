@@ -47,16 +47,28 @@ def setpoint(
     save_directory=None,
     **spline_kwargs,
 ):
-    """Workup a generic intensity plot for a single dependent.
+    """Workup a generic setpoint plot for a single dependent.
 
     Parameters
     ----------
     data : wt.data.Data object
         should be in (setpoint, dependent)
+    channel: wt.data.Channel or int or str
+        channel to process
+    dependent: str
+        name of the dependent to modify in the curve
+    curve: attune.Curve, optional
+        curve object to modify (Default None: make a new curve)
+    autosave: bool, optional
+        toggles saving of curve file and images (Defaults to True)
+    save_directory: Path-like
+        where to save (Defaults to current working directory)
+    **spline_kwargs: optional
+        extra arguments to pass to spline creation (e.g. s=0, k=1 for linear interpolation)
 
     Returns
     -------
-    curve
+    attune.Curve
         New curve object.
     """
     data = data.copy()
