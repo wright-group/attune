@@ -50,27 +50,24 @@ def intensity(
         channel to process
     dependent: str
         name of the dependent to modify in the curve
-    curve: attune.Curve
+    curve: attune.Curve, optional
         curve object to modify (Default None: make a new curve)
-
-    Keyword Parameters
-    ------------------
-    level: bool
+    level: bool, optional
         toggle leveling data (Defalts to False)
-    gtol: float
+    gtol: float, optional
         global tolerance for rejecting noise level relative to global maximum
-    ltol: float
+    ltol: float, optional
         local tolerance for rejecting data relative to slice maximum
-    autosave: bool
+    autosave: bool, optional
         toggles saving of curve file and images (Defaults to True)
     save_directory: Path-like
         where to save (Defaults to current working directory)
-    **spline_kwargs:
+    **spline_kwargs: optional
         extra arguments to pass to spline creation (e.g. s=0, k=1 for linear interpolation)
 
     Returns
     -------
-    curve
+    attune.Curve
         New curve object.
     """
     data = data.copy()
@@ -86,7 +83,7 @@ def intensity(
 
     if isinstance(channel, (int, str)):
         channel = data.channels[wt.kit.get_index(data.channel_names, channel)]
-        orig_channel = channel.copy(data, name=f"{channel.name}_orig")
+        orig_channel = data.create_channel(f"{channel.name}_orig", channel, units=channel.units)
 
     # TODO: check if level does what we want
     if level:

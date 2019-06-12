@@ -66,7 +66,7 @@ def tune_test(
 
     if isinstance(channel, (int, str)):
         channel = data.channels[wt.kit.get_index(data.channel_names, channel)]
-        orig_channel = channel.copy(data, name=f"{channel.name}_orig")
+        orig_channel = data.create_channel(f"{channel.name}_orig", channel, units=channel.units)
 
     # TODO: check if level does what we want
     if level:
