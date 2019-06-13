@@ -19,6 +19,8 @@ def plot_intensity(data, channel, dependent, curve, prior_curve=None, raw_offset
     ax.xaxis.set_tick_params(label1On=False)
 
     ax = plt.subplot(gs[1, 0])
+    graymap = "greyscale"
+    ax.pcolor(data, channel=f"{channel}_orig", cmap=graymap)
     ax.pcolor(data, channel=channel)
     if prior_curve:
         ypoints = (

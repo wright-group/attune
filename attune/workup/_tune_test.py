@@ -25,32 +25,32 @@ def _offsets(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
 
 
 def tune_test(
-    data, channel, curve=None, *, level=False, cutoff_factor=0.01, autosave=True, save_directory=None
+    data, channel, curve=None, *, level=False, gtol=0.01, ltol=0.1, autosave=True, save_directory=None
 ):
     """Workup a Tune Test.
 
     Parameters
     ----------
-    data : wt.data.Data object
-        should be in (setpoint, detuning)
-    curve : attune_curve object
-        tuning curve used to do tune_test
-    channel_nam : str
-        name of the signal chanel to evalute
-    level : bool (optional)
-        does nothing, default is False
-    cutoff_factor : float (optoinal)
-        minimum value for datapoint/max(datapoints) for point to be included
-        in the fitting procedure, default is 0.01
-    autosave : bool (optional)
-        saves output curve if True, default is True
-    save_directory : str
-        directory to save new curve, default is None which uses the data source
-        directory
+    data : wt.data.Data
+        should be in (setpoint, dependent)
+    channel: wt.data.Channel or int or str
+        channel to process
+    curve: attune.Curve, optional
+        curve object to modify (Default None: make a new curve)
+    level: bool, optional
+        toggle leveling data (Defalts to False)
+    gtol: float, optional
+        global tolerance for rejecting noise level relative to global maximum
+    ltol: float, optional
+        local tolerance for rejecting data relative to slice maximum
+    autosave: bool, optional
+        toggles saving of curve file and images (Defaults to True)
+    save_directory: Path-like
+        where to save (Defaults to current working directory)
 
     Returns
     -------
-    curve
+    attune.Curve
         New curve object.
     """
     data = data.copy()
@@ -66,12 +66,17 @@ def tune_test(
 
     if isinstance(channel, (int, str)):
         channel = data.channels[wt.kit.get_index(data.channel_names, channel)]
+        orig_channel = data.create_channel(f"{channel.natural_name}_orig", channel, units=channel.units)
 
     # TODO: check if level does what we want
     if level:
         data.level(channel.natural_name, 0, -3)
 
-    cutoff = channel.max() * cutoff_factor
+    # TODO: gtol/ltol should maybe be moved to wt
+    cutoff = channel.max() * gtol
+    channel.clip(min=cutoff)
+    max_axis = tuple(i for i, v in enumerate(data.axes[0].shape) if v > 1)
+    cutoff = np.amax(channel[:], axis=1, keepdims=True) * ltol
     channel.clip(min=cutoff)
 
     offsets = _offsets(data, channel.natural_name, setpoints[:])
