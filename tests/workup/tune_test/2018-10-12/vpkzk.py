@@ -20,5 +20,5 @@ def test_tune_test():
 
     assert np.allclose(out_tt.setpoints[:], out.setpoints[:])
     for d in out.dependents:
-        assert np.allclose(out_tt[d][:], out[d][:])
+        assert np.allclose(out_tt[d][:], out[d][:], atol=0.01)
     
