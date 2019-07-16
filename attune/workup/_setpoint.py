@@ -30,9 +30,9 @@ def _setpoint(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
     offsets = np.array(offsets)
     if spline:
         spline = wt.kit.Spline(data.axes[0].points, offsets, **spline_kwargs)
-        return spline(tune_points)
+        return spline(tune_points).clip(data.axes[1].min(), data.axes[1].max())
     if np.allclose(data.axes[0].points, tune_points):
-        return offsets[::-1]
+        return offsets[::-1].clip(data.axes[1].min(), data.axes[1].max())
     else:
         raise ValueError("Data points and curve points do not match, and splining disabled")
 
