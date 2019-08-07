@@ -56,6 +56,8 @@ def plot_setpoint(data, channel, dependent, curve, prior_curve=None, raw_offsets
     curve_plot_kwargs = {"lw": 5, "c": "k", "alpha": .5}
     prior_curve_plot_kwargs = {"lw": 2, "c": "k"}
     ax.plot(curve.setpoints[:], curve[dependent][:], **curve_plot_kwargs)
+    ax.set_xlim(*curve.get_limits())
+    ax.xaxis.set_tick_params(label1On=False)
     if prior_curve:
         ax.plot(prior_curve.setpoints[:], prior_curve[dependent][:], **prior_curve_plot_kwargs)
     ax.set_ylabel(dependent)
@@ -66,7 +68,8 @@ def plot_setpoint(data, channel, dependent, curve, prior_curve=None, raw_offsets
     data[channel].signed = True
     limits = -0.05*data[channel].mag(), 0.05 * data[channel].mag()
     ax.pcolor(data, channel=channel, vmin=limits[0], vmax=limits[1])
-    xlim = ax.get_xlim()
+    ax.set_xlim(*curve.get_limits())
+    ax.set_ylim(data.axes[1].min(), data.axes[1].max())
     if prior_curve:
         ypoints = (
             curve[dependent][:]
@@ -80,9 +83,16 @@ def plot_setpoint(data, channel, dependent, curve, prior_curve=None, raw_offsets
     ax.plot(curve.setpoints[:], ypoints, **curve_plot_kwargs)
     ax.axhline(0, **prior_curve_plot_kwargs)
     wt.artists.plot_gridlines()
-    ax.set_ylabel(r"$\mathsf{{\Delta {dependent}}}$".format(dependent=dependent))
-    ax.set_xlabel(f"Setpoint ({curve.setpoints.units})")
-    ax.set_xlim(xlim)
+    ax.set_ylabel(fr"$\mathsf{{\Delta {dependent}}}$")
+    units = curve.setpoints.units
+    if units is None:
+        ax.set_xlabel("Setpoint")
+    else:
+        symbol = wt.units.get_symbol(units)
+        units_str = wt.units.dicts[wt.units.kind(units)][units][2]
+        label = fr"$\mathsf{{{symbol}_{{setpoint}}\,\left({units_str}\right)}}$"
+        ax.set_xlabel(label)
+    ax.set_xlim(*curve.get_limits())
 
     cax = plt.subplot(gs[1, 1])
     ticks = np.linspace(*limits, 11)
