@@ -21,7 +21,9 @@ def _setpoint(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
         xi = c.axes[0].points
         yi = c[channel_name].points
         xi, yi = wt.kit.remove_nans_1D(xi, yi)
-        if np.nanmin(yi) <= 0 <= np.nanmax(yi):
+        if np.all(np.isnan(yi)):
+            offsets.append(np.nan)
+        elif np.nanmin(yi) <= 0 <= np.nanmax(yi):
             p = np.polynomial.Polynomial.fit(yi, xi, 2)
             offsets.append(p(0))
         else:
