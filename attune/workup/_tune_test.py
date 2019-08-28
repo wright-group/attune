@@ -11,6 +11,7 @@ from ._plot import plot_tune_test
 
 __all__ = ["tune_test"]
 
+
 def _offsets(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
     data.moment(axis=1, channel=channel_name, moment=1)
     offsets = data[f"{channel_name}_1_moment_1"].points
@@ -25,7 +26,16 @@ def _offsets(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
 
 
 def tune_test(
-    data, channel, curve=None, *, level=False, gtol=0.01, ltol=0.1, autosave=True, save_directory=None
+    data,
+    channel,
+    curve=None,
+    *,
+    level=False,
+    gtol=0.01,
+    ltol=0.1,
+    map_points=True,
+    autosave=True,
+    save_directory=None,
 ):
     """Workup a Tune Test.
 
@@ -43,6 +53,8 @@ def tune_test(
         global tolerance for rejecting noise level relative to global maximum
     ltol: float, optional
         local tolerance for rejecting data relative to slice maximum
+    map_points: bool, optional
+        remap points onto the original setpoints (Defaults to True)
     autosave: bool, optional
         toggles saving of curve file and images (Defaults to True)
     save_directory: Path-like
@@ -66,7 +78,9 @@ def tune_test(
 
     if isinstance(channel, (int, str)):
         channel = data.channels[wt.kit.get_index(data.channel_names, channel)]
-        orig_channel = data.create_channel(f"{channel.natural_name}_orig", channel, units=channel.units)
+        orig_channel = data.create_channel(
+            f"{channel.natural_name}_orig", channel, units=channel.units
+        )
 
     # TODO: check if level does what we want
     if level:
@@ -92,9 +106,12 @@ def tune_test(
 
     # plot ----------------------------------------------------------------------------------------
 
-    fig, _ = plot_tune_test(data, channel.natural_name, new_curve, prior_curve=old_curve, raw_offsets=raw_offsets)
+    fig, _ = plot_tune_test(
+        data, channel.natural_name, new_curve, prior_curve=old_curve, raw_offsets=raw_offsets
+    )
 
-    new_curve.map_setpoints(setpoints[:], units=setpoints.units)
+    if map_points:
+        new_curve.map_setpoints(setpoints[:], units=setpoints.units)
     new_curve.convert(curve.setpoints.units)
     data.axes[0].convert(curve.setpoints.units)
     # finish --------------------------------------------------------------------------------------
