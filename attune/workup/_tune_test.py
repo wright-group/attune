@@ -11,6 +11,7 @@ from ._plot import plot_tune_test
 
 __all__ = ["tune_test"]
 
+
 def _offsets(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
     data.moment(axis=1, channel=channel_name, moment=1)
     offsets = data[f"{channel_name}_1_moment_1"].points
@@ -25,7 +26,16 @@ def _offsets(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
 
 
 def tune_test(
-    data, channel, curve=None, *, level=False, gtol=0.01, ltol=0.1, autosave=True, save_directory=None
+    data,
+    channel,
+    curve=None,
+    *,
+    level=False,
+    gtol=0.01,
+    ltol=0.1,
+    autosave=True,
+    save_directory=None,
+    **spline_kwargs,
 ):
     """Workup a Tune Test.
 
@@ -47,6 +57,8 @@ def tune_test(
         toggles saving of curve file and images (Defaults to True)
     save_directory: Path-like
         where to save (Defaults to current working directory)
+    **spline_kwargs: optional
+        extra arguments to pass to spline creation (e.g. s=0, k=1 for linear interpolation)
 
     Returns
     -------
@@ -66,7 +78,9 @@ def tune_test(
 
     if isinstance(channel, (int, str)):
         channel = data.channels[wt.kit.get_index(data.channel_names, channel)]
-        orig_channel = data.create_channel(f"{channel.natural_name}_orig", channel, units=channel.units)
+        orig_channel = data.create_channel(
+            f"{channel.natural_name}_orig", channel, units=channel.units
+        )
 
     # TODO: check if level does what we want
     if level:
@@ -79,7 +93,7 @@ def tune_test(
     cutoff = np.amax(channel[:], axis=1, keepdims=True) * ltol
     channel.clip(min=cutoff)
 
-    offsets = _offsets(data, channel.natural_name, setpoints[:])
+    offsets = _offsets(data, channel.natural_name, setpoints[:], **spline_kwargs)
     try:
         raw_offsets = _offsets(data, channel.natural_name, data.axes[0].points, spline=False)
     except ValueError:
@@ -92,7 +106,9 @@ def tune_test(
 
     # plot ----------------------------------------------------------------------------------------
 
-    fig, _ = plot_tune_test(data, channel.natural_name, new_curve, prior_curve=old_curve, raw_offsets=raw_offsets)
+    fig, _ = plot_tune_test(
+        data, channel.natural_name, new_curve, prior_curve=old_curve, raw_offsets=raw_offsets
+    )
 
     new_curve.map_setpoints(setpoints[:], units=setpoints.units)
     new_curve.convert(curve.setpoints.units)
