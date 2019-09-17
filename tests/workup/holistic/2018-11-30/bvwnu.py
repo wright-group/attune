@@ -21,5 +21,5 @@ curve_paths = [__here__ / "old" / "OPA1 (10743) base - 2018-10-26 40490.crv",
 old = attune.TopasCurve.read(curve_paths, interaction_string='NON-NON-NON-Sig')
 # do calculation
 d.transform("w1_Crystal_1", "w1_Delay_1", "wa")
-new = attune.workup.holistic(d, "array_signal", [], old, gtol=.000, level=True)
+new = attune.workup.holistic(d, "array_signal", ["0", "1"], old, gtol=.100, level=True)
 # check
