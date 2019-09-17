@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use("TkAgg")
+
 import tempfile
 import attune
 import WrightTools as wt
@@ -17,5 +20,6 @@ curve_paths = [__here__ / "old" / "OPA1 (10743) base - 2018-10-26 40490.crv",
                 ]
 old = attune.TopasCurve.read(curve_paths, interaction_string='NON-NON-NON-Sig')
 # do calculation
-new = attune.workup.holistic(d, "array_signal", old)
+d.transform("w1_Crystal_1", "w1_Delay_1", "wa")
+new = attune.workup.holistic(d, "array_signal", [], old, gtol=.000, level=True)
 # check
