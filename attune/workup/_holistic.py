@@ -7,6 +7,7 @@ import numpy as np
 import scipy
 
 import WrightTools as wt
+from ._plot import plot_holistic
 
 
 __all__ = ["holistic"]
@@ -76,8 +77,11 @@ def holistic(
     # def gen_curve(curve, dependents, splines) -> curve
     new_curve = curve.copy()
     for dep, spline in zip(dependents, splines):
-        curve[dep][:] = spline(curve.setpoints)
-    curve.interpolate()
+        new_curve[dep][:] = spline(new_curve.setpoints)
+    new_curve.interpolate()
+
+    fig, _ = plot_holistic(data, amplitudes.natural_name, centers.natural_name, dependents, new_curve, curve, out_points)
+
 
     if autosave:
         # Should define function that is shared among all workupscripts
@@ -103,12 +107,20 @@ def edge_intersections(points, evaluated, target):
             yield tuple(p1[i] + (p2[i]-p1[i])*((target - v1)/(v2-v1)) for i in range(len(p1)))
 
 def fit_gauss(x, y):
+    x, y = wt.kit.remove_nans_1D(x,y)
     def resid(inps):
         nonlocal x, y
         return y - gauss(*inps)(x)
 
-    opt = scipy.optimize.leastsq(resid, [np.median(x), (np.max(x) - np.min(x))/10, np.max(y)])
-    return opt[0][0]
+    bounds = [(-np.inf, np.inf) for i in range(3)]
+    x_range = np.max(x) - np.min(x)
+    print(np.min(x), np.max(x))
+    bounds[0] = (np.min(x) - x_range / 10, np.max(x) + x_range / 10)
+    bounds = np.array(bounds).T
+    x0 = [np.median(x), x_range/10, np.max(y)]
+    print(x0, bounds)
+    opt = scipy.optimize.least_squares(resid, x0,  bounds=bounds)
+    return opt.x[0]
 
 def gauss(center, sigma, amplitude):
     return lambda x: amplitude * np.exp(-1/2 * (x - center) ** 2 / sigma ** 2)

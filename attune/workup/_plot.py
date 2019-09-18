@@ -127,3 +127,37 @@ def plot_tune_test(data, channel, curve, prior_curve, raw_offsets=None):
     wt.artists.plot_colorbar(cax=cax, label=label, ticks=ticks)
 
     return fig, gs
+
+def plot_holistic(data, amp_channel, center_channel, dependents, curve, prior_curve, raw_offsets=None):
+    data[amp_channel].normalize()
+
+    amp_cmap = wt.artists.colormaps["default"]
+    center_cmap = wt.artists.colormaps["rainbow"]
+
+    fig, gs = wt.artists.create_figure(nrows=2, cols=[1,'cbar'])
+    ax_amp = plt.subplot(gs[0,0])
+    ax_cen = plt.subplot(gs[1,0])
+    
+    cax_amp = plt.subplot(gs[0,1])
+    cax_center = plt.subplot(gs[1,1])
+    amp_ticks = np.linspace(0,1,11)
+    center_ticks = curve.setpoints
+
+    ax_amp.pcolor(data, channel=amp_channel, cmap=amp_cmap)
+    ax_amp.contour(data, channel=center_channel, levels=center_ticks, cmap=center_cmap, linewidths=2, alpha=1, vmin=np.min(center_ticks), vmax=np.max(center_ticks))
+    ax_cen.pcolor(data, channel=center_channel, cmap=center_cmap, vmin=np.min(center_ticks), vmax=np.max(center_ticks))
+    ax_cen.contour(data, channel=amp_channel, levels=amp_ticks, cmap=amp_cmap, linewidths=2, alpha=1)
+
+    wt.artists.set_fig_labels(xlabel=data.axes[0].label, ylabel=data.axes[1].label)
+
+    wt.artists.plot_colorbar(cax_amp, cmap=amp_cmap, ticks=amp_ticks, label="Intensity")
+    wt.artists.plot_colorbar(cax_center, cmap=center_cmap, ticks=center_ticks, label="Center")
+
+    for ax in [ax_amp, ax_cen]:
+        ax.plot(prior_curve[dependents[0]], prior_curve[dependents[1]], color='k', linewidth=2, zorder=2)
+        ax.plot(curve[dependents[0]], curve[dependents[1]], color='k', linewidth=6, alpha=.5, zorder=2)
+        if raw_offsets is not None:
+            ax.scatter(raw_offsets[:,0],raw_offsets[:,1], color='w', s=50, zorder=10, marker='*') # TODO don't be bad about point handleing
+
+    return fig, gs
+
