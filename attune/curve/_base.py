@@ -261,7 +261,11 @@ class Curve:
         for k, v in self.dependents.items():
             out[k] = v(setpoint, units)
         if full and self.subcurve:
-            out.update(self.subcurve(self.source_setpoints(setpoint, units), self.source_setpoints.units,  full))
+            out.update(
+                self.subcurve(
+                    self.source_setpoints(setpoint, units), self.source_setpoints.units, full
+                )
+            )
         return out
 
     def get_source_setpoint(self, setpoint, units="same"):
@@ -332,7 +336,10 @@ class Curve:
         if self.subcurve:
             new_source_setpoints = self.source_setpoints(new_setpoints)
             self.source_setpoints = Dependent(
-                new_source_setpoints, self.source_setpoints.name, self.source_setpoints.units, index=self.source_setpoints.index
+                new_source_setpoints,
+                self.source_setpoints.name,
+                self.source_setpoints.units,
+                index=self.source_setpoints.index,
             )
         # finish
         self.setpoints = Setpoints(new_setpoints, self.setpoints.name, self.setpoints.units)
@@ -340,7 +347,7 @@ class Curve:
         for obj in self.dependents.values():
             setattr(self, obj.name, obj)
         self.interpolate()
-    
+
     def sort(self):
         order = self.setpoints[:].argsort()
         self.setpoints[:] = self.setpoints[order]
@@ -351,7 +358,6 @@ class Curve:
         for d in self.dependents.values():
             d[:] = d[order]
         self.interpolate()
-
 
     def offset_by(self, dependent, amount):
         """Offset a dependent by some ammount.

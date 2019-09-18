@@ -40,14 +40,7 @@ def _setpoint(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
 
 
 def setpoint(
-    data,
-    channel,
-    dependent,
-    curve=None,
-    *,
-    autosave=True,
-    save_directory=None,
-    **spline_kwargs,
+    data, channel, dependent, curve=None, *, autosave=True, save_directory=None, **spline_kwargs
 ):
     """Workup a generic setpoint plot for a single dependent.
 
@@ -80,7 +73,7 @@ def setpoint(
         old_curve.convert("wn")
         setpoints = old_curve.setpoints
     else:
-        old_curve = None   
+        old_curve = None
         setpoints = Setpoints(data.axes[0].points, data.axes[0].expression, data.axes[0].units)
     # TODO: units
 
@@ -88,7 +81,7 @@ def setpoint(
         channel = data.channels[wt.kit.get_index(data.channel_names, channel)]
 
     dims = [1] * data.ndim
-    dims[0] = setpoints[:].size # TODO: be more robust, don't assume 0 index
+    dims[0] = setpoints[:].size  # TODO: be more robust, don't assume 0 index
     channel -= setpoints[:].reshape(dims)
 
     offsets = _setpoint(data, channel.natural_name, setpoints[:], **spline_kwargs)

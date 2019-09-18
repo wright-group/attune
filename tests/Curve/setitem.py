@@ -2,11 +2,12 @@ import attune
 import numpy as np
 import pytest
 
+
 def test_set_new():
-    d = attune.Dependent(np.linspace(0,10,21), "d1")
+    d = attune.Dependent(np.linspace(0, 10, 21), "d1")
     s = attune.Setpoints(np.linspace(120, 240, 21), "s1")
     c = attune.Curve(s, d, "c")
-    d = attune.Dependent(np.linspace(10,100,21), "d2")
+    d = attune.Dependent(np.linspace(10, 100, 21), "d2")
 
     c["d3"] = d
 
@@ -15,20 +16,22 @@ def test_set_new():
     assert np.allclose(c["d3"][:], d[:])
     assert c["d3"].name == "d3"
 
+
 def test_set_incompatable():
-    d = attune.Dependent(np.linspace(0,10,21), "d1")
+    d = attune.Dependent(np.linspace(0, 10, 21), "d1")
     s = attune.Setpoints(np.linspace(120, 240, 21), "s1")
     c = attune.Curve(s, d, "c")
-    d = attune.Dependent(np.linspace(10,100,25), "d2")
+    d = attune.Dependent(np.linspace(10, 100, 25), "d2")
 
     with pytest.raises(ValueError):
         c["d3"] = d
 
+
 def test_set_from_outside_curve():
-    d = attune.Dependent(np.linspace(0,10,21), "d1")
+    d = attune.Dependent(np.linspace(0, 10, 21), "d1")
     s = attune.Setpoints(np.linspace(120, 240, 21), "s1")
     c = attune.Curve(s, d, "c")
-    d = attune.Dependent(np.linspace(10,100,30), "d2")
+    d = attune.Dependent(np.linspace(10, 100, 30), "d2")
     s = attune.Setpoints(np.linspace(100, 250, 30), "s2")
     c2 = attune.Curve(s, d, "c")
 
