@@ -152,6 +152,23 @@ def plot_holistic(data, amp_channel, center_channel, dependents, curve, prior_cu
 
     wt.artists.plot_colorbar(cax_amp, cmap=amp_cmap, ticks=amp_ticks, label="Intensity")
     wt.artists.plot_colorbar(cax_center, cmap=center_cmap, ticks=center_ticks, label="Center")
+    cax_center.set_xlabel("")
+
+    for i in range(2):
+        axis = np.array(np.broadcast_to(data.axes[i][:], data[amp_channel].shape))
+        axis[np.isnan(data[amp_channel])] = np.nan
+
+        amin = min(np.min(curve[dependents[i]]), np.min(prior_curve[dependents[i]]), np.nanmin(axis))
+        amax = max(np.max(curve[dependents[i]]), np.max(prior_curve[dependents[i]]), np.nanmax(axis))
+        arange = amax-amin
+        amin -= arange * 0.05
+        amax += arange * 0.05
+        if i == 0:
+            ax_amp.set_xlim((amin, amax))
+            ax_cen.set_xlim((amin, amax))
+        else:
+            ax_amp.set_ylim((amin, amax))
+            ax_cen.set_ylim((amin, amax))
 
     for ax in [ax_amp, ax_cen]:
         ax.plot(prior_curve[dependents[0]], prior_curve[dependents[1]], color='k', linewidth=2, zorder=2)

@@ -70,8 +70,6 @@ def holistic(
 
     out_points = np.array(out_points)
 
-    print(out_points)
-
     splines = [wt.kit.Spline(curve.setpoints, vals, **spline_kwargs) for vals in out_points.T]
     
     # def gen_curve(curve, dependents, splines) -> curve
@@ -88,8 +86,8 @@ def holistic(
         if save_directory is None:
             save_directory = "."
         save_directory = pathlib.Path(save_directory)
-        curve.save(save_directory=save_directory, full=True)
-    return curve
+        new_curve.save(save_directory=save_directory, full=True)
+    return new_curve
 
 
 def find_simplices_containing(delaunay, interpolator, point):
@@ -114,11 +112,9 @@ def fit_gauss(x, y):
 
     bounds = [(-np.inf, np.inf) for i in range(3)]
     x_range = np.max(x) - np.min(x)
-    print(np.min(x), np.max(x))
     bounds[0] = (np.min(x) - x_range / 10, np.max(x) + x_range / 10)
     bounds = np.array(bounds).T
     x0 = [np.median(x), x_range/10, np.max(y)]
-    print(x0, bounds)
     opt = scipy.optimize.least_squares(resid, x0,  bounds=bounds)
     return opt.x[0]
 
