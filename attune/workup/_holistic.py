@@ -14,9 +14,7 @@ __all__ = ["holistic"]
 
 
 def _holistic(data, amplitudes, centers, curve):
-    points = np.array(
-        [np.broadcast_to(a[:], amplitudes.shape).flatten() for a in data.axes]
-    ).T
+    points = np.array([np.broadcast_to(a[:], amplitudes.shape).flatten() for a in data.axes]).T
     ndim = len(data.axes)
     delaunay = scipy.spatial.Delaunay(points)
 
@@ -32,7 +30,7 @@ def _holistic(data, amplitudes, centers, curve):
         iso_points = np.array(iso_points)
         if len(iso_points) > 3:
             out_points.append(
-                tuple(fit_gauss(iso_points.T[i], amp_interp(iso_points)) for i in range(ndim))
+                tuple(_fit_gauss(iso_points.T[i], amp_interp(iso_points)) for i in range(ndim))
             )
         else:
             out_points.append(tuple(np.nan for i in range(ndim)))
@@ -131,12 +129,12 @@ def _edge_intersections(points, evaluated, target):
             )
 
 
-def fit_gauss(x, y):
+def _fit_gauss(x, y):
     x, y = wt.kit.remove_nans_1D(x, y)
 
     def resid(inps):
         nonlocal x, y
-        return y - gauss(*inps)(x)
+        return y - _gauss(*inps)(x)
 
     bounds = [(-np.inf, np.inf) for i in range(3)]
     x_range = np.max(x) - np.min(x)
@@ -147,5 +145,5 @@ def fit_gauss(x, y):
     return opt.x[0]
 
 
-def gauss(center, sigma, amplitude):
+def _gauss(center, sigma, amplitude):
     return lambda x: amplitude * np.exp(-1 / 2 * (x - center) ** 2 / sigma ** 2)
