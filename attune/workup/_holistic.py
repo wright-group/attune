@@ -8,6 +8,7 @@ import scipy
 
 import WrightTools as wt
 from ._plot import plot_holistic
+from ._common import save
 
 
 __all__ = ["holistic"]
@@ -76,7 +77,6 @@ def holistic(
     amplitudes.clip(min=cutoff)
     centers[np.isnan(amplitudes)] = np.nan
 
-    # --- End of pre workup ---
     out_points = _holistic(data, amplitudes, centers, curve)
     splines = [wt.kit.Spline(curve.setpoints, vals, **spline_kwargs) for vals in out_points.T]
 
@@ -93,11 +93,7 @@ def holistic(
     )
 
     if autosave:
-        # Should define function that is shared among all workupscripts
-        if save_directory is None:
-            save_directory = "."
-        save_directory = pathlib.Path(save_directory)
-        new_curve.save(save_directory=save_directory, full=True)
+        save(new_curve, fig, "holistic", save_directory)
     return new_curve
 
 

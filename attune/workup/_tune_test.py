@@ -8,6 +8,7 @@ import numpy as np
 import WrightTools as wt
 
 from ._plot import plot_tune_test
+from ._common import save
 
 __all__ = ["tune_test"]
 
@@ -112,10 +113,5 @@ def tune_test(
     data.axes[0].convert(curve.setpoints.units)
     # finish --------------------------------------------------------------------------------------
     if autosave:
-        if save_directory is None:
-            save_directory = "."
-        save_directory = pathlib.Path(save_directory)
-        new_curve.save(save_directory=save_directory, full=True)
-        p = save_directory / "tune_test.png"
-        wt.artists.savefig(p, fig=fig)
+        save(new_curve, fig, "tune_test", save_directory)
     return new_curve

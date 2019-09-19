@@ -7,6 +7,7 @@ import WrightTools as wt
 
 from .. import Curve, Dependent, Setpoints
 from ._plot import plot_intensity
+from ._common import save
 
 
 # --- processing methods --------------------------------------------------------------------------
@@ -123,12 +124,5 @@ def intensity(
     fig, _ = plot_intensity(data, channel.natural_name, dependent, curve, old_curve, raw_offsets)
 
     if autosave:
-        if save_directory is None:
-            # TODO: Formal decision on whether this should be cwd or data/curve location
-            save_directory = "."
-        save_directory = pathlib.Path(save_directory)
-        curve.save(save_directory=save_directory, full=True)
-        # Should we timestamp the image?
-        p = save_directory / "intensity.png"
-        wt.artists.savefig(p, fig=fig)
+        save(curve, fig, "intensity", save_directory)
     return curve
