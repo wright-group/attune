@@ -41,10 +41,11 @@ def _holistic(data, amplitudes, centers, curve):
 
 def holistic(
     data,
-    channel,
+    channels,
     dependents,
     curve,
     *,
+    spectral_axis=-1,
     level=False,
     gtol=0.01,
     autosave=True,
@@ -53,28 +54,43 @@ def holistic(
 ):
     """Workup multi-dependent tuning data."""
     # TODO: docstring
-    # HACKS
-    # TODO extract data pre-worukup
     data = data.copy()
-    axis = "wa"
-    # TODO: check if level does what we want
-    if level:
-        data.level(channel, 0, -3)
 
-    # take channel moments
-    data.moment(
-        axis=axis, channel=channel, resultant=wt.kit.joint_shape(*data.axes[:-1]), moment=0
-    )
-    data.moment(
-        axis=axis, channel=channel, resultant=wt.kit.joint_shape(*data.axes[:-1]), moment=1
-    )
-    amplitudes = data.channels[-2]
-    centers = data.channels[-1]
-    data.transform(*[a for a in data.axis_expressions if a != axis])
+    if isinstance(channels, (str, wt.data.Channel)):
+        if level:
+            data.level(channels, 0, -3)
+        if isinstance(spectral_axis, int):
+            spectral_axis = data.axis_names[spectral_axis]
+        elif isinstance(spectral_axis, wt.data.Axis):
+            spectral_axis = spectral_axis.expression
+        # take channel moments
+        data.moment(
+            axis=spectral_axis,
+            channel=channels,
+            resultant=wt.kit.joint_shape(*[a for a in data.axes if a.expression != spectral_axis]),
+            moment=0,
+        )
+        data.moment(
+            axis=spectral_axis,
+            channel=channels,
+            resultant=wt.kit.joint_shape(*[a for a in data.axes if a.expression != spectral_axis]),
+            moment=1,
+        )
+        amplitudes = data.channels[-2]
+        centers = data.channels[-1]
+        data.transform(*[a for a in data.axis_expressions if a != spectral_axis])
+    else:
+        amplitudes, centers = channels
+        if isinstance(amplitudes, (int, str)):
+            amplitudes = data.channels[wt.kit.get_index(data.channel_names, amplitudes)]
+        if isinstance(centers, (int, str)):
+            centers = data.channels[wt.kit.get_index(data.channel_names, centers)]
+        if level:
+            data.level(amplitudes.natural_name, 0, -3)
 
-    # TODO: decide whether tolerances are included in pre-workup or not
-    cutoff = amplitudes.max() * gtol
-    amplitudes.clip(min=cutoff)
+    if gtol is not None:
+        cutoff = amplitudes.max() * gtol
+        amplitudes.clip(min=cutoff)
     centers[np.isnan(amplitudes)] = np.nan
 
     out_points = _holistic(data, amplitudes, centers, curve)
