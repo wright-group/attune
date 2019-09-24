@@ -1,7 +1,6 @@
 """Function for processing multi-dependent tuning data."""
 
 import itertools
-import pathlib
 
 import numpy as np
 import scipy
@@ -52,8 +51,44 @@ def holistic(
     save_directory=None,
     **spline_kwargs,
 ):
-    """Workup multi-dependent tuning data."""
-    # TODO: docstring
+    """Workup multi-dependent tuning data.
+
+    Note:
+    At this time, this function expects 2-dimensional motor space.
+    The algorithm should generalize to N-dimensional motor space,
+    however this is untested and plotting likely will fail.
+
+    Parameters
+    ----------
+    data: WrightTools.Data
+        The data object to process.
+    channels: WrightTools.data.Channel or int or str or 2-tuple
+        If singular: the spectral axis, from which the 0th and 1st moments will be taken to
+        obtain amplitudes and centers. In this case, `spectral_axis` determines which axis is
+        used to obtain the moments.
+        If a tuple: (amplitudes, centers), then these channels will be used directly.
+    dependents: tuple of str
+        Names of the dependents to modify in the curve, in the same order as the axes of `data`.
+    curve: attune.Curve
+        Curve object to modify. Setpoints are determined from the curve.
+
+    Keyword Parameters
+    ------------------
+    spectral_axis: WrightTools.data.Axis or int or str (default -1)
+        The axis along which to take moments.
+        Only applies if a single channel is given.
+    level: bool (default False)
+        Toggle leveling data. If two channels are given, only the amplitudes are leveled.
+        If a single channel is given, leveling occurs before taking the moments.
+    gtol: float (default 0.01)
+        Global tolerance for rejecting noise level relative to the global maximum.
+    autosave: bool (default True)
+        Toggles saving of curve files and images.
+    save_directory: Path-like (Defaults to current working directory)
+        Specify where to save files.
+    **spline_kwargs: 
+        Extra arguments to pass to spline creation (e.g. s=0, k=1 for linear interpolation)
+    """
     data = data.copy()
 
     if isinstance(channels, (str, wt.data.Channel)):

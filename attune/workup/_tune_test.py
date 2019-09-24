@@ -1,8 +1,6 @@
 """Methods for processing OPA 800 tuning data."""
 
 
-import pathlib
-
 import numpy as np
 
 import WrightTools as wt
