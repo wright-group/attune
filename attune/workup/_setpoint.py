@@ -1,12 +1,11 @@
 """Methods for processing OPA 800 tuning data."""
 
-import pathlib
-
 import numpy as np
 import WrightTools as wt
 
 from .. import Curve, Dependent, Setpoints
 from ._plot import plot_setpoint
+from ._common import save
 
 
 # --- processing methods --------------------------------------------------------------------------
@@ -40,14 +39,7 @@ def _setpoint(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
 
 
 def setpoint(
-    data,
-    channel,
-    dependent,
-    curve=None,
-    *,
-    autosave=True,
-    save_directory=None,
-    **spline_kwargs,
+    data, channel, dependent, curve=None, *, autosave=True, save_directory=None, **spline_kwargs
 ):
     """Workup a generic setpoint plot for a single dependent.
 
@@ -80,7 +72,7 @@ def setpoint(
         old_curve.convert("wn")
         setpoints = old_curve.setpoints
     else:
-        old_curve = None   
+        old_curve = None
         setpoints = Setpoints(data.axes[0].points, data.axes[0].expression, data.axes[0].units)
     # TODO: units
 
@@ -88,7 +80,7 @@ def setpoint(
         channel = data.channels[wt.kit.get_index(data.channel_names, channel)]
 
     dims = [1] * data.ndim
-    dims[0] = setpoints[:].size # TODO: be more robust, don't assume 0 index
+    dims[0] = setpoints[:].size  # TODO: be more robust, don't assume 0 index
     channel -= setpoints[:].reshape(dims)
 
     offsets = _setpoint(data, channel.natural_name, setpoints[:], **spline_kwargs)
@@ -116,12 +108,5 @@ def setpoint(
     fig, _ = plot_setpoint(data, channel.natural_name, dependent, curve, old_curve, raw_offsets)
 
     if autosave:
-        if save_directory is None:
-            # TODO: Formal decision on whether this should be cwd or data/curve location
-            save_directory = "."
-        save_directory = pathlib.Path(save_directory)
-        curve.save(save_directory=save_directory, full=True)
-        # Should we timestamp the image?
-        p = save_directory / "setpoint.png"
-        wt.artists.savefig(p, fig=fig)
+        save(curve, fig, "setpoint", save_directory)
     return curve

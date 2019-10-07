@@ -1,15 +1,15 @@
 """Methods for processing OPA 800 tuning data."""
 
 
-import pathlib
-
 import numpy as np
 
 import WrightTools as wt
 
 from ._plot import plot_tune_test
+from ._common import save
 
 __all__ = ["tune_test"]
+
 
 def _offsets(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
     data.moment(axis=1, channel=channel_name, moment=1)
@@ -25,7 +25,15 @@ def _offsets(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
 
 
 def tune_test(
-    data, channel, curve=None, *, level=False, gtol=0.01, ltol=0.1, autosave=True, save_directory=None
+    data,
+    channel,
+    curve=None,
+    *,
+    level=False,
+    gtol=0.01,
+    ltol=0.1,
+    autosave=True,
+    save_directory=None,
 ):
     """Workup a Tune Test.
 
@@ -66,7 +74,9 @@ def tune_test(
 
     if isinstance(channel, (int, str)):
         channel = data.channels[wt.kit.get_index(data.channel_names, channel)]
-        orig_channel = data.create_channel(f"{channel.natural_name}_orig", channel, units=channel.units)
+        orig_channel = data.create_channel(
+            f"{channel.natural_name}_orig", channel, units=channel.units
+        )
 
     # TODO: check if level does what we want
     if level:
@@ -92,17 +102,14 @@ def tune_test(
 
     # plot ----------------------------------------------------------------------------------------
 
-    fig, _ = plot_tune_test(data, channel.natural_name, new_curve, prior_curve=old_curve, raw_offsets=raw_offsets)
+    fig, _ = plot_tune_test(
+        data, channel.natural_name, new_curve, prior_curve=old_curve, raw_offsets=raw_offsets
+    )
 
     new_curve.map_setpoints(setpoints[:], units=setpoints.units)
     new_curve.convert(curve.setpoints.units)
     data.axes[0].convert(curve.setpoints.units)
     # finish --------------------------------------------------------------------------------------
     if autosave:
-        if save_directory is None:
-            save_directory = "."
-        save_directory = pathlib.Path(save_directory)
-        new_curve.save(save_directory=save_directory, full=True)
-        p = save_directory / "tune_test.png"
-        wt.artists.savefig(p, fig=fig)
+        save(new_curve, fig, "tune_test", save_directory)
     return new_curve

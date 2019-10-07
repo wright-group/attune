@@ -142,8 +142,8 @@ class TopasCurve(Curve):
                 comment=comment,
                 offsets=offsets,
             )
-        for key,value in curves.items():
-            setattr(value, "siblings", [v for k,v in curves.items() if key != k])
+        for key, value in curves.items():
+            setattr(value, "siblings", [v for k, v in curves.items() if key != k])
             setattr(value, "supercurves", [])
         f.close()
         return curves
@@ -201,13 +201,13 @@ class TopasCurve(Curve):
                 for c in all_sibs:
                     _write_curve(new_crv, c)
                     to_insert.pop(c.interaction, None)
-                    
+
         return out_paths
 
     def _get_family_dict(self, start=None):
         if start is None:
             start = {}
-        d = {k:v for k,v in start.items()}
+        d = {k: v for k, v in start.items()}
         d.update({self.interaction: self})
         if self.siblings:
             for s in self.siblings:
@@ -221,6 +221,7 @@ class TopasCurve(Curve):
                 if s.interaction not in d:
                     d.update(s._get_family_dict(d))
         return d
+
 
 def _insert(curve):
     motor_indexes = curve.motor_indexes
@@ -241,6 +242,7 @@ def _convert(curve):
     curve.polarization = "V" if curve.polarization == "H" else "H"
     return curve
 
+
 def _write_headers(f, curve):
     f.write("600\n")
     if curve.kind in "OPA/NOPA":
@@ -255,6 +257,7 @@ def _write_headers(f, curve):
     f.write(f"{len(curve.dependents)}\n")
     f.write("\t".join(str(i) for i in curve.motor_indexes))
     f.write("\n")
+
 
 def _write_curve(f, curve):
     curve = curve.copy()
