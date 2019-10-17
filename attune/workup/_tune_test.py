@@ -12,7 +12,7 @@ __all__ = ["tune_test"]
 
 
 def _offsets(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
-    data.moment(axis=1, channel=channel_name, moment=1)
+    data.moment(axis=1, channel=channel_name, moment=1, resultant=data.axes[0].shape)
     offsets = data[f"{channel_name}_1_moment_1"].points
 
     if spline:
