@@ -1,12 +1,11 @@
 """Methods for processing OPA 800 tuning data."""
 
-import pathlib
-
 import numpy as np
 import WrightTools as wt
 
 from .. import Curve, Dependent, Setpoints
 from ._plot import plot_intensity
+from ._common import save
 
 
 # --- processing methods --------------------------------------------------------------------------
@@ -15,7 +14,7 @@ __all__ = ["intensity"]
 
 
 def _intensity(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
-    data.moment(axis=1, channel=channel_name, moment=1)
+    data.moment(axis=1, channel=channel_name, moment=1, resultant=data.axes[0].shape)
     offsets = data[f"{channel_name}_1_moment_1"].points
 
     if spline:
@@ -34,8 +33,8 @@ def intensity(
     curve=None,
     *,
     level=False,
-    gtol = 0.01,
-    ltol = 0.1,
+    gtol=0.01,
+    ltol=0.1,
     autosave=True,
     save_directory=None,
     **spline_kwargs,
@@ -77,13 +76,15 @@ def intensity(
         old_curve.convert("wn")
         setpoints = old_curve.setpoints
     else:
-        old_curve = None   
+        old_curve = None
         setpoints = Setpoints(data.axes[0].points, data.axes[0].expression, data.axes[0].units)
     # TODO: units
 
     if isinstance(channel, (int, str)):
         channel = data.channels[wt.kit.get_index(data.channel_names, channel)]
-        orig_channel = data.create_channel(f"{channel.natural_name}_orig", channel, units=channel.units)
+        orig_channel = data.create_channel(
+            f"{channel.natural_name}_orig", channel, units=channel.units
+        )
 
     # TODO: check if level does what we want
     if level:
@@ -121,12 +122,5 @@ def intensity(
     fig, _ = plot_intensity(data, channel.natural_name, dependent, curve, old_curve, raw_offsets)
 
     if autosave:
-        if save_directory is None:
-            # TODO: Formal decision on whether this should be cwd or data/curve location
-            save_directory = "."
-        save_directory = pathlib.Path(save_directory)
-        curve.save(save_directory=save_directory, full=True)
-        # Should we timestamp the image?
-        p = save_directory / "intensity.png"
-        wt.artists.savefig(p, fig=fig)
+        save(curve, fig, "intensity", save_directory)
     return curve
