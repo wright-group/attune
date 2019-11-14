@@ -561,7 +561,7 @@ class Curve:
         with open(out_path, "at") as f:
             np.savetxt(f, out_arr.T, fmt=self.fmt, delimiter="\t")
         # save subcurve
-        if self.subcurve:
+        if full and self.subcurve:
             self.subcurve.save(save_directory=save_directory)
         # plot
         if plot:
