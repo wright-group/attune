@@ -375,7 +375,7 @@ class Curve:
         """
         # offset
         self.dependents[dependent].positions += amount
-        self.dependents[dependent].interpolate()
+        self.interpolate()
 
     def offset_to(self, dependent, destination, setpoint, setpoint_units="same"):
         """Offset a dependent such that it evaluates to `destination` at `setpoint`.
