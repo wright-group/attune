@@ -34,6 +34,7 @@ def tune_test(
     ltol=0.1,
     autosave=True,
     save_directory=None,
+    **spline_kwargs,
 ):
     """Workup a Tune Test.
 
@@ -55,6 +56,8 @@ def tune_test(
         toggles saving of curve file and images (Defaults to True)
     save_directory: Path-like
         where to save (Defaults to current working directory)
+    **spline_kwargs: optional
+        extra arguments to pass to spline creation (e.g. s=0, k=1 for linear interpolation)
 
     Returns
     -------
@@ -89,7 +92,7 @@ def tune_test(
     cutoff = np.amax(channel[:], axis=1, keepdims=True) * ltol
     channel.clip(min=cutoff)
 
-    offsets = _offsets(data, channel.natural_name, setpoints[:])
+    offsets = _offsets(data, channel.natural_name, setpoints[:], **spline_kwargs)
     try:
         raw_offsets = _offsets(data, channel.natural_name, data.axes[0].points, spline=False)
     except ValueError:
