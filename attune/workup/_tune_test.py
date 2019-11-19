@@ -99,6 +99,9 @@ def tune_test(
     new_curve = old_curve.copy()
     new_curve.setpoints.positions += offsets
     new_curve.interpolate()
+    new_curve.map_setpoints(setpoints[:], units=setpoints.units)
+    new_curve.convert(curve.setpoints.units)
+    data.axes[0].convert(curve.setpoints.units)
 
     # plot ----------------------------------------------------------------------------------------
 
@@ -106,9 +109,6 @@ def tune_test(
         data, channel.natural_name, new_curve, prior_curve=old_curve, raw_offsets=raw_offsets
     )
 
-    new_curve.map_setpoints(setpoints[:], units=setpoints.units)
-    new_curve.convert(curve.setpoints.units)
-    data.axes[0].convert(curve.setpoints.units)
     # finish --------------------------------------------------------------------------------------
     if autosave:
         save(new_curve, fig, "tune_test", save_directory)
