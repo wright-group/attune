@@ -480,6 +480,17 @@ class Curve:
             plt.savefig(image_path, transparent=True, dpi=300)
             plt.close(fig)
 
+    def rename_dependent(self, old_name, new_name):
+        old_dependent = self.dependents[old_name]
+        new_dependent = Dependent(
+            old_dependent.positions, new_name, old_dependent.units, old_dependent.differential, old_dependent.index
+        )
+        delattr(self, old_name)
+        setattr(self, new_name, new_dependent)
+        del self.dependents[old_name]
+        self.dependents[new_name] = new_dependent
+        self.interpolate()
+
     @classmethod
     def read(cls, filepath, subcurve=None):
         filepath = pathlib.Path(filepath)
