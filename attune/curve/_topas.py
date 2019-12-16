@@ -45,7 +45,10 @@ TOPAS_800_interactions = {
     "DF2-NON-NON-Sig": [7, TOPAS_800_motor_names[3]],
 }
 
-TOPAS_interaction_by_kind = {"TOPAS-C": TOPAS_C_interactions, "TOPAS-800": TOPAS_800_interactions}
+TOPAS_interaction_by_kind = {
+    "TOPAS-C": TOPAS_C_interactions,
+    "TOPAS-800": TOPAS_800_interactions,
+}
 
 
 class TopasCurve(Curve):
@@ -148,7 +151,7 @@ class TopasCurve(Curve):
         f.close()
         return curves
 
-    def save(self, save_directory, full=True):
+    def save(self, save_directory=None, plot=True, verbose=True, full=False):
         """Save a curve object.
 
         Parameters
@@ -181,16 +184,21 @@ class TopasCurve(Curve):
             to_insert["NON-NON-NON-Idl"] = _convert(curve)
             to_insert["NON-NON-NON-Idl"].interaction = "NON-NON-NON-Idl"
 
-        save_directory = pathlib.Path(save_directory)
+        # get save directory
+        if save_directory is None:
+            save_directory = pathlib.Path()
+        else:
+            save_directory = pathlib.Path(save_directory)
         save_directory.mkdir(parents=True, exist_ok=True)
         timestamp = wt.kit.TimeStamp().path
-        out_paths = []
+
+        ret_name = curve.kind + "- " + timestamp
+        ret_path = (save_directory / ret_name).with_suffix(".crv")
 
         while len(to_insert):
             _, curve = to_insert.popitem()
             out_name = curve.kind + "- " + timestamp
             out_path = (save_directory / out_name).with_suffix(".crv")
-            out_paths.append(out_path)
             all_sibs = [curve]
             if curve.siblings:
                 all_sibs += curve.siblings
@@ -202,7 +210,7 @@ class TopasCurve(Curve):
                     _write_curve(new_crv, c)
                     to_insert.pop(c.interaction, None)
 
-        return out_paths
+        return ret_path
 
     def _get_family_dict(self, start=None):
         if start is None:
@@ -229,8 +237,6 @@ def _insert(curve):
     arr[0] = curve.source_setpoints[:]
     arr[1] = curve.setpoints[:]
     arr[2] = len(motor_indexes)
-    print(motor_indexes)
-    print([d.index for d in curve.dependents.values()])
     for i, m in enumerate(motor_indexes):
         arr[3 + i] = next(d for d in curve.dependents.values() if d.index == m)[:]
     return arr.T
