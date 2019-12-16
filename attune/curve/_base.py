@@ -483,7 +483,11 @@ class Curve:
     def rename_dependent(self, old_name, new_name):
         old_dependent = self.dependents[old_name]
         new_dependent = Dependent(
-            old_dependent.positions, new_name, old_dependent.units, old_dependent.differential, old_dependent.index
+            old_dependent.positions,
+            new_name,
+            old_dependent.units,
+            old_dependent.differential,
+            old_dependent.index,
         )
         delattr(self, old_name)
         setattr(self, new_name, new_dependent)
