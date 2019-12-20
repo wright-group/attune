@@ -562,7 +562,7 @@ class Curve:
             np.savetxt(f, out_arr.T, fmt=self.fmt, delimiter="\t")
         # save subcurve
         if full and self.subcurve:
-            self.subcurve.save(save_directory=save_directory)
+            self.subcurve.save(save_directory=save_directory, full=True, verbose=verbose)
         # plot
         if plot:
             image_path = out_path.with_suffix(".png")
