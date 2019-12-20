@@ -45,10 +45,7 @@ TOPAS_800_interactions = {
     "DF2-NON-NON-Sig": [7, TOPAS_800_motor_names[3]],
 }
 
-TOPAS_interaction_by_kind = {
-    "TOPAS-C": TOPAS_C_interactions,
-    "TOPAS-800": TOPAS_800_interactions,
-}
+TOPAS_interaction_by_kind = {"TOPAS-C": TOPAS_C_interactions, "TOPAS-800": TOPAS_800_interactions}
 
 
 class TopasCurve(Curve):
@@ -195,6 +192,11 @@ class TopasCurve(Curve):
         ret_name = curve.kind + "- " + timestamp
         ret_path = (save_directory / ret_name).with_suffix(".crv")
 
+        if plot:
+            image_path = ret_path.with_suffix(".png")
+            title = out_path.stem
+            self.plot(autosave=True, save_path=image_path, title=title)
+
         while len(to_insert):
             _, curve = to_insert.popitem()
             out_name = curve.kind + "- " + timestamp
@@ -209,6 +211,8 @@ class TopasCurve(Curve):
                 for c in all_sibs:
                     _write_curve(new_crv, c)
                     to_insert.pop(c.interaction, None)
+                if verbose:
+                    print("curve saved at", out_path)
 
         return ret_path
 
