@@ -194,7 +194,7 @@ class TopasCurve(Curve):
 
         if plot:
             image_path = ret_path.with_suffix(".png")
-            title = out_path.stem
+            title = ret_path.stem
             self.plot(autosave=True, save_path=image_path, title=title)
 
         while len(to_insert):
