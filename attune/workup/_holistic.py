@@ -98,6 +98,7 @@ def holistic(
             spectral_axis = data.axis_names[spectral_axis]
         elif isinstance(spectral_axis, wt.data.Axis):
             spectral_axis = spectral_axis.expression
+        getattr(data, spectral_axis).convert(curve.setpoints.units)
         # take channel moments
         data.moment(
             axis=spectral_axis,

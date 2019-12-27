@@ -157,7 +157,7 @@ def plot_holistic(
     ax_amp.contour(
         data,
         channel=center_channel,
-        levels=center_ticks,
+        levels=sorted(center_ticks),
         cmap=center_cmap,
         linewidths=2,
         alpha=1,

@@ -66,10 +66,10 @@ def setpoint(
         New curve object.
     """
     data = data.copy()
-    data.convert("wn")
+    # data.convert("wn")
     if curve is not None:
         old_curve = curve.copy()
-        old_curve.convert("wn")
+        # old_curve.convert("wn")
         setpoints = old_curve.setpoints
     else:
         old_curve = None

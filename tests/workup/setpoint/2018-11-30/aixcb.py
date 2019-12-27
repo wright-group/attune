@@ -25,6 +25,9 @@ def test():
 
     old = attune.TopasCurve.read([__here__ / "old.crv"], interaction_string="NON-NON-NON-Sig")
 
+    data.convert("wn")
+    old.convert("wn")
+
     new = attune.workup.setpoint(data, -1, "2", autosave=False, curve=old)
 
     print(new)
