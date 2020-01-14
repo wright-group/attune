@@ -109,7 +109,7 @@ def tune_test(
     # plot ----------------------------------------------------------------------------------------
 
     fig, _ = plot_tune_test(
-        data, channel.natural_name, new_curve, prior_curve=old_curve, raw_offsets=raw_offsets
+        data, channel.natural_name, new_curve, used_offsets=offsets, raw_offsets=raw_offsets,
     )
 
     # finish --------------------------------------------------------------------------------------

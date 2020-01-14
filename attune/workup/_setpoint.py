@@ -94,7 +94,7 @@ def setpoint(
         units = None
 
     new_curve = Curve(
-        setpoints, [Dependent(offsets, dependent, units, differential=True)], name="setpoint"
+        setpoints, [Dependent(offsets, dependent, units, differential=True)], name="setpoint",
     )
 
     if curve is not None:
