@@ -89,7 +89,6 @@ def plot_setpoint(data, channel, dependent, curve, prior_curve=None, raw_offsets
     ax.axhline(0, **prior_curve_plot_kwargs)
     wt.artists.plot_gridlines()
     ax.set_ylabel(fr"$\mathsf{{\Delta {dependent}}}$")
-    units = curve.setpoints.units
     ax.set_xlabel(data.axes[0].label)
     ax.set_xlim(*curve.get_limits())
 
