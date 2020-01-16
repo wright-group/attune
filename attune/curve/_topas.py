@@ -181,7 +181,6 @@ class TopasCurve(Curve):
             to_insert["NON-NON-NON-Idl"] = _convert(curve)
             to_insert["NON-NON-NON-Idl"].interaction = "NON-NON-NON-Idl"
 
-
         # get save directory
         if save_directory is None:
             save_directory = pathlib.Path()

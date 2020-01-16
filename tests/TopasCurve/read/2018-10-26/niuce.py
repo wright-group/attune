@@ -37,6 +37,7 @@ def test_round_trip():
         for d1, d2 in zip(curve.dependents, read_curve.dependents):
             assert np.allclose(curve[d1][:], read_curve[d2][:])
 
+
 def test_sig_idl_saved_relationship():
     paths = [__here__ / "OPA1 (10743) base - 2018-10-26 40490.crv"]
     curve = attune.TopasCurve.read(paths, interaction_string="NON-NON-NON-Sig")
@@ -48,7 +49,6 @@ def test_sig_idl_saved_relationship():
         read_curve = attune.TopasCurve.read(paths, interaction_string="NON-NON-NON-Idl")
         assert np.allclose(curve.dependents["1"][:], read_curve.dependents["1"][::-1])
         assert curve.dependent_names == read_curve.dependent_names
-
 
 
 if __name__ == "__main__":
