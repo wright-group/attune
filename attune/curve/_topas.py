@@ -198,7 +198,7 @@ class TopasCurve(Curve):
             self.plot(autosave=True, save_path=image_path, title=title)
 
         while len(to_insert):
-            _, curve = to_insert.popitem()
+            curve = to_insert[list(to_insert.keys())[0]]
             out_name = curve.kind + "- " + timestamp
             out_path = (save_directory / out_name).with_suffix(".crv")
             all_sibs = [curve]
@@ -209,8 +209,8 @@ class TopasCurve(Curve):
                 _write_headers(new_crv, curve)
                 new_crv.write(f"{len(all_sibs)}\n")
                 for c in all_sibs:
+                    c = to_insert.pop(c.interaction, c)
                     _write_curve(new_crv, c)
-                    to_insert.pop(c.interaction, None)
                 if verbose:
                     print("curve saved at", out_path)
 
