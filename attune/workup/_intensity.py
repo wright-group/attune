@@ -108,7 +108,7 @@ def intensity(
         units = None
 
     new_curve = Curve(
-        setpoints, [Dependent(offsets, dependent, units, differential=True)], name="intensity"
+        setpoints, [Dependent(offsets, dependent, units, differential=True)], name="intensity",
     )
 
     if curve is not None:
