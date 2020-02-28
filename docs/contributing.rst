@@ -29,7 +29,7 @@ Preparing
 
     .. code-block:: bash
 
-        $ python setup.py test
+        $ pytest
 
 
 Contributing
@@ -49,7 +49,7 @@ Contributing
 
     .. code-block:: bash
 
-        $ python setup.py test
+        $ pytest
 
 #. make your changes, commiting often
 
