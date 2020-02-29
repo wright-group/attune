@@ -19,8 +19,9 @@ init:
 
 install:
   - "%PYTHON%\\Scripts\\pip3 install -e ."
+  - "%PYTHON%\\Scripts\\pip3 install pytest pytest-cov"
 
 build: false  # Not a C# project, build stuff at the test step instead.
 
 test_script:
-  - "%PYTHON%/python setup.py test"
+  - "%PYTHON%/python -m pytest"

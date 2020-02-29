@@ -28,8 +28,6 @@ setup(
     packages=find_packages(exclude=("tests", "tests.*")),
     package_data=extra_files,
     python_requires=">=3.5",
-    setup_requires=["pytest-runner"],
-    tests_require=["pytest", "pytest-cov"],
     install_requires=["WrightTools>=3.2.5", "numpy", "scipy", "matplotlib", "tidy_headers"],
     extras_require={
         "dev": ["black", "pre-commit"],
