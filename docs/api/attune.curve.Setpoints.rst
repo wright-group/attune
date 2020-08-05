@@ -12,8 +12,8 @@ attune.curve.Setpoints
    .. rubric:: Methods
 
    .. autosummary::
+      :toctree: attune.curve.Setpoints
    
-      ~Setpoints.__init__
       ~Setpoints.convert
    
    

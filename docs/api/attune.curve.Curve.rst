@@ -12,8 +12,8 @@ attune.curve.Curve
    .. rubric:: Methods
 
    .. autosummary::
+      :toctree: attune.curve.Curve
    
-      ~Curve.__init__
       ~Curve.coerce_dependents
       ~Curve.convert
       ~Curve.copy
@@ -26,6 +26,7 @@ attune.curve.Curve
       ~Curve.offset_to
       ~Curve.plot
       ~Curve.read
+      ~Curve.rename_dependent
       ~Curve.save
       ~Curve.sort
    

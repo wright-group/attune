@@ -12,8 +12,8 @@ attune.curve.TopasCurve
    .. rubric:: Methods
 
    .. autosummary::
+      :toctree: attune.curve.TopasCurve
    
-      ~TopasCurve.__init__
       ~TopasCurve.coerce_dependents
       ~TopasCurve.convert
       ~TopasCurve.copy
@@ -27,6 +27,7 @@ attune.curve.TopasCurve
       ~TopasCurve.plot
       ~TopasCurve.read
       ~TopasCurve.read_all
+      ~TopasCurve.rename_dependent
       ~TopasCurve.save
       ~TopasCurve.sort
    

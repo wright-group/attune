@@ -9,5 +9,7 @@ Module contents
 .. autosummary::
    :toctree: ../api
 
+    holistic
     intensity
+    setpoint
     tune_test
