@@ -1,9 +1,5 @@
 .. _install:
 
-.. note::
-    This page contains information that is not (yet) true, as attune is not yet distributed.
-    However, it should be true once a release is made, which is hopefully soon.
-
 
 Installation
 ============
