@@ -89,7 +89,7 @@ def tune_test(
     cutoff = channel.max() * gtol
     channel.clip(min=cutoff)
     max_axis = tuple(i for i, v in enumerate(data.axes[0].shape) if v > 1)
-    cutoff = np.amax(channel[:], axis=1, keepdims=True) * ltol
+    cutoff = np.nanmax(channel[:], axis=1, keepdims=True) * ltol
     channel.clip(min=cutoff)
 
     offsets = _offsets(data, channel.natural_name, setpoints[:], **spline_kwargs)
