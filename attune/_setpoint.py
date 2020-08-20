@@ -3,7 +3,7 @@
 import numpy as np
 import WrightTools as wt
 
-from .. import Curve, Dependent, Setpoints
+# from .. import Curve, Dependent, Setpoints
 from ._plot import plot_setpoint
 from ._common import save
 
