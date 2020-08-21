@@ -28,7 +28,7 @@ def load(name, time=None):
             if datadir.exists():
                 for d in sorted(datadir.iterdir(), reverse=True):
                     if d.name <= iso8061:
-                        return d
+                        return datadir / d.name
             if month == 1:
                 year -= 1
                 month = 12
