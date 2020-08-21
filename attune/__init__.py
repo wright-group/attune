@@ -11,5 +11,6 @@ from ._motor import *
 from ._note import *
 from ._open import *
 from ._setpoint import *
+from ._store import *
 from ._tune import *
 from ._tune_test import *

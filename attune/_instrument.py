@@ -1,6 +1,7 @@
 __all__ = ["Instrument"]
 
 
+from datetime import datetime as _datetime
 from typing import Dict
 import json
 
@@ -10,10 +11,12 @@ from ._note import Note
 
 
 class Instrument(object):
-    def __init__(self, arrangements, motors, *, name=None):
+    def __init__(self, arrangements, motors, *, name=None, datetime=None):
         self._name: str = name
         self._arrangements: Dict["str", Arrangement] = arrangements
         self._motors: Dict["str", Motor] = motors
+        if datetime is None:
+            self.datetime = _datetime.utcnow()
 
     def __eq__(self, other):
         if self.name != self.name:
