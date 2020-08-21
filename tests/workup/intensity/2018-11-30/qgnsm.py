@@ -15,7 +15,9 @@ def test():
     data.transform("w1=wm", "w1_Delay_2", "wa_points")
     data.moment("wa_points", moment=0)
     data.transform("w1=wm", "w1_Delay_2_points")
-    old = attune.TopasCurve.read([__here__ / "old.crv"], interaction_string="NON-NON-NON-Sig")
+    old = attune.TopasCurve.read(
+        [__here__ / "old.crv"], interaction_string="NON-NON-NON-Sig"
+    )
     new = attune.workup.intensity(data, -1, "3", autosave=False, curve=old)
     print(new)
 
@@ -26,7 +28,9 @@ def test_ltol_with_gtol():
     data.transform("w1=wm", "w1_Delay_2", "wa_points")
     data.moment("wa_points", moment=0)
     data.transform("w1=wm", "w1_Delay_2_points")
-    old = attune.TopasCurve.read([__here__ / "old.crv"], interaction_string="NON-NON-NON-Sig")
+    old = attune.TopasCurve.read(
+        [__here__ / "old.crv"], interaction_string="NON-NON-NON-Sig"
+    )
     new = attune.workup.intensity(
         data, -1, "3", gtol=0.1, ltol=0.99999, spline=False, autosave=False, curve=old
     )

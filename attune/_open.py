@@ -19,7 +19,10 @@ def open(path):
     # arrangements
     arrangements = {}
     for arrangement_name in d["arrangements"].keys():
-        tunes = {k: Tune(**v) for k, v in d["arrangements"][arrangement_name]["tunes"].items()}
+        tunes = {
+            k: Tune(**v)
+            for k, v in d["arrangements"][arrangement_name]["tunes"].items()
+        }
         arrangements[arrangement_name] = Arrangement(name=arrangement_name, tunes=tunes)
     # motors
     motors = {k: Motor(**v) for k, v in d["motors"].items()}

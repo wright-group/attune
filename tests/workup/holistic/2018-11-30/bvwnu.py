@@ -20,7 +20,9 @@ def test_single_channel():
     old = attune.TopasCurve.read(curve_paths, interaction_string="NON-NON-NON-Sig")
 
     curve_paths = [__here__ / "out" / "OPA- 2019-09-18 53345.crv"]
-    reference = attune.TopasCurve.read(curve_paths, interaction_string="NON-NON-NON-Sig")
+    reference = attune.TopasCurve.read(
+        curve_paths, interaction_string="NON-NON-NON-Sig"
+    )
 
     # do calculation
     d.transform("w1_Crystal_1", "w1_Delay_1", "wa")
@@ -50,8 +52,12 @@ def test_multiple_channels():
     channel = "array_signal"
     d.level(channel, 0, -3)
     # take channel moments
-    d.moment(axis=-1, channel=channel, resultant=wt.kit.joint_shape(*d.axes[:-1]), moment=0)
-    d.moment(axis=-1, channel=channel, resultant=wt.kit.joint_shape(*d.axes[:-1]), moment=1)
+    d.moment(
+        axis=-1, channel=channel, resultant=wt.kit.joint_shape(*d.axes[:-1]), moment=0
+    )
+    d.moment(
+        axis=-1, channel=channel, resultant=wt.kit.joint_shape(*d.axes[:-1]), moment=1
+    )
     amplitudes = d.channel_names[-2]
     centers = -1
 
@@ -59,7 +65,9 @@ def test_multiple_channels():
     old = attune.TopasCurve.read(curve_paths, interaction_string="NON-NON-NON-Sig")
 
     curve_paths = [__here__ / "out" / "OPA- 2019-09-18 53345.crv"]
-    reference = attune.TopasCurve.read(curve_paths, interaction_string="NON-NON-NON-Sig")
+    reference = attune.TopasCurve.read(
+        curve_paths, interaction_string="NON-NON-NON-Sig"
+    )
 
     # do calculation
     d.transform("w1_Crystal_1", "w1_Delay_1")

@@ -17,7 +17,9 @@ class Tune:
         self._ind_min = min(self._independent)
         self._ind_units = "nm"
         self._dep_units = dep_units
-        self._interp = scipy.interpolate.interp1d(independent, dependent, fill_value="extrapolate")
+        self._interp = scipy.interpolate.interp1d(
+            independent, dependent, fill_value="extrapolate"
+        )
 
     def __call__(self, ind_value, *, ind_units=None, dep_units=None):
         if ind_units is not None and self._ind_units is not None:
