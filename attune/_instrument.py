@@ -19,7 +19,7 @@ class Instrument(object):
             self.datetime = _datetime.utcnow()
 
     def __eq__(self, other):
-        if self.name != self.name:
+        if self.name != other.name:
             return False
         if self._motors != other._motors:
             return False
