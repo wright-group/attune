@@ -8,6 +8,8 @@ import json
 import pathlib
 import maya
 
+from ._transition import Transition
+
 
 def load(name, time=None):
     if time is None:
@@ -37,18 +39,15 @@ def load(name, time=None):
             continue
 
     datadir = find(name, time)
-    return attune.open(datadir / "instrument.json")
+    transition = Transition("load", metadata={"time": time.isoformat(), "directory": str(datadir)})
+    return attune.open(datadir / "instrument.json", transition=transition)
 
 
 def restore(instrument, time):
     raise NotImplementedError
 
 
-def redo(instrument):
-    raise NotImplementedError
-
-
-def store(instrument, *, transaction=None, data=None, old=None):
+def store(instrument):
     now = datetime.utcnow()
     # make datadir
     datadir = pathlib.Path(appdirs.user_data_dir("attune", "attune"))

@@ -8,15 +8,22 @@ import json
 from ._arrangement import Arrangement
 from ._motor import Motor
 from ._note import Note
+from ._transition import Transition, TransitionType
 
 
 class Instrument(object):
-    def __init__(self, arrangements, motors, *, name=None, datetime=None):
+    def __init__(self, arrangements, motors, *, name=None, datetime=None, transition=None):
         self._name: str = name
         self._arrangements: Dict["str", Arrangement] = arrangements
         self._motors: Dict["str", Motor] = motors
         if datetime is None:
             self.datetime = _datetime.utcnow()
+        else:
+            self.datetime = datetime
+        if transition is None:
+            self.transition = Transition(TransitionType.create)
+        else:
+            self.transition = transition
 
     def __eq__(self, other):
         if self.name != other.name:
@@ -37,9 +44,7 @@ class Instrument(object):
         if len(valid) == 1:
             arrangement = valid[0]
         else:
-            raise Exception(
-                "There are multiple valid arrangements! You must specify one."
-            )
+            raise Exception("There are multiple valid arrangements! You must specify one.")
         # call arrangement
         motor_positions = {}
         todo = [(ind_value, tune) for tune in arrangement.tunes.items()]
@@ -50,10 +55,7 @@ class Instrument(object):
                 assert tune_name not in motor_positions
                 motor_positions[tune_name] = tune(v)
             elif tune_name in self._arrangements:
-                new = [
-                    (tune(v), tune)
-                    for tune in self._arrangements[tune_name].tunes.items()
-                ]
+                new = [(tune(v), tune) for tune in self._arrangements[tune_name].tunes.items()]
                 todo += new
             else:
                 raise ValueError(f"Unrecognized name {tune_name}")
@@ -70,11 +72,16 @@ class Instrument(object):
         out["name"] = self.name
         out["arrangements"] = {k: v.as_dict() for k, v in self._arrangements.items()}
         out["motors"] = {k: v.as_dict() for k, v in self._motors.items()}
+        out["transition"] = self.transition.as_dict()
         return out
 
     @property
     def name(self):
         return self._name
+
+    @property
+    def transition(self):
+        return self._transition
 
     def save(self, file):
         json.dump(self.as_dict(), file)

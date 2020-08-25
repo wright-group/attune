@@ -3,7 +3,6 @@
 
 from .__version__ import *
 from ._arrangement import *
-from ._common import *
 from ._holistic import *
 from ._instrument import *
 from ._intensity import *
