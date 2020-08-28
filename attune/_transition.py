@@ -7,8 +7,8 @@ import WrightTools as wt
 
 class TransitionType(str, Enum):
     create = "create"
-    load = "load"
     read = "read"
+    restore = "restore"
     offset_to = "offset_to"
     offset_by = "offset_by"
     map_limits = "map_limits"
@@ -26,7 +26,6 @@ class Transition:
         previous: Optional[Instrument] = None,
         metadata: Optional[Dict[str, Any]] = None,
         data: Optional[wt.Data] = None,
-        original_transition: Optional[Transition] = None,
     ):
         self.type = type
         self.previous = previous
@@ -39,5 +38,4 @@ class Transition:
         return {
             "type": self.type,
             "metadata": self.metadata,
-            "original_transition": self.original_transition,
         }

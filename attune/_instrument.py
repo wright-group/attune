@@ -12,18 +12,15 @@ from ._transition import Transition, TransitionType
 
 
 class Instrument(object):
-    def __init__(self, arrangements, motors, *, name=None, datetime=None, transition=None):
+    def __init__(self, arrangements, motors, *, name=None, transition=None, load=None):
         self._name: str = name
         self._arrangements: Dict["str", Arrangement] = arrangements
         self._motors: Dict["str", Motor] = motors
-        if datetime is None:
-            self.datetime = _datetime.utcnow()
-        else:
-            self.datetime = datetime
         if transition is None:
-            self.transition = Transition(TransitionType.create)
+            self._transition = Transition(TransitionType.create)
         else:
-            self.transition = transition
+            self._transition = transition
+        self._load = load
 
     def __eq__(self, other):
         if self.name != other.name:
@@ -82,6 +79,18 @@ class Instrument(object):
     @property
     def transition(self):
         return self._transition
+
+    @property
+    def motors(self):
+        return self._motors
+
+    @property
+    def arrangements(self):
+        return self._arrangements
+
+    @property
+    def load(self):
+        return self._load
 
     def save(self, file):
         json.dump(self.as_dict(), file)

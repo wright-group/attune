@@ -3,78 +3,126 @@ __all__ = ["load", "restore", "redo", "store", "undo"]
 
 import appdirs
 import attune
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import pathlib
-import maya
+import os
+
+import dateutil
 
 from ._transition import Transition
 
 
-def load(name, time=None):
+def load(name, time=None, reverse=True):
     if time is None:
-        time = datetime.utcnow()
+        time = datetime.now(timezone.utc)
     if hasattr(time, "datetime"):
         time = time.datetime()
 
-    def find(name, time):
-        iso8061 = time.strftime("%Y%m%dT%H%M%S%z")
+    def find(name, time, reverse):
         year = time.year
         month = time.month
 
+        if "ATTUNE_STORE" in os.environ and os.environ["ATTUNE_STORE"]:
+            attune_dir = pathlib.Path(os.environ["ATTUNE_STORE"])
+        else:
+            attune_dir = pathlib.Path(appdirs.user_data_dir("attune", "attune"))
+
+        if not (attune_dir / name).exists():
+            raise ValueError(f"No instrument found with name {name}")
+
         while True:
-            datadir = pathlib.Path(appdirs.user_data_dir("attune", "attune"))
+            datadir = attune_dir
             datadir /= name
             datadir /= str(year)
-            datadir /= str(month).zfill(2)
+            datadir /= f"{month:02}"
             if datadir.exists():
-                for d in sorted(datadir.iterdir(), reverse=True):
-                    if d.name <= iso8061:
-                        return datadir / d.name
-            if month == 1:
-                year -= 1
-                month = 12
+                for d in sorted(datadir.iterdir(), reverse=reverse):
+                    if reverse:
+                        if dateutil.parser.isoparse(d.name) <= time:
+                            return datadir / d.name
+                    else:
+                        if dateutil.parser.isoparse(d.name) >= time:
+                            return datadir / d.name
+
+            if reverese:
+                if month == 1:
+                    year -= 1
+                    month = 12
+                else:
+                    month -= 1
+                if year < 1960:
+                    raise ValueError(
+                        f"Could not find an instrument earlier than {time}. Looked back all the way to the invention of the laser"
+                    )
             else:
-                month -= 1
-            continue
+                if month == 12:
+                    month = 1
+                    year += 1
+                else:
+                    month += 1
+                if year > datetime.now().year + 20:
+                    raise ValueError(f"Could not find an instrument later than {time}.")
 
-    datadir = find(name, time)
-    transition = Transition("load", metadata={"time": time.isoformat(), "directory": str(datadir)})
-    return attune.open(datadir / "instrument.json", transition=transition)
+    datadir = find(name, time, direction)
+    return attune.open(datadir / "instrument.json", load=dateutil.parser.isoparse(datadir.name))
 
 
-def restore(instrument, time):
-    raise NotImplementedError
+def restore(name, time):
+    instr = load(name, time)
+    instr.transition = Transition(TransitionType.restore, metadata={"time": time})
+    _store_instr(instr)
 
 
 def store(instrument):
-    now = datetime.utcnow()
-    # make datadir
-    datadir = pathlib.Path(appdirs.user_data_dir("attune", "attune"))
-    datadir /= instrument.name
-    datadir /= now.strftime("%Y")
-    datadir /= now.strftime("%m")
-    datadir /= now.strftime("%Y%m%dT%H%M%S%z")
-    datadir.mkdir(parents=True)
+    if instrument.load is None and instrument.transition.previous is not None:
+        store(instrument.transition.previous)
+
+    if instrument.load is not None:
+        if load(instrument.name) == instrument:
+            return
+        restore(instrument.name, instrument.load)
+        return
+
+    _store_instr(instrument)
+
+
+def _store_instr(instrument):
+    if "ATTUNE_STORE" in os.environ and os.environ["ATTUNE_STORE"]:
+        attune_dir = pathlib.Path(os.environ["ATTUNE_STORE"])
+    else:
+        attune_dir = pathlib.Path(appdirs.user_data_dir("attune", "attune"))
+
+    while True:
+        now = datetime.utcnow()
+        # make datadir
+        datadir = attune_dir
+        datadir /= instrument.name
+        datadir /= f"{now.year}"
+        datadir /= f"{now.month:02}"
+        datadir /= now.isoformat(timespec="milliseconds").replace("-", "").replace(":", "")
+        try:
+            datadir.mkdir(parents=True)
+        except FileExistsError:
+            continue
+        else:
+            break
     # store instrument
     with open(datadir / "instrument.json", "w") as f:
         instrument.save(f)
         f.write("\n")
-    # store transaction
-    if transaction is None:
-        transaction = {"type": "store"}
-    assert "type" in transaction
-    with open(datadir / "transaction.json", "w") as f:
-        json.dump(transaction, f)
-        f.write("\n")
     # store data
-    if data is not None:
-        data.save(datadir / "data.wt5")
+    if instrument.transition.data is not None:
+        instrument.transition.data.save(datadir / "data.wt5")
     # store old instrument
-    if old is not None:
-        with open(datadir / "old_instrument.json", "w") as f:
-            old.save(f)
+    if instrunment.transition.previous is not None:
+        with open(datadir / "previous_instrument.json", "w") as f:
+            instrument.transition.previous.save(f)
 
 
 def undo(instrument):
-    raise NotImplementedError
+    if instrument.load is not None:
+        return load(instrument.name, instrument.load - timedelta(milliseconds=1))
+    elif instrument.transition.previous is not None:
+        return instrument.transition.previous
+    raise ValueError("Nothing to undo")
