@@ -1,9 +1,9 @@
-__all__ = ["load", "restore", "redo", "store", "undo"]
+__all__ = ["load", "restore", "store", "undo"]
 
 
 import appdirs
 import attune
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import json
 import pathlib
 import os
@@ -29,7 +29,7 @@ def load(name, time=None, reverse=True):
             attune_dir = pathlib.Path(appdirs.user_data_dir("attune", "attune"))
 
         if not (attune_dir / name).exists():
-            raise ValueError(f"No instrument found with name {name}")
+            raise ValueError(f"No instrument found with name '{name}'")
 
         while True:
             datadir = attune_dir
@@ -37,7 +37,11 @@ def load(name, time=None, reverse=True):
             datadir /= str(year)
             datadir /= f"{month:02}"
             if datadir.exists():
-                for d in sorted(datadir.iterdir(), reverse=reverse):
+                for d in sorted(
+                    datadir.iterdir(),
+                    key=lambda x: dateutil.parser.isoparse(x.name),
+                    reverse=reverse,
+                ):
                     if reverse:
                         if dateutil.parser.isoparse(d.name) <= time:
                             return datadir / d.name
@@ -64,7 +68,7 @@ def load(name, time=None, reverse=True):
                 if year > datetime.now().year + 20:
                     raise ValueError(f"Could not find an instrument later than {time}.")
 
-    datadir = find(name, time, direction)
+    datadir = find(name, time, reverse)
     return attune.open(datadir / "instrument.json", load=dateutil.parser.isoparse(datadir.name))
 
 
@@ -94,7 +98,7 @@ def _store_instr(instrument):
         attune_dir = pathlib.Path(appdirs.user_data_dir("attune", "attune"))
 
     while True:
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         # make datadir
         datadir = attune_dir
         datadir /= instrument.name
@@ -115,7 +119,7 @@ def _store_instr(instrument):
     if instrument.transition.data is not None:
         instrument.transition.data.save(datadir / "data.wt5")
     # store old instrument
-    if instrunment.transition.previous is not None:
+    if instrument.transition.previous is not None:
         with open(datadir / "previous_instrument.json", "w") as f:
             instrument.transition.previous.save(f)
 

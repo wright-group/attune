@@ -1,8 +1,13 @@
 return__all__ = ["Transition", "TransitionType"]
 
 from enum import Enum
+from typing import Any, Optional, Dict, TYPE_CHECKING
 
-import WrightTools as wt
+
+if TYPE_CHECKING:
+    import WrightTools as wt
+
+    from ._instrument import Instrument
 
 
 class TransitionType(str, Enum):
@@ -23,9 +28,9 @@ class Transition:
     def __init__(
         self,
         type: TransitionType,
-        previous: Optional[Instrument] = None,
+        previous: Optional["Instrument"] = None,
         metadata: Optional[Dict[str, Any]] = None,
-        data: Optional[wt.Data] = None,
+        data: Optional["wt.Data"] = None,
     ):
         self.type = type
         self.previous = previous
