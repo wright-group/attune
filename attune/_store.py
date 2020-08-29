@@ -1,16 +1,16 @@
 __all__ = ["load", "restore", "store", "undo"]
 
 
-import appdirs
-import attune
 from datetime import datetime, timedelta, timezone
-import json
 import pathlib
 import os
+import warnings
 
+import appdirs
 import dateutil
 
 from ._transition import Transition
+from ._open import open as open_
 
 
 def load(name, time=None, reverse=True):
@@ -69,22 +69,26 @@ def load(name, time=None, reverse=True):
                     raise ValueError(f"Could not find an instrument later than {time}.")
 
     datadir = find(name, time, reverse)
-    return attune.open(datadir / "instrument.json", load=dateutil.parser.isoparse(datadir.name))
+    return open_(datadir / "instrument.json", load=dateutil.parser.isoparse(datadir.name))
 
 
 def restore(name, time):
     instr = load(name, time)
+    if load(name) == instr:
+        warnings.warn("Attempted to restore instrument equivalent to current head, ignoring.")
     instr.transition = Transition(TransitionType.restore, metadata={"time": time})
     _store_instr(instr)
 
 
-def store(instrument):
+def store(instrument, warn=True):
+    if load(instrument.name) == instrument:
+        if warn:
+            warnings.warn("Attempted to store instrument equivalent to current head, ignoring.")
+        return
     if instrument.load is None and instrument.transition.previous is not None:
-        store(instrument.transition.previous)
+        store(instrument.transition.previous, warn=False)
 
     if instrument.load is not None:
-        if load(instrument.name) == instrument:
-            return
         restore(instrument.name, instrument.load)
         return
 
