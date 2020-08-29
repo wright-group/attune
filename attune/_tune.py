@@ -48,7 +48,7 @@ class Tune:
         ret = self._interp(ind_value)
         if dep_units is not None and self._dep_units is not None:
             ret = wt.units.convert(ret, self._dep_units, dep_units)
-        return float(ret)
+        return ret
 
     def __eq__(self, other):
         if not np.allclose(self.independent, other.independent):

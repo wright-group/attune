@@ -9,7 +9,7 @@ import warnings
 import appdirs
 import dateutil
 
-from ._transition import Transition
+from ._transition import Transition, TransitionType
 from ._open import open as open_
 
 
@@ -76,11 +76,13 @@ def load(name, time=None, reverse=True):
     return open_(datadir / "instrument.json", load=dateutil.parser.isoparse(datadir.name))
 
 
-def restore(name, time):
-    instr = load(name, time)
+def restore(name, time, reverse=True):
+    instr = load(name, time, reverse)
     if load(name) == instr:
         warnings.warn("Attempted to restore instrument equivalent to current head, ignoring.")
-    instr.transition = Transition(TransitionType.restore, metadata={"time": time})
+    instr._transition = Transition(
+        TransitionType.restore, metadata={"time": instr.load.isoformat()}
+    )
     _store_instr(instr)
 
 

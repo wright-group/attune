@@ -39,6 +39,9 @@ class Transition:
         self.metadata = metadata
         self.data = data
 
+    def __repr__(self):
+        return f"Transition({repr(self.type)}, {repr(self.previous)}, {repr(self.metadata)})"
+
     def as_dict(self) -> Dict[str, Any]:
         return {
             "type": self.type,
