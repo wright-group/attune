@@ -8,18 +8,39 @@ import scipy.interpolate
 
 class Tune:
     def __init__(self, independent, dependent, *, dep_units=None, **kwargs):
+        """A Tune which maps one set of inputs to associated output points.
+
+        Currently all tunes are assumed to have "nm" as their independent array units.
+        All mappings are linear interpolations
+        
+        Parameters
+        ----------
+        independent: 1D array-like
+            The independent axis for input values to be mapped.
+            Must be the same shape as dependent.
+        dependent: 1D array-like
+            The depending axis for the mapping.
+            Must be the same shape as independent.
+        dep_units: str (optional)
+            Units for the dependent axis
+        
+        Note: kwargs are provided to make the serialized dictionary with ind_units 
+        easy to initialize into a Tune object, but are currently ignored.
+        """
         independent = np.asarray(independent)
         dependent = np.asarray(dependent)
         assert independent.size == dependent.size
         assert independent.ndim == dependent.ndim == 1
-        self._independent = independent
-        self._ind_max = max(self._independent)
-        self._ind_min = min(self._independent)
+        self._ind_max = max(independent)
+        self._ind_min = min(independent)
         self._ind_units = "nm"
         self._dep_units = dep_units
-        self._interp = scipy.interpolate.interp1d(
-            independent, dependent, fill_value="extrapolate"
-        )
+        self._interp = scipy.interpolate.interp1d(independent, dependent, fill_value="extrapolate")
+
+    def __repr__(self):
+        if self.dep_units is None:
+            return f"Tune({repr(self.independent)}, {repr(self.dependent)})"
+        return f"Tune({repr(self.independent)}, {repr(self.dependent)}, dep_units={repr(self.dep_units)})"
 
     def __call__(self, ind_value, *, ind_units=None, dep_units=None):
         if ind_units is not None and self._ind_units is not None:
@@ -27,7 +48,7 @@ class Tune:
         ret = self._interp(ind_value)
         if dep_units is not None and self._dep_units is not None:
             ret = wt.units.convert(ret, self._dep_units, dep_units)
-        return ret
+        return float(ret)
 
     def __eq__(self, other):
         if not np.allclose(self.independent, other.independent):
@@ -37,16 +58,21 @@ class Tune:
         return self.ind_units == other.ind_units and self.dep_units == other.dep_units
 
     def as_dict(self):
+        """Serialize this Tune as a python dictionary."""
         out = {}
-        out["independent"] = [float(i) for i in self.independent]
-        out["dependent"] = [float(self._interp(v)) for v in self._independent]
+        out["independent"] = list(self.independent)
+        out["dependent"] = list(self.dependent)
         out["ind_units"] = self.ind_units
         out["dep_units"] = self.dep_units
         return out
 
     @property
     def independent(self):
-        return self._independent
+        return self._interp.x
+
+    @property
+    def dependent(self):
+        return self._interp.y
 
     @property
     def ind_max(self):

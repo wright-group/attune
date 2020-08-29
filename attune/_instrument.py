@@ -22,6 +22,14 @@ class Instrument(object):
             self._transition = transition
         self._load = load
 
+    def __repr__(self):
+        ret = f"Instrument({repr(self.arrangements)}, {repr(self.motors)}"
+        if self.name is not None:
+            ret += f", name={repr(self.name)}"
+        if self.transition.type != TransitionType.create:
+            ret += f", transition={repr(self.transition)}"
+        return ret + ")"
+
     def __eq__(self, other):
         if self.name != other.name:
             return False
@@ -65,6 +73,7 @@ class Instrument(object):
         return note
 
     def as_dict(self):
+        """Dictionary representation for this Instrument."""
         out = {}
         out["name"] = self.name
         out["arrangements"] = {k: v.as_dict() for k, v in self._arrangements.items()}
@@ -93,4 +102,5 @@ class Instrument(object):
         return self._load
 
     def save(self, file):
+        """Save the JSON representation into an open file."""
         json.dump(self.as_dict(), file)
