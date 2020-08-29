@@ -14,6 +14,10 @@ from ._open import open as open_
 
 
 def load(name, time=None, reverse=True):
+    if isinstance(time, str):
+        import maya
+
+        time = maya.when(time)
     if time is None:
         time = datetime.now(timezone.utc)
     if hasattr(time, "datetime"):
@@ -49,7 +53,7 @@ def load(name, time=None, reverse=True):
                         if dateutil.parser.isoparse(d.name) >= time:
                             return datadir / d.name
 
-            if reverese:
+            if reverse:
                 if month == 1:
                     year -= 1
                     month = 12
