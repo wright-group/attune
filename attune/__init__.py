@@ -8,6 +8,7 @@ from ._instrument import *
 from ._intensity import *
 from ._motor import *
 from ._note import *
+from ._offset import *
 from ._open import *
 from ._setpoint import *
 from ._store import *

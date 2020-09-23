@@ -15,3 +15,6 @@ class Note:
 
     def __getitem__(self, k):
         return self.motor_positions[k]
+
+    def __repr__(self):
+        return f"Note({self.motors}, {self.motor_positions}, {self.arrangement_name})"

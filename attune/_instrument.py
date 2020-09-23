@@ -72,6 +72,9 @@ class Instrument(object):
         )
         return note
 
+    def __getitem__(self, item):
+        return self._arrangements[item]
+
     def as_dict(self):
         """Dictionary representation for this Instrument."""
         out = {}
