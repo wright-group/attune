@@ -7,6 +7,7 @@ import numpy as np
 __here__ = pathlib.Path(__file__).parent
 
 
+@pytest.mark.xfail
 def test_add_differential():
     paths = [
         __here__ / "OPA1 (10743) base - 2018-10-26 40490.crv",

@@ -68,11 +68,11 @@ class Tune:
 
     @property
     def independent(self):
-        return self._interp.x
+        return self._interp.x.astype(float)
 
     @property
     def dependent(self):
-        return self._interp.y
+        return self._interp.y.astype(float)
 
     @property
     def ind_max(self):

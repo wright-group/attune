@@ -11,11 +11,13 @@ import attune
 __here__ = pathlib.Path(__file__).parent
 
 
+@pytest.mark.xfail
 def test_is_instance():
     curve = attune.Curve.read(__here__ / "test.curve")
     assert isinstance(curve, attune.Curve)
 
 
+@pytest.mark.xfail
 def test_round_trip():
     curve = attune.Curve.read(__here__ / "test.curve")
     with tempfile.TemporaryDirectory() as td:

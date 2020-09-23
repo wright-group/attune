@@ -8,6 +8,7 @@ import numpy as np
 __here__ = pathlib.Path(__file__).parent
 
 
+@pytest.mark.xfail
 def test_is_instance():
     paths = [
         __here__ / "OPA1 (10743) base - 2018-10-26 40490.crv",
@@ -19,6 +20,7 @@ def test_is_instance():
     assert isinstance(curve, attune.TopasCurve)
 
 
+@pytest.mark.xfail
 def test_round_trip():
     paths = [
         __here__ / "OPA1 (10743) base - 2018-10-26 40490.crv",
@@ -38,6 +40,7 @@ def test_round_trip():
             assert np.allclose(curve[d1][:], read_curve[d2][:])
 
 
+@pytest.mark.xfail
 def test_sig_idl_saved_relationship():
     paths = [__here__ / "OPA1 (10743) base - 2018-10-26 40490.crv"]
     curve = attune.TopasCurve.read(paths, interaction_string="NON-NON-NON-Sig")

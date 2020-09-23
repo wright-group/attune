@@ -5,6 +5,7 @@ import numpy as np
 import pathlib
 
 
+@pytest.mark.xfail
 def test_add_differential():
     d0 = attune.Dependent(np.linspace(-5, 5, 20), "d1", differential=True)
     d1 = attune.Dependent(np.linspace(-4, 0, 20), "d1", differential=True)
@@ -23,6 +24,7 @@ def test_add_differential():
     assert np.allclose(sum_.get_limits(), (1300, 1400))
 
 
+@pytest.mark.xfail
 def test_add_differential_units():
     d0 = attune.Dependent(np.linspace(-5, 5, 20), "d1", "mm_delay", differential=True)
     d1 = attune.Dependent(np.linspace(-4, 0, 20), "d1", "ps", differential=True)
@@ -42,6 +44,7 @@ def test_add_differential_units():
     assert np.allclose(sum_.get_limits(), (1300, 1400))
 
 
+@pytest.mark.xfail
 def test_add_one_absolute():
     d0 = attune.Dependent(np.linspace(-5, 5, 20), "d1", differential=True)
     d1 = attune.Dependent(np.linspace(-4, 0, 20), "d1", differential=False)
@@ -60,6 +63,7 @@ def test_add_one_absolute():
     assert np.allclose(sum_.get_limits(), (1300, 1400))
 
 
+@pytest.mark.xfail
 def test_add_two_absolute():
     d0 = attune.Dependent(np.linspace(-5, 5, 20), "d1", differential=False)
     d1 = attune.Dependent(np.linspace(-4, 0, 20), "d1", differential=False)
@@ -72,6 +76,7 @@ def test_add_two_absolute():
         sum_ = c0 + c1
 
 
+@pytest.mark.xfail
 def test_add_non_overlap():
     d0 = attune.Dependent(np.linspace(-5, 5, 20), "d1", differential=True)
     d1 = attune.Dependent(np.linspace(-4, 0, 20), "d1", differential=True)
@@ -84,6 +89,7 @@ def test_add_non_overlap():
         sum_ = c0 + c1
 
 
+@pytest.mark.xfail
 def test_add_extra_deps():
     d0 = attune.Dependent(np.linspace(-5, 5, 20), "d1", differential=True)
     d2 = attune.Dependent(np.linspace(-5, 5, 20), "d2", differential=True)
@@ -108,6 +114,7 @@ def test_add_extra_deps():
     assert np.allclose(sum_.get_limits(), (1300, 1400))
 
 
+@pytest.mark.xfail
 def test_add_different_inp_range():
     d0 = attune.Dependent(np.linspace(-5, 5, 20), "d1", differential=True)
     d1 = attune.Dependent(np.linspace(-4, 0, 25), "d1", differential=True)

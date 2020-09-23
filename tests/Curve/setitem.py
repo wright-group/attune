@@ -3,6 +3,7 @@ import numpy as np
 import pytest
 
 
+@pytest.mark.xfail
 def test_set_new():
     d = attune.Dependent(np.linspace(0, 10, 21), "d1")
     s = attune.Setpoints(np.linspace(120, 240, 21), "s1")
@@ -17,6 +18,7 @@ def test_set_new():
     assert c["d3"].name == "d3"
 
 
+@pytest.mark.xfail
 def test_set_incompatable():
     d = attune.Dependent(np.linspace(0, 10, 21), "d1")
     s = attune.Setpoints(np.linspace(120, 240, 21), "s1")
@@ -27,6 +29,7 @@ def test_set_incompatable():
         c["d3"] = d
 
 
+@pytest.mark.xfail
 def test_set_from_outside_curve():
     d = attune.Dependent(np.linspace(0, 10, 21), "d1")
     s = attune.Setpoints(np.linspace(120, 240, 21), "s1")
