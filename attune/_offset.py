@@ -36,7 +36,7 @@ def offset_to(
 ):
     to_offset = instrument[arrangement][tune]
     current = to_offset(setpoint, ind_units=setpoint_units, dep_units=destination_units)
-    offset = current - destination
+    offset = destination - current
     instr = offset_by(instrument, arrangement, tune, offset)
     md = {
         "arrangement": arrangement,
