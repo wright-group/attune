@@ -48,6 +48,8 @@ class Instrument(object):
                 valid.append(arrangement)
         if len(valid) == 1:
             arrangement = valid[0]
+        if len(valid) == 0:
+            raise Exception(f"There are no valid arrangements at {ind_value}.")
         else:
             raise Exception("There are multiple valid arrangements! You must specify one.")
         # call arrangement
