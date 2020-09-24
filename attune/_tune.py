@@ -50,6 +50,9 @@ class Tune:
             ret = wt.units.convert(ret, self._dep_units, dep_units)
         return ret
 
+    def __len__(self):
+        return len(self.independent)
+
     def __eq__(self, other):
         if not np.allclose(self.independent, other.independent):
             return False

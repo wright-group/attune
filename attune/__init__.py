@@ -6,6 +6,7 @@ from ._arrangement import *
 from ._holistic import *
 from ._instrument import *
 from ._intensity import *
+from ._map import *
 from ._motor import *
 from ._note import *
 from ._offset import *
