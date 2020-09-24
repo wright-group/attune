@@ -8,10 +8,12 @@ import WrightTools as wt
 import numpy as np
 import pathlib
 
+import pytest
 
 __here__ = pathlib.Path(__file__).parent
 
 
+@pytest.mark.xfail
 def test_single_channel():
     # collect
     d = wt.open(__here__ / "data.wt5")
@@ -44,6 +46,7 @@ def test_single_channel():
     d.close()
 
 
+@pytest.mark.xfail
 def test_multiple_channels():
     # collect
     d = wt.open(__here__ / "data.wt5")

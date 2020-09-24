@@ -1,7 +1,10 @@
 import attune
 import numpy as np
 
+import pytest
 
+
+@pytest.mark.xfail
 def test_offset_by():
     d0 = attune.Dependent(np.linspace(-5, 5, 20), "d1")
     s0 = attune.Setpoints(np.linspace(1300, 1400, 20), "s", "wn")
@@ -14,6 +17,7 @@ def test_offset_by():
     np.testing.assert_allclose(c1.setpoints[:], c0.setpoints[:])
 
 
+@pytest.mark.xfail
 def test_offset_to():
     d0 = attune.Dependent(np.linspace(-5, 5, 20), "d1")
     s0 = attune.Setpoints(np.linspace(1300, 1400, 20), "s", "wn")

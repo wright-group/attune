@@ -1,0 +1,75 @@
+__all__ = ["Arrangement"]
+
+
+from typing import Dict
+from ._tune import Tune
+
+
+class Arrangement:
+    def __init__(self, name: str, tunes: Dict[str, Tune]):
+        """Arrangement of several Tunes to form one cohesive set.
+
+        Tunes may represent either motors or other arrangements, however
+        semantic meaning is provided by the Instrument which contains the
+        Arrangement, to the arrangement, they are all string keys mapped to tunes.
+
+        All tunes *must* have the same independent units, and must overlap.
+
+        Parameters
+        ----------
+        name: str
+            A name for this Arrangement, used to identify this Arrangement
+            from other Arrangements which may depend on this one.
+        tunes: Dict[str, Tune]
+            Mapping of names to Tune objects which compose the Arrangement
+        """
+        self._name = name
+        self._tunes = tunes
+        self._ind_units = "nm"
+        self._ind_max = min([t.ind_max for t in self._tunes.values()])
+        self._ind_min = max([t.ind_min for t in self._tunes.values()])
+
+    def __repr__(self):
+        return f"Arrangement({repr(self.name)}, {repr(self.tunes)})"
+
+    def __getitem__(self, key):
+        return self.tunes[key]
+
+    def __eq__(self, other):
+        if self.name != other.name:
+            return False
+        if self.tunes != other.tunes:
+            return False
+        return True
+
+    def keys(self):
+        return self.tunes.keys()
+
+    def values(self):
+        return self.tunes.values()
+
+    def items(self):
+        return self.tunes.items()
+
+    def as_dict(self):
+        """Dictionary representation of the Arrangement"""
+        out = {}
+        out["name"] = self._name
+        out["tunes"] = {k: v.as_dict() for k, v in self._tunes.items()}
+        return out
+
+    @property
+    def ind_max(self):
+        return self._ind_max
+
+    @property
+    def ind_min(self):
+        return self._ind_min
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def tunes(self):
+        return self._tunes

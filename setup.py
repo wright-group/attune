@@ -28,7 +28,15 @@ setup(
     packages=find_packages(exclude=("tests", "tests.*")),
     package_data=extra_files,
     python_requires=">=3.5",
-    install_requires=["WrightTools>=3.2.5", "numpy", "scipy", "matplotlib", "tidy_headers"],
+    install_requires=[
+        "WrightTools>=3.2.5",
+        "numpy",
+        "scipy",
+        "matplotlib",
+        "tidy_headers",
+        "appdirs",
+        "maya",
+    ],
     extras_require={
         "dev": ["black", "pre-commit"],
         "docs": ["sphinx-gallery>0.3.0", "sphinx", "sphinx-rtd-theme"],

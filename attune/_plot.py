@@ -13,7 +13,9 @@ def plot_intensity(data, channel, dependent, curve, prior_curve=None, raw_offset
     ax.plot(curve.setpoints[:], curve[dependent][:], **curve_plot_kwargs)
     if prior_curve:
         ax.plot(
-            prior_curve.setpoints[:], prior_curve[dependent][:], **prior_curve_plot_kwargs,
+            prior_curve.setpoints[:],
+            prior_curve[dependent][:],
+            **prior_curve_plot_kwargs,
         )
     ax.set_ylabel(dependent)
     wt.artists.plot_gridlines()
@@ -27,7 +29,9 @@ def plot_intensity(data, channel, dependent, curve, prior_curve=None, raw_offset
     if prior_curve:
         ypoints = (
             curve[dependent][:]
-            - prior_curve(curve.setpoints[:], curve.setpoints.units, full=False)[dependent]
+            - prior_curve(curve.setpoints[:], curve.setpoints.units, full=False)[
+                dependent
+            ]
         )
     else:
         ypoints = curve[dependent][:]
@@ -63,7 +67,9 @@ def plot_setpoint(data, channel, dependent, curve, prior_curve=None, raw_offsets
     ax.xaxis.set_tick_params(label1On=False)
     if prior_curve:
         ax.plot(
-            prior_curve.setpoints[:], prior_curve[dependent][:], **prior_curve_plot_kwargs,
+            prior_curve.setpoints[:],
+            prior_curve[dependent][:],
+            **prior_curve_plot_kwargs,
         )
     ax.set_ylabel(dependent)
     wt.artists.plot_gridlines()
@@ -78,7 +84,9 @@ def plot_setpoint(data, channel, dependent, curve, prior_curve=None, raw_offsets
     if prior_curve:
         ypoints = (
             curve[dependent][:]
-            - prior_curve(curve.setpoints[:], curve.setpoints.units, full=False)[dependent]
+            - prior_curve(curve.setpoints[:], curve.setpoints.units, full=False)[
+                dependent
+            ]
         )
     else:
         ypoints = curve[dependent][:]
@@ -94,7 +102,9 @@ def plot_setpoint(data, channel, dependent, curve, prior_curve=None, raw_offsets
 
     cax = plt.subplot(gs[1, 1])
     ticks = np.linspace(*limits, 11)
-    wt.artists.plot_colorbar(cax, vlim=limits, ticks=ticks, label=channel, cmap="signed")
+    wt.artists.plot_colorbar(
+        cax, vlim=limits, ticks=ticks, label=channel, cmap="signed"
+    )
 
     return fig, gs
 
@@ -171,13 +181,20 @@ def plot_holistic(
         vmax=np.max(center_ticks),
     )
     ax_cen.contour(
-        data, channel=amp_channel, levels=amp_ticks, cmap=amp_cmap, linewidths=2, alpha=1,
+        data,
+        channel=amp_channel,
+        levels=amp_ticks,
+        cmap=amp_cmap,
+        linewidths=2,
+        alpha=1,
     )
 
     wt.artists.set_fig_labels(xlabel=data.axes[0].label, ylabel=data.axes[1].label)
 
     wt.artists.plot_colorbar(cax_amp, cmap=amp_cmap, ticks=amp_ticks, label="Intensity")
-    wt.artists.plot_colorbar(cax_center, cmap=center_cmap, ticks=center_ticks, label="Center")
+    wt.artists.plot_colorbar(
+        cax_center, cmap=center_cmap, ticks=center_ticks, label="Center"
+    )
     cax_center.set_xlabel("")
 
     for i in range(2):
@@ -185,10 +202,14 @@ def plot_holistic(
         axis[np.isnan(data[amp_channel])] = np.nan
 
         amin = min(
-            np.min(curve[dependents[i]]), np.min(prior_curve[dependents[i]]), np.nanmin(axis),
+            np.min(curve[dependents[i]]),
+            np.min(prior_curve[dependents[i]]),
+            np.nanmin(axis),
         )
         amax = max(
-            np.max(curve[dependents[i]]), np.max(prior_curve[dependents[i]]), np.nanmax(axis),
+            np.max(curve[dependents[i]]),
+            np.max(prior_curve[dependents[i]]),
+            np.nanmax(axis),
         )
         arange = amax - amin
         amin -= arange * 0.05
@@ -218,7 +239,12 @@ def plot_holistic(
         )
         if raw_offsets is not None:
             ax.scatter(
-                raw_offsets[:, 0], raw_offsets[:, 1], color="w", s=50, zorder=10, marker="*",
+                raw_offsets[:, 0],
+                raw_offsets[:, 1],
+                color="w",
+                s=50,
+                zorder=10,
+                marker="*",
             )  # TODO don't be bad about point handleing
 
     return fig, gs

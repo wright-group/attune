@@ -4,9 +4,12 @@ import WrightTools as wt
 import numpy as np
 import pathlib
 
+import pytest
+
 __here__ = pathlib.Path(__file__).parent
 
 
+@pytest.mark.xfail
 def test_tune_test():
     d = wt.open(__here__ / "tunetest.wt5")
     c = attune.Curve.read(__here__ / "in.curve")

@@ -14,12 +14,18 @@ __all__ = ["holistic"]
 
 
 def _holistic(data, amplitudes, centers, curve):
-    points = np.array([np.broadcast_to(a[:], amplitudes.shape).flatten() for a in data.axes]).T
+    points = np.array(
+        [np.broadcast_to(a[:], amplitudes.shape).flatten() for a in data.axes]
+    ).T
     ndim = len(data.axes)
     delaunay = scipy.spatial.Delaunay(points)
 
-    amp_interp = scipy.interpolate.LinearNDInterpolator(delaunay, amplitudes.points.flatten())
-    cen_interp = scipy.interpolate.LinearNDInterpolator(delaunay, centers.points.flatten())
+    amp_interp = scipy.interpolate.LinearNDInterpolator(
+        delaunay, amplitudes.points.flatten()
+    )
+    cen_interp = scipy.interpolate.LinearNDInterpolator(
+        delaunay, centers.points.flatten()
+    )
 
     # def
     out_points = []
@@ -30,7 +36,10 @@ def _holistic(data, amplitudes, centers, curve):
         iso_points = np.array(iso_points)
         if len(iso_points) > 3:
             out_points.append(
-                tuple(_fit_gauss(iso_points.T[i], amp_interp(iso_points)) for i in range(ndim))
+                tuple(
+                    _fit_gauss(iso_points.T[i], amp_interp(iso_points))
+                    for i in range(ndim)
+                )
             )
         else:
             out_points.append(tuple(np.nan for i in range(ndim)))
@@ -103,13 +112,17 @@ def holistic(
         data.moment(
             axis=spectral_axis,
             channel=channels,
-            resultant=wt.kit.joint_shape(*[a for a in data.axes if a.expression != spectral_axis]),
+            resultant=wt.kit.joint_shape(
+                *[a for a in data.axes if a.expression != spectral_axis]
+            ),
             moment=0,
         )
         data.moment(
             axis=spectral_axis,
             channel=channels,
-            resultant=wt.kit.joint_shape(*[a for a in data.axes if a.expression != spectral_axis]),
+            resultant=wt.kit.joint_shape(
+                *[a for a in data.axes if a.expression != spectral_axis]
+            ),
             moment=1,
         )
         amplitudes = data.channels[-2]
@@ -130,7 +143,9 @@ def holistic(
     centers[np.isnan(amplitudes)] = np.nan
 
     out_points = _holistic(data, amplitudes, centers, curve)
-    splines = [wt.kit.Spline(curve.setpoints, vals, **spline_kwargs) for vals in out_points.T]
+    splines = [
+        wt.kit.Spline(curve.setpoints, vals, **spline_kwargs) for vals in out_points.T
+    ]
 
     new_curve = _gen_curve(curve, dependents, splines)
 
@@ -173,7 +188,8 @@ def _edge_intersections(points, evaluated, target):
     ):
         if v1 < target <= v2:
             yield tuple(
-                p1[i] + (p2[i] - p1[i]) * ((target - v1) / (v2 - v1)) for i in range(len(p1))
+                p1[i] + (p2[i] - p1[i]) * ((target - v1) / (v2 - v1))
+                for i in range(len(p1))
             )
 
 

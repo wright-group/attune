@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 __here__ = pathlib.Path(__file__).parent
 
 
+@pytest.mark.xfail
 def test():
     data = wt.open(__here__ / "data.wt5")
     data.print_tree()
