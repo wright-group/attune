@@ -7,7 +7,7 @@ from ._holistic import *
 from ._instrument import *
 from ._intensity import *
 from ._map import *
-from ._motor import *
+from ._setable import *
 from ._note import *
 from ._offset import *
 from ._open import *

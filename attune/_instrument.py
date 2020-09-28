@@ -6,16 +6,16 @@ from typing import Dict
 import json
 
 from ._arrangement import Arrangement
-from ._motor import Motor
+from ._setable import Setable
 from ._note import Note
 from ._transition import Transition, TransitionType
 
 
 class Instrument(object):
-    def __init__(self, arrangements, motors, *, name=None, transition=None, load=None):
+    def __init__(self, arrangements, setables, *, name=None, transition=None, load=None):
         self._name: str = name
         self._arrangements: Dict["str", Arrangement] = arrangements
-        self._motors: Dict["str", Motor] = motors
+        self._setables: Dict["str", Setable] = setables
         if transition is None:
             self._transition = Transition(TransitionType.create)
         else:
@@ -23,7 +23,7 @@ class Instrument(object):
         self._load = load
 
     def __repr__(self):
-        ret = f"Instrument({repr(self.arrangements)}, {repr(self.motors)}"
+        ret = f"Instrument({repr(self.arrangements)}, {repr(self.setables)}"
         if self.name is not None:
             ret += f", name={repr(self.name)}"
         if self.transition.type != TransitionType.create:
@@ -33,7 +33,7 @@ class Instrument(object):
     def __eq__(self, other):
         if self.name != other.name:
             return False
-        if self._motors != other._motors:
+        if self._setables != other._setables:
             return False
         if self._arrangements != other._arrangements:
             return False
@@ -53,14 +53,14 @@ class Instrument(object):
         else:
             raise Exception("There are multiple valid arrangements! You must specify one.")
         # call arrangement
-        motor_positions = {}
+        setable_positions = {}
         todo = [(ind_value, tune) for tune in arrangement.tunes.items()]
         while todo:
             v, t = todo.pop(0)
             tune_name, tune = t
-            if tune_name in self._motors:
-                assert tune_name not in motor_positions
-                motor_positions[tune_name] = tune(v)
+            if tune_name in self._setables:
+                assert tune_name not in setable_positions
+                setable_positions[tune_name] = tune(v)
             elif tune_name in self._arrangements:
                 new = [(tune(v), tune) for tune in self._arrangements[tune_name].tunes.items()]
                 todo += new
@@ -68,8 +68,8 @@ class Instrument(object):
                 raise ValueError(f"Unrecognized name {tune_name}")
         # finish
         note = Note(
-            motors=self._motors,
-            motor_positions=motor_positions,
+            setables=self._setables,
+            setable_positions=setable_positions,
             arrangement_name=arrangement.name,
         )
         return note
@@ -82,7 +82,7 @@ class Instrument(object):
         out = {}
         out["name"] = self.name
         out["arrangements"] = {k: v.as_dict() for k, v in self._arrangements.items()}
-        out["motors"] = {k: v.as_dict() for k, v in self._motors.items()}
+        out["setables"] = {k: v.as_dict() for k, v in self._setables.items()}
         out["transition"] = self.transition.as_dict()
         return out
 
@@ -95,8 +95,8 @@ class Instrument(object):
         return self._transition
 
     @property
-    def motors(self):
-        return self._motors
+    def setables(self):
+        return self._setables
 
     @property
     def arrangements(self):
