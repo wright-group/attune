@@ -1,7 +1,7 @@
 __all__ = ["Arrangement"]
 
 
-from typing import Dict
+from typing import Dict, Union
 from ._tune import Tune
 
 
