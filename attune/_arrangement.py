@@ -6,7 +6,7 @@ from ._tune import Tune
 
 
 class Arrangement:
-    def __init__(self, name: str, tunes: Dict[str, Tune]):
+    def __init__(self, name: str, tunes: Dict[str, Union[Tune, dict]]):
         """Arrangement of several Tunes to form one cohesive set.
 
         Tunes may represent either motors or other arrangements, however
@@ -23,11 +23,13 @@ class Arrangement:
         tunes: Dict[str, Tune]
             Mapping of names to Tune objects which compose the Arrangement
         """
-        self._name = name
-        self._tunes = tunes
-        self._ind_units = "nm"
-        self._ind_max = min([t.ind_max for t in self._tunes.values()])
-        self._ind_min = max([t.ind_min for t in self._tunes.values()])
+        self._name: str = name
+        self._tunes: Dict[str, Tune] = {
+            k: Tune(**v) if isinstance(v, dict) else v for k, v in tunes.items()
+        }
+        self._ind_units: str = "nm"
+        self._ind_max: float = min([t.ind_max for t in self._tunes.values()])
+        self._ind_min: float = max([t.ind_min for t in self._tunes.values()])
 
     def __repr__(self):
         return f"Arrangement({repr(self.name)}, {repr(self.tunes)})"

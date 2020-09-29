@@ -34,19 +34,4 @@ def open(path, *, load=False):
         with open_(path, "r") as f:
             d = json.load(f)
 
-    arrangements = {}
-    for arrangement_name in d["arrangements"].keys():
-        tunes = {k: Tune(**v) for k, v in d["arrangements"][arrangement_name]["tunes"].items()}
-        arrangements[arrangement_name] = Arrangement(name=arrangement_name, tunes=tunes)
-
-    setables = {k: Setable(**v) for k, v in d["setables"].items()}
-
-    transition = Transition(**d["transition"])
-
-    return Instrument(
-        name=d["name"],
-        arrangements=arrangements,
-        setables=setables,
-        transition=transition,
-        load=load,
-    )
+    return Instrument(**d, load=load)

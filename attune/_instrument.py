@@ -2,7 +2,7 @@ __all__ = ["Instrument"]
 
 
 from datetime import datetime as _datetime
-from typing import Dict
+from typing import Dict, Optional, Union
 import json
 
 from ._arrangement import Arrangement
@@ -12,15 +12,29 @@ from ._transition import Transition, TransitionType
 
 
 class Instrument(object):
-    def __init__(self, arrangements, setables, *, name=None, transition=None, load=None):
-        self._name: str = name
-        self._arrangements: Dict["str", Arrangement] = arrangements
-        self._setables: Dict["str", Setable] = setables
+    def __init__(
+        self,
+        arrangements: Dict["str", Union[Arrangement, dict]],
+        setables: Dict["str", Union[Setable, dict]],
+        *,
+        name: Optional[str] = None,
+        transition: Optional[Union[Transition, dict]] = None,
+        load: Optional[float] = None,
+    ):
+        self._name: Optional[str] = name
+        self._arrangements: Dict["str", Arrangement] = {
+            k: Arrangement(**v) if isinstance(v, dict) else v for k, v in arrangements.items()
+        }
+        self._setables: Dict["str", Setable] = {
+            k: Setable(**v) if isinstance(v, dict) else v for k, v in setables.items()
+        }
         if transition is None:
             self._transition = Transition(TransitionType.create)
+        elif isinstance(transition, dict):
+            self._transition = Transition(**transition)
         else:
             self._transition = transition
-        self._load = load
+        self._load: Optional[float] = load
 
     def __repr__(self):
         ret = f"Instrument({repr(self.arrangements)}, {repr(self.setables)}"
