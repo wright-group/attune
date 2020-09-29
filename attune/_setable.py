@@ -1,12 +1,12 @@
-__all__ = ["Motor"]
+__all__ = ["Setable"]
 
 
-class Motor(object):
+class Setable(object):
     def __init__(self, name, **kwargs):
         self.name = name
 
     def __repr__(self):
-        return f"Motor({repr(self.name)})"
+        return f"Setable({repr(self.name)})"
 
     def __eq__(self, other):
         return self.name == other.name

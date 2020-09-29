@@ -2,19 +2,19 @@ __all__ = ["Note"]
 
 
 from typing import Dict
-from ._motor import Motor
+from ._setable import Setable
 
 
 class Note:
-    def __init__(self, motors, motor_positions, arrangement_name, **kwargs):
-        self.motors: Dict["str", Motor] = motors
-        self.motor_positions: Dict["str", float] = motor_positions
+    def __init__(self, setables, setable_positions, arrangement_name, **kwargs):
+        self.setables: Dict["str", Setable] = setables
+        self.setable_positions: Dict["str", float] = setable_positions
         self.arrangement_name: str = arrangement_name
         for k, v in kwargs.items():
             setattr(self, k, v)
 
     def __getitem__(self, k):
-        return self.motor_positions[k]
+        return self.setable_positions[k]
 
     def __repr__(self):
-        return f"Note({self.motors}, {self.motor_positions}, {self.arrangement_name})"
+        return f"Note({self.setables}, {self.setable_positions}, {self.arrangement_name})"
