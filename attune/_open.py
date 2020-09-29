@@ -2,11 +2,7 @@ __all__ = ["open"]
 
 import json
 
-from ._arrangement import Arrangement
 from ._instrument import Instrument
-from ._setable import Setable
-from ._transition import Transition
-from ._tune import Tune
 
 open_ = open
 
