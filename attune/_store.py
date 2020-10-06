@@ -87,10 +87,16 @@ def restore(name, time, reverse=True):
 
 
 def store(instrument, warn=True):
-    if load(instrument.name) == instrument:
-        if warn:
-            warnings.warn("Attempted to store instrument equivalent to current head, ignoring.")
-        return
+    try:
+        if load(instrument.name) == instrument:
+            if warn:
+                warnings.warn(
+                    "Attempted to store instrument equivalent to current head, ignoring."
+                )
+            return
+    except ValueError:
+        pass  # Could mean it is not yet in store at all
+
     if instrument.load is None and instrument.transition.previous is not None:
         store(instrument.transition.previous, warn=False)
 
