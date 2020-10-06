@@ -18,3 +18,12 @@ class Note:
 
     def __repr__(self):
         return f"Note({self.setables}, {self.setable_positions}, {self.arrangement_name})"
+
+    def items(self):
+        return self.setable_positions.items()
+
+    def keys(self):
+        return self.setable_positions.keys()
+
+    def values(self):
+        return self.setable_positions.values()
