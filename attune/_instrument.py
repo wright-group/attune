@@ -61,8 +61,8 @@ class Instrument(object):
             if arrangement.ind_min <= ind_value <= arrangement.ind_max:
                 valid.append(arrangement)
         if arrangement_name is not None:
-            assert arrangement_name in valid
-            arrangement = arrangement_name
+            assert arrangement_name in [v.name for v in valid]
+            arrangement = self._arrangements[arrangement_name]
         elif len(valid) == 1:
             arrangement = valid[0]
         elif len(valid) == 0:
