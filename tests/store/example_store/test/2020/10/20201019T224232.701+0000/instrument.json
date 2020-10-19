@@ -1,0 +1,1 @@
+{"name": "test", "arrangements": {"arr": {"name": "arr", "tunes": {"tune": {"independent": [0.25, 1.0], "dependent": [0.25, 1.0], "ind_units": "nm", "dep_units": null}}}}, "setables": {"tune": {"name": "tune"}}, "transition": {"type": "map_ind_limits", "metadata": {"arrangement": "arr", "tune": "tune", "min": 0.25, "max": 1.0, "units": null}}}
