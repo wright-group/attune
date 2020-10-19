@@ -66,9 +66,9 @@ class Instrument(object):
         elif len(valid) == 1:
             arrangement = valid[0]
         elif len(valid) == 0:
-            raise Exception(f"There are no valid arrangements at {ind_value}.")
+            raise ValueError(f"There are no valid arrangements at {ind_value}.")
         else:
-            raise Exception("There are multiple valid arrangements! You must specify one.")
+            raise ValueError("There are multiple valid arrangements! You must specify one.")
         # call arrangement
         setable_positions = {}
         todo = [(ind_value, tune) for tune in arrangement.tunes.items()]
@@ -79,7 +79,9 @@ class Instrument(object):
                 assert tune_name not in setable_positions
                 setable_positions[tune_name] = tune(v)
             elif tune_name in self._arrangements:
-                new = [(tune(v), subtune) for subtune in self._arrangements[tune_name].tunes.items()]
+                new = [
+                    (tune(v), subtune) for subtune in self._arrangements[tune_name].tunes.items()
+                ]
                 todo += new
             else:
                 raise ValueError(f"Unrecognized name {tune_name}")
