@@ -60,12 +60,15 @@ class Instrument(object):
             # we should probably do "close enough" for floating point on the edges...
             if arrangement.ind_min <= ind_value <= arrangement.ind_max:
                 valid.append(arrangement)
-        if len(valid) == 1:
+        if arrangement_name is not None:
+            assert arrangement_name in [v.name for v in valid]
+            arrangement = self._arrangements[arrangement_name]
+        elif len(valid) == 1:
             arrangement = valid[0]
         elif len(valid) == 0:
-            raise Exception(f"There are no valid arrangements at {ind_value}.")
+            raise ValueError(f"There are no valid arrangements at {ind_value}.")
         else:
-            raise Exception("There are multiple valid arrangements! You must specify one.")
+            raise ValueError("There are multiple valid arrangements! You must specify one.")
         # call arrangement
         setable_positions = {}
         todo = [(ind_value, tune) for tune in arrangement.tunes.items()]
@@ -76,7 +79,9 @@ class Instrument(object):
                 assert tune_name not in setable_positions
                 setable_positions[tune_name] = tune(v)
             elif tune_name in self._arrangements:
-                new = [(tune(v), tune) for tune in self._arrangements[tune_name].tunes.items()]
+                new = [
+                    (tune(v), subtune) for subtune in self._arrangements[tune_name].tunes.items()
+                ]
                 todo += new
             else:
                 raise ValueError(f"Unrecognized name {tune_name}")
