@@ -38,7 +38,7 @@ setup(
         "maya",
     ],
     extras_require={
-        "dev": ["black", "pre-commit"],
+        "dev": ["black", "pre-commit", "pytest", "pytest-cov"],
         "docs": ["sphinx-gallery>0.3.0", "sphinx", "sphinx-rtd-theme"],
     },
     version=version,
