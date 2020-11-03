@@ -1,7 +1,3 @@
-import matplotlib
-
-matplotlib.use("TkAgg")
-
 import tempfile
 import attune
 import WrightTools as wt
