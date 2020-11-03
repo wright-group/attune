@@ -12,8 +12,8 @@ here = pathlib.Path(__file__).parent
 def temp_store(func):
     def inner():
         with tempfile.TemporaryDirectory() as tdir:
-            shutil.copytree(here / "example_store", tdir, dirs_exist_ok=True)
-            os.environ["ATTUNE_STORE"] = tdir
+            shutil.copytree(here / "example_store", tdir + "/example_store")
+            os.environ["ATTUNE_STORE"] = tdir + "/example_store"
             func()
 
     return inner
