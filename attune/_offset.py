@@ -18,7 +18,9 @@ def offset_by(instrument, arrangement, tune, amount, amount_units=None):
         amount = wt.units.convert(amount, amount_units, to_offset.dep_units)
     instr = copy.deepcopy(instrument)
     instr[arrangement]._tunes[tune] = Tune(
-        to_offset.independent, to_offset.dependent + amount, dep_units=to_offset.dep_units,
+        to_offset.independent,
+        to_offset.dependent + amount,
+        dep_units=to_offset.dep_units,
     )
     instr._transition = Transition("offset_by", instrument, metadata=md)
     instr._load = None

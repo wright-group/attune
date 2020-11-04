@@ -29,9 +29,7 @@ def plot_intensity(data, channel, dependent, curve, prior_curve=None, raw_offset
     if prior_curve:
         ypoints = (
             curve[dependent][:]
-            - prior_curve(curve.setpoints[:], curve.setpoints.units, full=False)[
-                dependent
-            ]
+            - prior_curve(curve.setpoints[:], curve.setpoints.units, full=False)[dependent]
         )
     else:
         ypoints = curve[dependent][:]
@@ -84,9 +82,7 @@ def plot_setpoint(data, channel, dependent, curve, prior_curve=None, raw_offsets
     if prior_curve:
         ypoints = (
             curve[dependent][:]
-            - prior_curve(curve.setpoints[:], curve.setpoints.units, full=False)[
-                dependent
-            ]
+            - prior_curve(curve.setpoints[:], curve.setpoints.units, full=False)[dependent]
         )
     else:
         ypoints = curve[dependent][:]
@@ -102,9 +98,7 @@ def plot_setpoint(data, channel, dependent, curve, prior_curve=None, raw_offsets
 
     cax = plt.subplot(gs[1, 1])
     ticks = np.linspace(*limits, 11)
-    wt.artists.plot_colorbar(
-        cax, vlim=limits, ticks=ticks, label=channel, cmap="signed"
-    )
+    wt.artists.plot_colorbar(cax, vlim=limits, ticks=ticks, label=channel, cmap="signed")
 
     return fig, gs
 
@@ -128,7 +122,11 @@ def plot_tune_test(data, channel, curve, used_offsets, raw_offsets=None):
         ax.plot(curve.setpoints[:], raw_offsets, c="grey", lw=5, alpha=0.5)
 
     ax.plot(
-        curve.setpoints[:], used_offsets, c="k", lw=5, alpha=0.5,
+        curve.setpoints[:],
+        used_offsets,
+        c="k",
+        lw=5,
+        alpha=0.5,
     )
     ax.axhline(c="k", lw=1)
     ax.grid()
@@ -192,9 +190,7 @@ def plot_holistic(
     wt.artists.set_fig_labels(xlabel=data.axes[0].label, ylabel=data.axes[1].label)
 
     wt.artists.plot_colorbar(cax_amp, cmap=amp_cmap, ticks=amp_ticks, label="Intensity")
-    wt.artists.plot_colorbar(
-        cax_center, cmap=center_cmap, ticks=center_ticks, label="Center"
-    )
+    wt.artists.plot_colorbar(cax_center, cmap=center_cmap, ticks=center_ticks, label="Center")
     cax_center.set_xlabel("")
 
     for i in range(2):
