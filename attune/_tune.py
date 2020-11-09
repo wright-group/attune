@@ -12,7 +12,7 @@ class Tune:
 
         Currently all tunes are assumed to have "nm" as their independent array units.
         All mappings are linear interpolations
-        
+
         Parameters
         ----------
         independent: 1D array-like
@@ -23,8 +23,8 @@ class Tune:
             Must be the same shape as independent.
         dep_units: str (optional)
             Units for the dependent axis
-        
-        Note: kwargs are provided to make the serialized dictionary with ind_units 
+
+        Note: kwargs are provided to make the serialized dictionary with ind_units
         easy to initialize into a Tune object, but are currently ignored.
         """
         independent = np.asarray(independent)

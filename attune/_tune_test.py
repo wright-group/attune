@@ -21,9 +21,7 @@ def _offsets(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
     if np.allclose(data.axes[0].points, tune_points):
         return offsets.clip(data.axes[1].min(), data.axes[1].max())
     else:
-        raise ValueError(
-            "Data points and curve points do not match, and splining disabled"
-        )
+        raise ValueError("Data points and curve points do not match, and splining disabled")
 
 
 def tune_test(
@@ -75,9 +73,7 @@ def tune_test(
         setpoints = old_curve.setpoints
     else:
         old_curve = None
-        setpoints = Setpoints(
-            data.axes[0].points, data.axes[0].expression, data.axes[0].units
-        )
+        setpoints = Setpoints(data.axes[0].points, data.axes[0].expression, data.axes[0].units)
 
     if isinstance(channel, (int, str)):
         channel = data.channels[wt.kit.get_index(data.channel_names, channel)]
@@ -98,9 +94,7 @@ def tune_test(
 
     offsets = _offsets(data, channel.natural_name, setpoints[:], **spline_kwargs)
     try:
-        raw_offsets = _offsets(
-            data, channel.natural_name, data.axes[0].points, spline=False
-        )
+        raw_offsets = _offsets(data, channel.natural_name, data.axes[0].points, spline=False)
     except ValueError:
         raw_offsets = None
 

@@ -15,7 +15,9 @@ def plot_intensity(data, channel, arrangement, tune, curve, prior_curve=None, ra
     if prior_curve:
         prior_tune = prior_curve[arrangement][tune]
         ax.plot(
-            prior_tune.independent, prior_tune.dependent, **prior_curve_plot_kwargs,
+            prior_tune.independent,
+            prior_tune.dependent,
+            **prior_curve_plot_kwargs,
         )
     wt.artists.plot_gridlines()
     ax.set_ylabel(tune)
@@ -62,7 +64,9 @@ def plot_setpoint(data, channel, dependent, curve, prior_curve=None, raw_offsets
     ax.xaxis.set_tick_params(label1On=False)
     if prior_curve:
         ax.plot(
-            prior_curve.setpoints[:], prior_curve[dependent][:], **prior_curve_plot_kwargs,
+            prior_curve.setpoints[:],
+            prior_curve[dependent][:],
+            **prior_curve_plot_kwargs,
         )
     ax.set_ylabel(dependent)
     wt.artists.plot_gridlines()
@@ -117,7 +121,11 @@ def plot_tune_test(data, channel, curve, used_offsets, raw_offsets=None):
         ax.plot(curve.setpoints[:], raw_offsets, c="grey", lw=5, alpha=0.5)
 
     ax.plot(
-        curve.setpoints[:], used_offsets, c="k", lw=5, alpha=0.5,
+        curve.setpoints[:],
+        used_offsets,
+        c="k",
+        lw=5,
+        alpha=0.5,
     )
     ax.axhline(c="k", lw=1)
     ax.grid()
@@ -170,7 +178,12 @@ def plot_holistic(
         vmax=np.max(center_ticks),
     )
     ax_cen.contour(
-        data, channel=amp_channel, levels=amp_ticks, cmap=amp_cmap, linewidths=2, alpha=1,
+        data,
+        channel=amp_channel,
+        levels=amp_ticks,
+        cmap=amp_cmap,
+        linewidths=2,
+        alpha=1,
     )
 
     wt.artists.set_fig_labels(xlabel=data.axes[0].label, ylabel=data.axes[1].label)
@@ -184,10 +197,14 @@ def plot_holistic(
         axis[np.isnan(data[amp_channel])] = np.nan
 
         amin = min(
-            np.min(curve[dependents[i]]), np.min(prior_curve[dependents[i]]), np.nanmin(axis),
+            np.min(curve[dependents[i]]),
+            np.min(prior_curve[dependents[i]]),
+            np.nanmin(axis),
         )
         amax = max(
-            np.max(curve[dependents[i]]), np.max(prior_curve[dependents[i]]), np.nanmax(axis),
+            np.max(curve[dependents[i]]),
+            np.max(prior_curve[dependents[i]]),
+            np.nanmax(axis),
         )
         arange = amax - amin
         amin -= arange * 0.05
@@ -217,7 +234,12 @@ def plot_holistic(
         )
         if raw_offsets is not None:
             ax.scatter(
-                raw_offsets[:, 0], raw_offsets[:, 1], color="w", s=50, zorder=10, marker="*",
+                raw_offsets[:, 0],
+                raw_offsets[:, 1],
+                color="w",
+                s=50,
+                zorder=10,
+                marker="*",
             )  # TODO don't be bad about point handleing
 
     return fig, gs
