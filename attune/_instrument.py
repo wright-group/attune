@@ -58,8 +58,14 @@ class Instrument(object):
         valid = []
         for arrangement in self._arrangements.values():
             # we should probably do "close enough" for floating point on the edges...
-            if arrangement.ind_min <= ind_value <= arrangement.ind_max:
-                valid.append(arrangement)
+            try:
+                if arrangement.ind_min <= ind_value <= arrangement.ind_max:
+                    valid.append(arrangement)
+            except ValueError:
+                if (arrangement.ind_min <= ind_value).all() and (
+                    ind_value <= arrangement.ind_max
+                ).all():
+                    valid.append(arrangement)
         if arrangement_name is not None:
             assert arrangement_name in [v.name for v in valid]
             arrangement = self._arrangements[arrangement_name]

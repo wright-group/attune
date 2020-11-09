@@ -3,23 +3,23 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_intensity(data, channel, dependent, curve, prior_curve=None, raw_offsets=None):
+def plot_intensity(data, channel, arrangement, tune, curve, prior_curve=None, raw_offsets=None):
     fig, gs = wt.artists.create_figure(
         width="single", nrows=2, cols=[1, "cbar"], default_aspect=0.5
     )
     ax = plt.subplot(gs[0, 0])
     curve_plot_kwargs = {"lw": 5, "c": "k", "alpha": 0.5}
     prior_curve_plot_kwargs = {"lw": 2, "c": "k"}
-    ax.plot(curve.setpoints[:], curve[dependent][:], **curve_plot_kwargs)
+    new_tune = curve[arrangement][tune]
+    ax.plot(new_tune.independent, new_tune.dependent, **curve_plot_kwargs)
     if prior_curve:
+        prior_tune = prior_curve[arrangement][tune]
         ax.plot(
-            prior_curve.setpoints[:],
-            prior_curve[dependent][:],
-            **prior_curve_plot_kwargs,
+            prior_tune.independent, prior_tune.dependent, **prior_curve_plot_kwargs,
         )
-    ax.set_ylabel(dependent)
     wt.artists.plot_gridlines()
-    ax.set_xlim(*curve.get_limits())
+    ax.set_ylabel(tune)
+    ax.set_xlim(curve[arrangement].ind_min, curve[arrangement].ind_max)
     ax.xaxis.set_tick_params(label1On=False)
 
     ax = plt.subplot(gs[1, 0])
@@ -27,24 +27,19 @@ def plot_intensity(data, channel, dependent, curve, prior_curve=None, raw_offset
     ax.pcolor(data, channel=f"{channel}_orig", cmap=graymap)
     ax.pcolor(data, channel=channel)
     if prior_curve:
-        ypoints = (
-            curve[dependent][:]
-            - prior_curve(curve.setpoints[:], curve.setpoints.units, full=False)[
-                dependent
-            ]
-        )
+        ypoints = new_tune.dependent - prior_curve(new_tune.independent, arrangement)[tune]
     else:
-        ypoints = curve[dependent][:]
+        ypoints = new_tune.dependent
 
     if raw_offsets is not None:
-        ax.plot(curve.setpoints[:], raw_offsets, c="grey", lw=5, alpha=0.5)
+        ax.plot(new_tune.independent, raw_offsets, c="grey", lw=5, alpha=0.5)
 
-    ax.plot(curve.setpoints[:], ypoints, **curve_plot_kwargs)
+    ax.plot(new_tune.independent, ypoints, **curve_plot_kwargs)
     ax.axhline(0, **prior_curve_plot_kwargs)
     wt.artists.plot_gridlines()
-    ax.set_ylabel(fr"$\mathsf{{\Delta {dependent}}}$")
+    ax.set_ylabel(fr"$\mathsf{{\Delta {tune}}}$")
     ax.set_xlabel(data.axes[0].label)
-    ax.set_xlim(*curve.get_limits())
+    ax.set_xlim(curve[arrangement].ind_min, curve[arrangement].ind_max)
 
     cax = plt.subplot(gs[1, 1])
     ticks = np.linspace(data[channel].null, data[channel].max(), 11)
@@ -63,13 +58,11 @@ def plot_setpoint(data, channel, dependent, curve, prior_curve=None, raw_offsets
     curve_plot_kwargs = {"lw": 5, "c": "k", "alpha": 0.5}
     prior_curve_plot_kwargs = {"lw": 2, "c": "k"}
     ax.plot(curve.setpoints[:], curve[dependent][:], **curve_plot_kwargs)
-    ax.set_xlim(*curve.get_limits())
+    ax.set_xlim(curve[arrangement].ind_min, curve[arrangement].ind_max)
     ax.xaxis.set_tick_params(label1On=False)
     if prior_curve:
         ax.plot(
-            prior_curve.setpoints[:],
-            prior_curve[dependent][:],
-            **prior_curve_plot_kwargs,
+            prior_curve.setpoints[:], prior_curve[dependent][:], **prior_curve_plot_kwargs,
         )
     ax.set_ylabel(dependent)
     wt.artists.plot_gridlines()
@@ -79,14 +72,12 @@ def plot_setpoint(data, channel, dependent, curve, prior_curve=None, raw_offsets
     data[channel].signed = True
     limits = -0.05 * data[channel].mag(), 0.05 * data[channel].mag()
     ax.pcolor(data, channel=channel, vmin=limits[0], vmax=limits[1])
-    ax.set_xlim(*curve.get_limits())
+    ax.set_xlim(curve[arrangement].ind_min, curve[arrangement].ind_max)
     ax.set_ylim(data.axes[1].min(), data.axes[1].max())
     if prior_curve:
         ypoints = (
             curve[dependent][:]
-            - prior_curve(curve.setpoints[:], curve.setpoints.units, full=False)[
-                dependent
-            ]
+            - prior_curve(curve.setpoints[:], curve.setpoints.units, full=False)[dependent]
         )
     else:
         ypoints = curve[dependent][:]
@@ -98,13 +89,11 @@ def plot_setpoint(data, channel, dependent, curve, prior_curve=None, raw_offsets
     wt.artists.plot_gridlines()
     ax.set_ylabel(fr"$\mathsf{{\Delta {dependent}}}$")
     ax.set_xlabel(data.axes[0].label)
-    ax.set_xlim(*curve.get_limits())
+    ax.set_xlim(curve[arrangement].ind_min, curve[arrangement].ind_max)
 
     cax = plt.subplot(gs[1, 1])
     ticks = np.linspace(*limits, 11)
-    wt.artists.plot_colorbar(
-        cax, vlim=limits, ticks=ticks, label=channel, cmap="signed"
-    )
+    wt.artists.plot_colorbar(cax, vlim=limits, ticks=ticks, label=channel, cmap="signed")
 
     return fig, gs
 
@@ -181,20 +170,13 @@ def plot_holistic(
         vmax=np.max(center_ticks),
     )
     ax_cen.contour(
-        data,
-        channel=amp_channel,
-        levels=amp_ticks,
-        cmap=amp_cmap,
-        linewidths=2,
-        alpha=1,
+        data, channel=amp_channel, levels=amp_ticks, cmap=amp_cmap, linewidths=2, alpha=1,
     )
 
     wt.artists.set_fig_labels(xlabel=data.axes[0].label, ylabel=data.axes[1].label)
 
     wt.artists.plot_colorbar(cax_amp, cmap=amp_cmap, ticks=amp_ticks, label="Intensity")
-    wt.artists.plot_colorbar(
-        cax_center, cmap=center_cmap, ticks=center_ticks, label="Center"
-    )
+    wt.artists.plot_colorbar(cax_center, cmap=center_cmap, ticks=center_ticks, label="Center")
     cax_center.set_xlabel("")
 
     for i in range(2):
@@ -202,14 +184,10 @@ def plot_holistic(
         axis[np.isnan(data[amp_channel])] = np.nan
 
         amin = min(
-            np.min(curve[dependents[i]]),
-            np.min(prior_curve[dependents[i]]),
-            np.nanmin(axis),
+            np.min(curve[dependents[i]]), np.min(prior_curve[dependents[i]]), np.nanmin(axis),
         )
         amax = max(
-            np.max(curve[dependents[i]]),
-            np.max(prior_curve[dependents[i]]),
-            np.nanmax(axis),
+            np.max(curve[dependents[i]]), np.max(prior_curve[dependents[i]]), np.nanmax(axis),
         )
         arange = amax - amin
         amin -= arange * 0.05
@@ -239,12 +217,7 @@ def plot_holistic(
         )
         if raw_offsets is not None:
             ax.scatter(
-                raw_offsets[:, 0],
-                raw_offsets[:, 1],
-                color="w",
-                s=50,
-                zorder=10,
-                marker="*",
+                raw_offsets[:, 0], raw_offsets[:, 1], color="w", s=50, zorder=10, marker="*",
             )  # TODO don't be bad about point handleing
 
     return fig, gs
