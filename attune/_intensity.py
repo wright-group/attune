@@ -23,9 +23,7 @@ def _intensity(data, channel_name, tune_points, *, spline=True, **spline_kwargs)
     if np.allclose(data.axes[0].points, tune_points):
         return offsets.clip(data.axes[1].min(), data.axes[1].max())
     else:
-        raise ValueError(
-            "Data points and curve points do not match, and splining disabled"
-        )
+        raise ValueError("Data points and curve points do not match, and splining disabled")
 
 
 def intensity(
@@ -79,9 +77,7 @@ def intensity(
         setpoints = old_curve.setpoints
     else:
         old_curve = None
-        setpoints = Setpoints(
-            data.axes[0].points, data.axes[0].expression, data.axes[0].units
-        )
+        setpoints = Setpoints(data.axes[0].points, data.axes[0].expression, data.axes[0].units)
     # TODO: units
 
     if isinstance(channel, (int, str)):
@@ -125,9 +121,7 @@ def intensity(
     # Why did we have to map setpoints?
     curve.map_setpoints(setpoints[:])
 
-    fig, _ = plot_intensity(
-        data, channel.natural_name, dependent, curve, old_curve, raw_offsets
-    )
+    fig, _ = plot_intensity(data, channel.natural_name, dependent, curve, old_curve, raw_offsets)
 
     if autosave:
         save(curve, fig, "intensity", save_directory)
