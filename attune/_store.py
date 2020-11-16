@@ -1,4 +1,4 @@
-__all__ = ["catalogue", "load", "restore", "store", "undo"]
+__all__ = ["catalog", "load", "restore", "store", "undo"]
 
 
 from datetime import datetime, timedelta, timezone
@@ -13,7 +13,7 @@ from ._transition import Transition, TransitionType
 from ._open import open as open_
 
 
-def catalogue(full=False):
+def catalog(full=False):
     if "ATTUNE_STORE" in os.environ and os.environ["ATTUNE_STORE"]:
         attune_dir = pathlib.Path(os.environ["ATTUNE_STORE"])
     else:
