@@ -1,4 +1,4 @@
-__all__ = ["load", "restore", "store", "undo"]
+__all__ = ["catalog", "load", "restore", "store", "undo"]
 
 
 from datetime import datetime, timedelta, timezone
@@ -11,6 +11,18 @@ import dateutil
 
 from ._transition import Transition, TransitionType
 from ._open import open as open_
+
+
+def catalog(full=False):
+    if "ATTUNE_STORE" in os.environ and os.environ["ATTUNE_STORE"]:
+        attune_dir = pathlib.Path(os.environ["ATTUNE_STORE"])
+    else:
+        attune_dir = pathlib.Path(appdirs.user_data_dir("attune", "attune"))
+    instrument_names = os.listdir(attune_dir)
+    if full:
+        return {name: load(name) for name in instrument_names}
+    else:
+        return instrument_names
 
 
 def load(name, time=None, reverse=True):
