@@ -25,14 +25,14 @@ def _offsets(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
     if np.allclose(data.axes[0].points, tune_points[::-1]):
         return offsets.clip(data.axes[1].min(), data.axes[1].max())[::-1]
     else:
-        raise ValueError("Data points and curve points do not match, and splining disabled")
+        raise ValueError("Data points and instrument points do not match, and splining disabled")
 
 
 def tune_test(
     data,
     channel,
     arrangement,
-    curve,
+    instrument,
     *,
     level=False,
     gtol=0.01,
@@ -52,8 +52,8 @@ def tune_test(
         channel to process
     arrangement: str
         name of the arrangment to modify
-    curve: attune.Curve
-        curve object to modify
+    instrument: attune.Instrument
+        instrument object to modify
     level: bool, optional
         toggle leveling data (Defalts to False)
     gtol: float, optional
@@ -63,7 +63,7 @@ def tune_test(
     restore_setpoints: bool, optional
         toggles remapping onto original setpoints for each tune (default is True)
     autosave: bool, optional
-        toggles saving of curve file and images (Defaults to True)
+        toggles saving of instrument file and images (Defaults to True)
     save_directory: Path-like
         where to save (Defaults to current working directory)
     **spline_kwargs: optional
@@ -71,8 +71,8 @@ def tune_test(
 
     Returns
     -------
-    attune.Curve
-        New curve object.
+    attune.Instrument
+        New instrument object.
     """
     metadata = {
         "channel": channel,
@@ -84,7 +84,7 @@ def tune_test(
     }
     if not isinstance(channel, (int, str)):
         metadata["channel"] = channel.natural_name
-    transition = Transition("tune_test", curve, metadata=metadata, data=data)
+    transition = Transition("tune_test", instrument, metadata=metadata, data=data)
 
     data = data.copy()
     data.convert("nm")
@@ -116,22 +116,19 @@ def tune_test(
     except ValueError:
         raw_offsets = None
 
-    # make curve ----------------------------------------------------------------------------------
-    old_curve = curve.as_dict()
-    for tune in old_curve["arrangements"][arrangement]["tunes"].values():
+    old_instrument = instrument.as_dict()
+    for tune in old_instrument["arrangements"][arrangement]["tunes"].values():
         print(tune)
         tune["independent"] += offset_spline(tune["independent"])
-    new_curve = Instrument(**old_curve)
+    new_instrument = Instrument(**old_instrument)
 
     if restore_setpoints:
-        for tune in new_curve[arrangement].keys():
-            new_curve = map_ind_points(
-                new_curve, arrangement, tune, curve[arrangement][tune].independent
+        for tune in new_instrument[arrangement].keys():
+            new_instrument = map_ind_points(
+                new_instrument, arrangement, tune, instrument[arrangement][tune].independent
             )
 
-    new_curve._transition = transition
-
-    # plot ----------------------------------------------------------------------------------------
+    new_instrument._transition = transition
 
     fig, _ = plot_tune_test(
         data,
@@ -140,7 +137,6 @@ def tune_test(
         raw_offsets=raw_offsets,
     )
 
-    # finish --------------------------------------------------------------------------------------
     if autosave:
-        save(new_curve, fig, "tune_test", save_directory)
-    return new_curve
+        save(new_instrument, fig, "tune_test", save_directory)
+    return new_instrument
