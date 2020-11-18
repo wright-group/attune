@@ -88,7 +88,7 @@ def tune_test(
     if not isinstance(channel, (int, str)):
         metadata["channel"] = channel.natural_name
     transition = Transition("tune_test", curve, metadata=metadata, data=data)
-        
+
     data = data.copy()
     data.convert("nm")
     # make data object
@@ -128,7 +128,9 @@ def tune_test(
 
     if restore_setpoints:
         for tune in new_curve[arrangement].keys():
-            new_curve = map_ind_points(new_curve, arrangement, tune, curve[arrangement][tune].independent)
+            new_curve = map_ind_points(
+                new_curve, arrangement, tune, curve[arrangement][tune].independent
+            )
 
     new_curve._transition = transition
 
