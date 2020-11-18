@@ -45,12 +45,12 @@ def _setpoint(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
 
 
 def setpoint(
+    *,
     data,
     channel,
     arrangement,
     tune,
     instrument=None,
-    *,
     autosave=True,
     save_directory=None,
     **spline_kwargs

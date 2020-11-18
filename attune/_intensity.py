@@ -33,12 +33,12 @@ def _intensity(data, channel_name, tune_points, *, spline=True, **spline_kwargs)
 
 
 def intensity(
+    *,
     data,
     channel,
     arrangement,
     tune,
     instrument=None,
-    *,
     level=False,
     gtol=0.01,
     ltol=0.1,

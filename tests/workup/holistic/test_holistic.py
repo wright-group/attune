@@ -49,11 +49,11 @@ def test_multiple_channels():
     # do calculation
     d.transform("w1_Crystal_1", "w1_Delay_1")
     new = attune.holistic(
-        d,
-        (amplitudes, centers),
-        "NON-NON-NON-Sig",
-        ["c1", "d1"],
-        old,
+        data=d,
+        channels=(amplitudes, centers),
+        arrangement="NON-NON-NON-Sig",
+        tunes=["c1", "d1"],
+        instrument=old,
         gtol=0.05,
         level=True,
         autosave=False,

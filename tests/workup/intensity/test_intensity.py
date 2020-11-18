@@ -14,7 +14,9 @@ def test():
     data.moment("wa_points", moment=0)
     data.transform("w1=wm", "w1_Delay_2_points")
     old = attune.open(__here__ / "input_instr.json")
-    new = attune.intensity(data, -1, "sig", "d2", old, autosave=False)
+    new = attune.intensity(
+        data=data, channel=-1, arrangement="sig", tune="d2", instrument=old, autosave=False
+    )
 
 
 def test_ltol_with_gtol():
@@ -25,7 +27,15 @@ def test_ltol_with_gtol():
     data.transform("w1=wm", "w1_Delay_2_points")
     old = attune.open(__here__ / "input_instr.json")
     new = attune.intensity(
-        data, -1, "sig", "d2", gtol=0.1, ltol=0.99999, spline=False, autosave=False, instrument=old
+        data=data,
+        channel=-1,
+        arrangement="sig",
+        tune="d2",
+        gtol=0.1,
+        ltol=0.99999,
+        spline=False,
+        autosave=False,
+        instrument=old,
     )
     correct = attune.open(__here__ / "gtol_ltol_instr.json")
     assert np.allclose(new["sig"]["d2"].dependent, correct["sig"]["d2"].dependent, atol=0.01)
