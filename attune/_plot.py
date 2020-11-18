@@ -10,16 +10,16 @@ def plot_intensity(
         width="single", nrows=2, cols=[1, "cbar"], default_aspect=0.5
     )
     ax = plt.subplot(gs[0, 0])
-    instrument = {"lw": 5, "c": "k", "alpha": 0.5}
-    prior_instrument = {"lw": 2, "c": "k"}
+    instrument_plot_kwargs = {"lw": 5, "c": "k", "alpha": 0.5}
+    prior_instrument_plot_kwargs = {"lw": 2, "c": "k"}
     new_tune = instrument[arrangement][tune]
-    ax.plot(new_tune.independent, new_tune.dependent, **instrument)
+    ax.plot(new_tune.independent, new_tune.dependent, **instrument_plot_kwargs)
     if prior_instrument:
         prior_tune = prior_instrument[arrangement][tune]
         ax.plot(
             prior_tune.independent,
             prior_tune.dependent,
-            **prior_instrument,
+            **prior_instrument_plot_kwargs,
         )
     wt.artists.plot_gridlines()
     ax.set_ylabel(tune)
