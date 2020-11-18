@@ -6,6 +6,8 @@ import numpy as np
 import scipy
 
 import WrightTools as wt
+from ._instrument import Instrument
+from ._transition import Transition
 from ._plot import plot_holistic
 from ._common import save
 
@@ -13,7 +15,7 @@ from ._common import save
 __all__ = ["holistic"]
 
 
-def _holistic(data, amplitudes, centers, curve):
+def _holistic(data, amplitudes, centers, arrangement):
     points = np.array([np.broadcast_to(a[:], amplitudes.shape).flatten() for a in data.axes]).T
     ndim = len(data.axes)
     delaunay = scipy.spatial.Delaunay(points)
@@ -23,7 +25,7 @@ def _holistic(data, amplitudes, centers, curve):
 
     # def
     out_points = []
-    for p in curve.setpoints[:]:
+    for p in arrangement.independent:
         iso_points = []
         for s, pts, vals in _find_simplices_containing(delaunay, cen_interp, p):
             iso_points.extend(_edge_intersections(pts, vals, p))
@@ -41,8 +43,9 @@ def _holistic(data, amplitudes, centers, curve):
 def holistic(
     data,
     channels,
-    dependents,
-    curve,
+    arrangement,
+    tunes,
+    instrument,
     *,
     spectral_axis=-1,
     level=False,
@@ -67,10 +70,10 @@ def holistic(
         obtain amplitudes and centers. In this case, `spectral_axis` determines which axis is
         used to obtain the moments.
         If a tuple: (amplitudes, centers), then these channels will be used directly.
-    dependents: tuple of str
-        Names of the dependents to modify in the curve, in the same order as the axes of `data`.
-    curve: attune.Curve
-        Curve object to modify. Setpoints are determined from the curve.
+    tunes: iterable of str
+        Names of the tunes to modify in the instrument, in the same order as the axes of `data`.
+    instrument: attune.Instrument
+        Instrument object to modify. Setpoints are determined from the instrument.
 
     Keyword Parameters
     ------------------
@@ -83,12 +86,34 @@ def holistic(
     gtol: float (default 0.01)
         Global tolerance for rejecting noise level relative to the global maximum.
     autosave: bool (default True)
-        Toggles saving of curve files and images.
+        Toggles saving of instrument files and images.
     save_directory: Path-like (Defaults to current working directory)
         Specify where to save files.
     **spline_kwargs:
         Extra arguments to pass to spline creation (e.g. s=0, k=1 for linear interpolation)
     """
+    metadata = {
+        "channels": channels,
+        "arrangement": arrangement,
+        "tunes": tunes,
+        "spectral_axis": spectral_axis,
+        "level": level,
+        "gtol": gtol,
+        "spline_kwargs": spline_kwargs,
+    }
+
+    if not isinstance(channels, (int, str)):
+        try:
+            metadata["channels"] = list(channels)
+            if not isinstance(channels[0], (int, str)):
+                metadata["channels"][0] = channels[0].natural_name
+            if not isinstance(channels[1], (int, str)):
+                metadata["channels"][1] = channels[1].natural_name
+        except TypeError:
+            metadata["channels"] = channel.natural_name
+    transition = Transition("holistic", instrument, metadata=metadata, data=data)
+
+    # collect
     data = data.copy()
 
     if isinstance(channels, (str, wt.data.Channel)):
@@ -98,7 +123,7 @@ def holistic(
             spectral_axis = data.axis_names[spectral_axis]
         elif isinstance(spectral_axis, wt.data.Axis):
             spectral_axis = spectral_axis.expression
-        getattr(data, spectral_axis).convert(curve.setpoints.units)
+        getattr(data, spectral_axis).convert("nm")
         # take channel moments
         data.moment(
             axis=spectral_axis,
@@ -129,32 +154,38 @@ def holistic(
         amplitudes.clip(min=cutoff)
     centers[np.isnan(amplitudes)] = np.nan
 
-    out_points = _holistic(data, amplitudes, centers, curve)
-    splines = [wt.kit.Spline(curve.setpoints, vals, **spline_kwargs) for vals in out_points.T]
+    out_points = _holistic(data, amplitudes, centers, instrument[arrangement])
+    splines = [
+        wt.kit.Spline(instrument[arrangement].independent, vals, **spline_kwargs)
+        for vals in out_points.T
+    ]
 
-    new_curve = _gen_curve(curve, dependents, splines)
+    new_instrument = _gen_instr(instrument, arrangement, tunes, splines, transition)
 
     fig, _ = plot_holistic(
         data,
         amplitudes.natural_name,
         centers.natural_name,
-        dependents,
-        new_curve,
-        curve,
+        arrangement,
+        tunes,
+        new_instrument,
+        instrument,
         out_points,
     )
 
     if autosave:
-        save(new_curve, fig, "holistic", save_directory)
-    return new_curve
+        save(new_instrument, fig, "holistic", save_directory)
+    return new_instrument
 
 
-def _gen_curve(curve, dependents, splines):
-    new_curve = curve.copy()
-    for dep, spline in zip(dependents, splines):
-        new_curve[dep][:] = spline(new_curve.setpoints)
-    new_curve.interpolate()
-    return new_curve
+def _gen_instr(instrument, arrangement, tunes, splines, transition):
+    new_instrument = instrument.as_dict()
+    del new_instrument["transition"]
+    setpoints = instrument[arrangement].independent
+    for tune, spline in zip(tunes, splines):
+        new_instrument["arrangements"][arrangement]["tunes"][tune]["independent"] = setpoints
+        new_instrument["arrangements"][arrangement]["tunes"][tune]["dependent"] = spline(setpoints)
+    return Instrument(**new_instrument, transition=transition)
 
 
 def _find_simplices_containing(delaunay, interpolator, point):
