@@ -13,14 +13,14 @@ def test_single_channel():
     # collect
     d = wt.open(__here__ / "data.wt5")
     old = attune.open(__here__ / "old.json")
-    new = attune.open(__here__ / "new.json")
+    reference = attune.open(__here__ / "new.json")
     # do
     d.transform("w1_Crystal_1", "w1_Delay_1", "wa")
     new = attune.holistic(
         data=d,
         channels="array_signal",
-        dependents=["0", "1"],
         arrangement="NON-NON-NON-Sig",
+        tunes=["c1", "d1"],
         instrument=old,
         gtol=0.05,
         level=True,
@@ -29,15 +29,15 @@ def test_single_channel():
     )
     d.close()
     # check
-    np.testing.assert_allclose(old.setpoints[:], new.setpoints[:])
-    for r, n in zip(reference.dependents.values(), new.dependents.values()):
-        print(r[:].dtype, n[:].dtype)
-        np.testing.assert_allclose(r[:], n[:], rtol=0.01)
+    assert reference == new
 
 
 def test_multiple_channels():
     # collect
     d = wt.open(__here__ / "data.wt5")
+    old = attune.open(__here__ / "old.json")
+    reference = attune.open(__here__ / "new.json")
+
     channel = "array_signal"
     d.level(channel, 0, -3)
     # take channel moments
@@ -46,18 +46,13 @@ def test_multiple_channels():
     amplitudes = d.channel_names[-2]
     centers = -1
 
-    curve_paths = [__here__ / "old" / "OPA1 (10743) base - 2018-10-26 40490.crv"]
-    old = attune.TopasCurve.read(curve_paths, interaction_string="NON-NON-NON-Sig")
-
-    curve_paths = [__here__ / "out" / "OPA- 2019-09-18 53345.crv"]
-    reference = attune.TopasCurve.read(curve_paths, interaction_string="NON-NON-NON-Sig")
-
     # do calculation
     d.transform("w1_Crystal_1", "w1_Delay_1")
-    new = attune.workup.holistic(
+    new = attune.holistic(
         d,
         (amplitudes, centers),
-        ["0", "1"],
+        "NON-NON-NON-Sig",
+        ["c1", "d1"],
         old,
         gtol=0.05,
         level=True,
@@ -66,10 +61,7 @@ def test_multiple_channels():
     )
 
     # check
-    np.testing.assert_allclose(old.setpoints[:], new.setpoints[:])
-    for r, n in zip(reference.dependents.values(), new.dependents.values()):
-        print(r[:].dtype, n[:].dtype)
-        np.testing.assert_allclose(r[:], n[:], rtol=0.01)
+    assert reference == new
 
     d.close()
 
