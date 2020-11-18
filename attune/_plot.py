@@ -135,7 +135,14 @@ def plot_tune_test(data, channel, used_offsets, raw_offsets=None):
 
 
 def plot_holistic(
-    data, amp_channel, center_channel, dependents, curve, prior_curve, raw_offsets=None
+    data,
+    amp_channel,
+    center_channel,
+    arrangement,
+    tunes,
+    instrument,
+    prior_instrument,
+    raw_offsets=None,
 ):
     data[amp_channel].normalize()
 
@@ -149,7 +156,7 @@ def plot_holistic(
     cax_amp = plt.subplot(gs[0, 1])
     cax_center = plt.subplot(gs[1, 1])
     amp_ticks = np.linspace(0, 1, 11)
-    center_ticks = curve.setpoints
+    center_ticks = instrument[arrangement].independent
 
     ax_amp.pcolor(data, channel=amp_channel, cmap=amp_cmap)
     ax_amp.contour(
@@ -189,13 +196,13 @@ def plot_holistic(
         axis[np.isnan(data[amp_channel])] = np.nan
 
         amin = min(
-            np.min(curve[dependents[i]]),
-            np.min(prior_curve[dependents[i]]),
+            np.min(instrument[arrangement][tunes[i]].dependent),
+            np.min(prior_instrument[arrangement][tunes[i]].dependent),
             np.nanmin(axis),
         )
         amax = max(
-            np.max(curve[dependents[i]]),
-            np.max(prior_curve[dependents[i]]),
+            np.max(instrument[arrangement][tunes[i]].dependent),
+            np.max(prior_instrument[arrangement][tunes[i]].dependent),
             np.nanmax(axis),
         )
         arange = amax - amin
@@ -210,15 +217,15 @@ def plot_holistic(
 
     for ax in [ax_amp, ax_cen]:
         ax.plot(
-            prior_curve[dependents[0]],
-            prior_curve[dependents[1]],
+            prior_instrument[arrangement][tunes[0]].dependent,
+            prior_instrument[arrangement][tunes[1]].dependent,
             color="k",
             linewidth=2,
             zorder=2,
         )
         ax.plot(
-            curve[dependents[0]],
-            curve[dependents[1]],
+            instrument[arrangement][tunes[0]].dependent,
+            instrument[arrangement][tunes[1]].dependent,
             color="k",
             linewidth=6,
             alpha=0.5,
