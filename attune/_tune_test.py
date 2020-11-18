@@ -6,9 +6,6 @@ import numpy as np
 import WrightTools as wt
 
 from ._instrument import Instrument
-from ._arrangement import Arrangement
-from ._setable import Setable
-from ._tune import Tune
 from ._transition import Transition
 from ._plot import plot_tune_test
 from ._common import save
