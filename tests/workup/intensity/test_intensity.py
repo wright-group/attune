@@ -13,7 +13,7 @@ def test():
     data.transform("w1=wm", "w1_Delay_2", "wa_points")
     data.moment("wa_points", moment=0)
     data.transform("w1=wm", "w1_Delay_2_points")
-    old = attune.open("input_instr.json")
+    old = attune.open(__here__ / "input_instr.json")
     new = attune.intensity(data, -1, "sig", "d2", old, autosave=False)
     print(new)
 
@@ -24,11 +24,11 @@ def test_ltol_with_gtol():
     data.transform("w1=wm", "w1_Delay_2", "wa_points")
     data.moment("wa_points", moment=0)
     data.transform("w1=wm", "w1_Delay_2_points")
-    old = attune.open("input_instr.json")
+    old = attune.open(__here__ / "input_instr.json")
     new = attune.intensity(
         data, -1, "sig", "d2", gtol=0.1, ltol=0.99999, spline=False, autosave=False, curve=old
     )
-    correct = attune.open("gtol_ltol_instr.json")
+    correct = attune.open(__here__ / "gtol_ltol_instr.json")
     assert np.allclose(new["sig"]["d2"].dependent, correct["sig"]["d2"].dependent, atol=0.01)
     assert np.allclose(new["sig"]["d2"].independent, correct["sig"]["d2"].independent)
 
