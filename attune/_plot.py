@@ -102,15 +102,7 @@ def plot_setpoint(data, channel, dependent, curve, prior_curve=None, raw_offsets
     return fig, gs
 
 
-def plot_tune_test(data, channel, curve, used_offsets, raw_offsets=None):
-    data = data.copy()
-    data.convert("wn")
-    curve = curve.copy()
-    if curve.setpoints.units == "nm":
-        used_offsets = used_offsets[::-1]
-        if raw_offsets is not None:
-            raw_offsets = raw_offsets[::-1]
-    curve.convert("wn")
+def plot_tune_test(data, channel, used_offsets, raw_offsets=None):
     fig, gs = wt.artists.create_figure(default_aspect=0.5, cols=[1, "cbar"])
     # heatmap
     ax = plt.subplot(gs[0, 0])
@@ -118,10 +110,10 @@ def plot_tune_test(data, channel, curve, used_offsets, raw_offsets=None):
     ax.set_xlim(data.axes[0].min(), data.axes[0].max())
     # lines
     if raw_offsets is not None:
-        ax.plot(curve.setpoints[:], raw_offsets, c="grey", lw=5, alpha=0.5)
+        ax.plot(data.axes[0].points, raw_offsets, c="grey", lw=5, alpha=0.5)
 
     ax.plot(
-        curve.setpoints[:],
+        data.axes[0].points,
         used_offsets,
         c="k",
         lw=5,
