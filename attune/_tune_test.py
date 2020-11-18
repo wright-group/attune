@@ -88,7 +88,6 @@ def tune_test(
 
     data = data.copy()
     data.convert("nm")
-    # make data object
 
     setpoints = data.axes[0].points
     setpoints.sort()
