@@ -16,5 +16,5 @@ def test_tune_test():
     correct_out = attune.open(__here__ / "instrument_out.json")
 
     for tune, correct in zip(out["sfs"].values(), correct_out["sfs"].values()):
-       assert np.allclose(tune.dependent, correct.dependent, atol=0.01)
-       assert np.allclose(tune.independent, correct.independent, atol=0.01)
+        assert np.allclose(tune.dependent, correct.dependent, atol=0.01)
+        assert np.allclose(tune.independent, correct.independent, atol=0.01)
