@@ -52,23 +52,29 @@ def plot_intensity(data, channel, arrangement, tune, curve, prior_curve=None, ra
     return fig, gs
 
 
-def plot_setpoint(data, channel, dependent, curve, prior_curve=None, raw_offsets=None):
+def plot_setpoint(
+    data, channel, arrangement, tune, instrument, prior_instrument=None, raw_offsets=None
+):
     fig, gs = wt.artists.create_figure(
         width="single", nrows=2, cols=[1, "cbar"], default_aspect=0.5
     )
     ax = plt.subplot(gs[0, 0])
-    curve_plot_kwargs = {"lw": 5, "c": "k", "alpha": 0.5}
-    prior_curve_plot_kwargs = {"lw": 2, "c": "k"}
-    ax.plot(curve.setpoints[:], curve[dependent][:], **curve_plot_kwargs)
-    ax.set_xlim(curve[arrangement].ind_min, curve[arrangement].ind_max)
+    instrument_plot_kwargs = {"lw": 5, "c": "k", "alpha": 0.5}
+    prior_instrument_plot_kwargs = {"lw": 2, "c": "k"}
+    ax.plot(
+        instrument[arrangement][tune].independent,
+        instrument[arrangement][tune].dependent,
+        **instrument_plot_kwargs,
+    )
+    ax.set_xlim(instrument[arrangement].ind_min, instrument[arrangement].ind_max)
     ax.xaxis.set_tick_params(label1On=False)
-    if prior_curve:
+    if prior_instrument:
         ax.plot(
-            prior_curve.setpoints[:],
-            prior_curve[dependent][:],
-            **prior_curve_plot_kwargs,
+            prior_instrument[arrangement][tune].independent,
+            prior_instrument[arrangement][tune].dependent,
+            **prior_instrument_plot_kwargs,
         )
-    ax.set_ylabel(dependent)
+    ax.set_ylabel(tune)
     wt.artists.plot_gridlines()
 
     ax = plt.subplot(gs[1, 0])
@@ -76,24 +82,26 @@ def plot_setpoint(data, channel, dependent, curve, prior_curve=None, raw_offsets
     data[channel].signed = True
     limits = -0.05 * data[channel].mag(), 0.05 * data[channel].mag()
     ax.pcolor(data, channel=channel, vmin=limits[0], vmax=limits[1])
-    ax.set_xlim(curve[arrangement].ind_min, curve[arrangement].ind_max)
+    ax.set_xlim(instrument[arrangement].ind_min, instrument[arrangement].ind_max)
     ax.set_ylim(data.axes[1].min(), data.axes[1].max())
-    if prior_curve:
+    if prior_instrument:
         ypoints = (
-            curve[dependent][:]
-            - prior_curve(curve.setpoints[:], curve.setpoints.units, full=False)[dependent]
+            instrument[arrangement][tune].dependent
+            - prior_instrument(instrument[arrangement][tune].independent)[tune]
         )
     else:
-        ypoints = curve[dependent][:]
+        ypoints = instrument[arrangement][tune].dependent
 
     if raw_offsets is not None:
-        ax.plot(curve.setpoints[:], raw_offsets, c="grey", lw=5, alpha=0.5)
-    ax.plot(curve.setpoints[:], ypoints, **curve_plot_kwargs)
-    ax.axhline(0, **prior_curve_plot_kwargs)
+        ax.plot(
+            instrument[arrangement][tune].independent, raw_offsets[::-1], c="grey", lw=5, alpha=0.5
+        )
+    ax.plot(instrument[arrangement][tune].independent, ypoints, **instrument_plot_kwargs)
+    ax.axhline(0, **prior_instrument_plot_kwargs)
     wt.artists.plot_gridlines()
-    ax.set_ylabel(fr"$\mathsf{{\Delta {dependent}}}$")
+    ax.set_ylabel(fr"$\mathsf{{\Delta {tune}}}$")
     ax.set_xlabel(data.axes[0].label)
-    ax.set_xlim(curve[arrangement].ind_min, curve[arrangement].ind_max)
+    ax.set_xlim(instrument[arrangement].ind_min, instrument[arrangement].ind_max)
 
     cax = plt.subplot(gs[1, 1])
     ticks = np.linspace(*limits, 11)
