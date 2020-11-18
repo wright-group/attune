@@ -2,6 +2,9 @@ __all__ = ["Arrangement"]
 
 
 from typing import Dict, Union
+
+import numpy as np
+
 from ._tune import Tune
 
 
@@ -43,6 +46,22 @@ class Arrangement:
         if self.tunes != other.tunes:
             return False
         return True
+
+    @property
+    def independent(self):
+        """Returns a 1-dimensional numpy array with the set of all unique independent points.
+
+        Points closer together than 1/1000th of the total dynamic range are considered identical.
+
+        Only returns points within range of all tunes.
+        """
+        out = np.unique(np.concatenate([t.independent for t in self._tunes.values()], 0))
+        tol = tol = 1e-3 * (self.ind_max - self.ind_min)
+        diff = np.append(tol * 2, np.diff(out))
+        out = out[diff > tol]
+        out = out[out <= self.ind_max]
+        out = out[out >= self.ind_min]
+        return out
 
     def keys(self):
         return self.tunes.keys()
