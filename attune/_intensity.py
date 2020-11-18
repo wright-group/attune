@@ -1,9 +1,13 @@
-"""Methods for processing OPA 800 tuning data."""
+"""Workup an instrument maximizing intensity of a single setable"""
 
 import numpy as np
 import WrightTools as wt
 
-# from .. import Curve, Dependent, Setpoints
+from ._instrument import Instrument
+from ._arrangement import Arrangement
+from ._setable import Setable
+from ._tune import Tune
+from ._transition import Transition
 from ._plot import plot_intensity
 from ._common import save
 
@@ -18,10 +22,12 @@ def _intensity(data, channel_name, tune_points, *, spline=True, **spline_kwargs)
     offsets = data[f"{channel_name}_1_moment_1"].points
 
     if spline:
-        spline = wt.kit.Spline(tune_points, offsets, **spline_kwargs)
+        spline = wt.kit.Spline(data.axes[0].points, offsets, **spline_kwargs)
         return spline(tune_points).clip(data.axes[1].min(), data.axes[1].max())
     if np.allclose(data.axes[0].points, tune_points):
         return offsets.clip(data.axes[1].min(), data.axes[1].max())
+    elif np.allclose(data.axes[0].points, tune_points[::-1]):
+        return offsets.clip(data.axes[1].min(), data.axes[1].max())[::-1]
     else:
         raise ValueError("Data points and curve points do not match, and splining disabled")
 
@@ -29,7 +35,8 @@ def _intensity(data, channel_name, tune_points, *, spline=True, **spline_kwargs)
 def intensity(
     data,
     channel,
-    dependent,
+    arrangement,
+    tune,
     curve=None,
     *,
     level=False,
@@ -47,8 +54,10 @@ def intensity(
         should be in (setpoint, dependent)
     channel: wt.data.Channel or int or str
         channel to process
-    dependent: str
-        name of the dependent to modify in the curve
+    arrangement: str
+        name of the arrangement to modify in the curve
+    tune: str
+        name of the tune to modify in the curve
     curve: attune.Curve, optional
         curve object to modify (Default None: make a new curve)
     level: bool, optional
@@ -69,16 +78,28 @@ def intensity(
     attune.Curve
         New curve object.
     """
+    metadata = {
+        "channel": channel,
+        "arrangement": arrangement,
+        "tune": tune,
+        "level": level,
+        "gtol": gtol,
+        "ltol": ltol,
+        "spline_kwargs": spline_kwargs,
+    }
+    if not isinstance(channel, (int, str)):
+        metadata["channel"] = channel.natural_name
+    transition = Transition("intensity", curve, metadata=metadata, data=data)
     data = data.copy()
-    data.convert("wn")
+    data.convert("nm")
     if curve is not None:
-        old_curve = curve.copy()
-        old_curve.convert("wn")
-        setpoints = old_curve.setpoints
+        old_curve = curve.as_dict()
+        setpoints = curve[arrangement][tune].independent
     else:
         old_curve = None
-        setpoints = Setpoints(data.axes[0].points, data.axes[0].expression, data.axes[0].units)
+        setpoints = data.axes[0].points
     # TODO: units
+    setpoints.sort()
 
     if isinstance(channel, (int, str)):
         channel = data.channels[wt.kit.get_index(data.channel_names, channel)]
@@ -97,9 +118,11 @@ def intensity(
     cutoff = np.nanmax(channel[:], axis=1, keepdims=True) * ltol
     channel.clip(min=cutoff)
 
-    offsets = _intensity(data, channel.natural_name, setpoints[:], **spline_kwargs)
+    offsets = _intensity(data, channel.natural_name, setpoints, **spline_kwargs)
+    print(setpoints)
+    print(offsets)
     try:
-        raw_offsets = _intensity(data, channel.natural_name, setpoints[:], spline=False)
+        raw_offsets = _intensity(data, channel.natural_name, setpoints, spline=False)
     except ValueError:
         raw_offsets = None
 
@@ -107,22 +130,22 @@ def intensity(
     if units == "None":
         units = None
 
-    new_curve = Curve(
-        setpoints,
-        [Dependent(offsets, dependent, units, differential=True)],
-        name="intensity",
+    if curve is not None:
+        old_curve["arrangements"][arrangement]["tunes"][tune]["independent"] = setpoints
+        old_curve["arrangements"][arrangement]["tunes"][tune]["dependent"] += offsets
+        try:
+            del old_curve["transition"]
+        except KeyError:
+            pass
+        new_curve = Instrument(**old_curve, transition=transition)
+    else:
+        arr = Arrangement(arrangement, {tune: Tune(setpoints, offsets)})
+        new_curve = Instrument({arrangement: arr}, {tune: Setable(tune)}, transition=transition)
+
+    fig, _ = plot_intensity(
+        data, channel.natural_name, arrangement, tune, new_curve, curve, raw_offsets
     )
 
-    if curve is not None:
-        curve = old_curve + new_curve
-    else:
-        curve = new_curve
-
-    # Why did we have to map setpoints?
-    curve.map_setpoints(setpoints[:])
-
-    fig, _ = plot_intensity(data, channel.natural_name, dependent, curve, old_curve, raw_offsets)
-
     if autosave:
-        save(curve, fig, "intensity", save_directory)
-    return curve
+        save(new_curve, fig, "intensity", save_directory)
+    return new_curve
