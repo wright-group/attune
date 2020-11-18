@@ -13,7 +13,7 @@ from ._common import save
 __all__ = ["holistic"]
 
 
-def _holistic(data, amplitudes, centers, curve):
+def _holistic(data, amplitudes, centers, arrangement):
     points = np.array([np.broadcast_to(a[:], amplitudes.shape).flatten() for a in data.axes]).T
     ndim = len(data.axes)
     delaunay = scipy.spatial.Delaunay(points)
@@ -42,7 +42,8 @@ def holistic(
     data,
     channels,
     dependents,
-    curve,
+    arrangement,
+    instrument,
     *,
     spectral_axis=-1,
     level=False,
@@ -69,8 +70,8 @@ def holistic(
         If a tuple: (amplitudes, centers), then these channels will be used directly.
     dependents: tuple of str
         Names of the dependents to modify in the curve, in the same order as the axes of `data`.
-    curve: attune.Curve
-        Curve object to modify. Setpoints are determined from the curve.
+    instrument: attune.Instrument
+        Instrument object to modify. Setpoints are determined from the instrument.
 
     Keyword Parameters
     ------------------
@@ -89,7 +90,9 @@ def holistic(
     **spline_kwargs:
         Extra arguments to pass to spline creation (e.g. s=0, k=1 for linear interpolation)
     """
+    # collect
     data = data.copy()
+    setpoints = list(instrument[arrangement].tunes.values())[0].independent
 
     if isinstance(channels, (str, wt.data.Channel)):
         if level:
@@ -98,7 +101,7 @@ def holistic(
             spectral_axis = data.axis_names[spectral_axis]
         elif isinstance(spectral_axis, wt.data.Axis):
             spectral_axis = spectral_axis.expression
-        getattr(data, spectral_axis).convert(curve.setpoints.units)
+        getattr(data, spectral_axis).convert("nm")
         # take channel moments
         data.moment(
             axis=spectral_axis,
@@ -129,8 +132,8 @@ def holistic(
         amplitudes.clip(min=cutoff)
     centers[np.isnan(amplitudes)] = np.nan
 
-    out_points = _holistic(data, amplitudes, centers, curve)
-    splines = [wt.kit.Spline(curve.setpoints, vals, **spline_kwargs) for vals in out_points.T]
+    out_points = _holistic(data, amplitudes, centers, instrument[arrangement])
+    splines = [wt.kit.Spline(setpoints, vals, **spline_kwargs) for vals in out_points.T]
 
     new_curve = _gen_curve(curve, dependents, splines)
 
@@ -152,7 +155,7 @@ def holistic(
 def _gen_curve(curve, dependents, splines):
     new_curve = curve.copy()
     for dep, spline in zip(dependents, splines):
-        new_curve[dep][:] = spline(new_curve.setpoints)
+        new_curve[dep][:] = spline(setpoints)
     new_curve.interpolate()
     return new_curve
 
