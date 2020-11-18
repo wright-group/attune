@@ -29,7 +29,7 @@ def _intensity(data, channel_name, tune_points, *, spline=True, **spline_kwargs)
     elif np.allclose(data.axes[0].points, tune_points[::-1]):
         return offsets.clip(data.axes[1].min(), data.axes[1].max())[::-1]
     else:
-        raise ValueError("Data points and curve points do not match, and splining disabled")
+        raise ValueError("Data points and instrument points do not match, and splining disabled")
 
 
 def intensity(
@@ -37,7 +37,7 @@ def intensity(
     channel,
     arrangement,
     tune,
-    curve=None,
+    instrument=None,
     *,
     level=False,
     gtol=0.01,
@@ -55,11 +55,11 @@ def intensity(
     channel: wt.data.Channel or int or str
         channel to process
     arrangement: str
-        name of the arrangement to modify in the curve
+        name of the arrangement to modify in the instrument
     tune: str
-        name of the tune to modify in the curve
-    curve: attune.Curve, optional
-        curve object to modify (Default None: make a new curve)
+        name of the tune to modify in the instrument
+    instrument: attune.Instrument, optional
+        instrument object to modify (Default None: make a new instrument)
     level: bool, optional
         toggle leveling data (Defalts to False)
     gtol: float, optional
@@ -67,7 +67,7 @@ def intensity(
     ltol: float, optional
         local tolerance for rejecting data relative to slice maximum
     autosave: bool, optional
-        toggles saving of curve file and images (Defaults to True)
+        toggles saving of instrument file and images (Defaults to True)
     save_directory: Path-like
         where to save (Defaults to current working directory)
     **spline_kwargs: optional
@@ -75,8 +75,8 @@ def intensity(
 
     Returns
     -------
-    attune.Curve
-        New curve object.
+    attune.Instrument
+        New instrument object.
     """
     metadata = {
         "channel": channel,
@@ -89,14 +89,14 @@ def intensity(
     }
     if not isinstance(channel, (int, str)):
         metadata["channel"] = channel.natural_name
-    transition = Transition("intensity", curve, metadata=metadata, data=data)
+    transition = Transition("intensity", instrument, metadata=metadata, data=data)
     data = data.copy()
     data.convert("nm")
-    if curve is not None:
-        old_curve = curve.as_dict()
-        setpoints = curve[arrangement][tune].independent
+    if instrument is not None:
+        old_instrument = instrument.as_dict()
+        setpoints = instrument[arrangement][tune].independent
     else:
-        old_curve = None
+        old_instrument = None
         setpoints = data.axes[0].points
     # TODO: units
     setpoints.sort()
@@ -130,22 +130,24 @@ def intensity(
     if units == "None":
         units = None
 
-    if curve is not None:
-        old_curve["arrangements"][arrangement]["tunes"][tune]["independent"] = setpoints
-        old_curve["arrangements"][arrangement]["tunes"][tune]["dependent"] += offsets
+    if instrument is not None:
+        old_instrument["arrangements"][arrangement]["tunes"][tune]["independent"] = setpoints
+        old_instrument["arrangements"][arrangement]["tunes"][tune]["dependent"] += offsets
         try:
-            del old_curve["transition"]
+            del old_instrument["transition"]
         except KeyError:
             pass
-        new_curve = Instrument(**old_curve, transition=transition)
+        new_instrument = Instrument(**old_instrument, transition=transition)
     else:
         arr = Arrangement(arrangement, {tune: Tune(setpoints, offsets)})
-        new_curve = Instrument({arrangement: arr}, {tune: Setable(tune)}, transition=transition)
+        new_instrument = Instrument(
+            {arrangement: arr}, {tune: Setable(tune)}, transition=transition
+        )
 
     fig, _ = plot_intensity(
-        data, channel.natural_name, arrangement, tune, new_curve, curve, raw_offsets
+        data, channel.natural_name, arrangement, tune, new_instrument, instrument, raw_offsets
     )
 
     if autosave:
-        save(new_curve, fig, "intensity", save_directory)
-    return new_curve
+        save(new_instrument, fig, "intensity", save_directory)
+    return new_instrument

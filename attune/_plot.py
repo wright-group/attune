@@ -3,45 +3,47 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_intensity(data, channel, arrangement, tune, curve, prior_curve=None, raw_offsets=None):
+def plot_intensity(
+    data, channel, arrangement, tune, instrument, prior_instrument=None, raw_offsets=None
+):
     fig, gs = wt.artists.create_figure(
         width="single", nrows=2, cols=[1, "cbar"], default_aspect=0.5
     )
     ax = plt.subplot(gs[0, 0])
-    curve_plot_kwargs = {"lw": 5, "c": "k", "alpha": 0.5}
-    prior_curve_plot_kwargs = {"lw": 2, "c": "k"}
-    new_tune = curve[arrangement][tune]
-    ax.plot(new_tune.independent, new_tune.dependent, **curve_plot_kwargs)
-    if prior_curve:
-        prior_tune = prior_curve[arrangement][tune]
+    instrument_plot_kwargs = {"lw": 5, "c": "k", "alpha": 0.5}
+    prior_instrument_plot_kwargs = {"lw": 2, "c": "k"}
+    new_tune = instrument[arrangement][tune]
+    ax.plot(new_tune.independent, new_tune.dependent, **instrument_plot_kwargs)
+    if prior_instrument:
+        prior_tune = prior_instrument[arrangement][tune]
         ax.plot(
             prior_tune.independent,
             prior_tune.dependent,
-            **prior_curve_plot_kwargs,
+            **prior_instrument_plot_kwargs,
         )
     wt.artists.plot_gridlines()
     ax.set_ylabel(tune)
-    ax.set_xlim(curve[arrangement].ind_min, curve[arrangement].ind_max)
+    ax.set_xlim(instrument[arrangement].ind_min, instrument[arrangement].ind_max)
     ax.xaxis.set_tick_params(label1On=False)
 
     ax = plt.subplot(gs[1, 0])
     graymap = "greyscale"
     ax.pcolor(data, channel=f"{channel}_orig", cmap=graymap)
     ax.pcolor(data, channel=channel)
-    if prior_curve:
-        ypoints = new_tune.dependent - prior_curve(new_tune.independent, arrangement)[tune]
+    if prior_instrument:
+        ypoints = new_tune.dependent - prior_instrument(new_tune.independent, arrangement)[tune]
     else:
         ypoints = new_tune.dependent
 
     if raw_offsets is not None:
         ax.plot(new_tune.independent, raw_offsets, c="grey", lw=5, alpha=0.5)
 
-    ax.plot(new_tune.independent, ypoints, **curve_plot_kwargs)
-    ax.axhline(0, **prior_curve_plot_kwargs)
+    ax.plot(new_tune.independent, ypoints, **instrument_plot_kwargs)
+    ax.axhline(0, **prior_instrument_plot_kwargs)
     wt.artists.plot_gridlines()
     ax.set_ylabel(fr"$\mathsf{{\Delta {tune}}}$")
     ax.set_xlabel(data.axes[0].label)
-    ax.set_xlim(curve[arrangement].ind_min, curve[arrangement].ind_max)
+    ax.set_xlim(instrument[arrangement].ind_min, instrument[arrangement].ind_max)
 
     cax = plt.subplot(gs[1, 1])
     ticks = np.linspace(data[channel].null, data[channel].max(), 11)
