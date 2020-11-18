@@ -11,7 +11,9 @@ def test_tune_test():
     d = wt.open(__here__ / "tunetest.wt5")
     instr = attune.open(__here__ / "instrument_in.json")
     d.transform("w3", "wm-w3")
-    out = attune.tune_test(d, "signal_mean", "sfs", instr, autosave=False)
+    out = attune.tune_test(
+        data=d, channel="signal_mean", arrangement="sfs", instrument=instr, autosave=False
+    )
 
     correct_out = attune.open(__here__ / "instrument_out.json")
 

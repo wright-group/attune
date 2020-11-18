@@ -23,7 +23,9 @@ def test():
     old = attune.open(__here__ / "old_instr.json")
     reference = attune.open(__here__ / "ref_instr.json")
 
-    new = attune.setpoint(data, -1, "sig", "c2", autosave=False, instrument=old)
+    new = attune.setpoint(
+        data=data, channel=-1, arrangement="sig", tune="c2", autosave=False, instrument=old
+    )
     assert new == reference
 
 

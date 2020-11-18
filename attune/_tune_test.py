@@ -29,11 +29,11 @@ def _offsets(data, channel_name, tune_points, *, spline=True, **spline_kwargs):
 
 
 def tune_test(
+    *,
     data,
     channel,
     arrangement,
     instrument,
-    *,
     level=False,
     gtol=0.01,
     ltol=0.1,

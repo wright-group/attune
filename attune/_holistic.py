@@ -41,12 +41,12 @@ def _holistic(data, amplitudes, centers, arrangement):
 
 
 def holistic(
+    *,
     data,
     channels,
     arrangement,
     tunes,
     instrument,
-    *,
     spectral_axis=-1,
     level=False,
     gtol=0.01,
