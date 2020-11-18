@@ -38,8 +38,8 @@ def plot_intensity(
     if raw_offsets is not None:
         ax.plot(new_tune.independent, raw_offsets, c="grey", lw=5, alpha=0.5)
 
-    ax.plot(new_tune.independent, ypoints, **instrument)
-    ax.axhline(0, **prior_instrument)
+    ax.plot(new_tune.independent, ypoints, **instrument_plot_kwargs)
+    ax.axhline(0, **prior_instrument_plot_kwargs)
     wt.artists.plot_gridlines()
     ax.set_ylabel(fr"$\mathsf{{\Delta {tune}}}$")
     ax.set_xlabel(data.axes[0].label)
