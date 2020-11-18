@@ -33,8 +33,8 @@ setup(
         "numpy",
         "scipy",
         "matplotlib",
-        "tidy_headers",
         "appdirs",
+        "python-dateutil",
         "maya",
     ],
     extras_require={
