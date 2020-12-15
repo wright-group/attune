@@ -31,8 +31,6 @@ class Arrangement:
             k: Tune(**v) if isinstance(v, dict) else v for k, v in tunes.items()
         }
         self._ind_units: str = "nm"
-        self._ind_max: float = min([t.ind_max for t in self._tunes.values()])
-        self._ind_min: float = max([t.ind_min for t in self._tunes.values()])
 
     def __repr__(self):
         return f"Arrangement({repr(self.name)}, {repr(self.tunes)})"
@@ -81,11 +79,11 @@ class Arrangement:
 
     @property
     def ind_max(self):
-        return self._ind_max
+        return min([t.ind_max for t in self._tunes.values()])
 
     @property
     def ind_min(self):
-        return self._ind_min
+        return max([t.ind_min for t in self._tunes.values()])
 
     @property
     def name(self):

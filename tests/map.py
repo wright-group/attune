@@ -16,6 +16,8 @@ def test_map_ind_points():
         inst1["test_map"]["test"](test_points), inst0["test_map"]["test"](test_points)
     )
     assert len(inst1["test_map"]["test"]) == 25
+    assert inst1["test_map"].ind_min == 1310
+    assert inst1["test_map"].ind_max == 1450
 
 
 def test_map_ind_limits():
