@@ -15,7 +15,7 @@ class Instrument(object):
     def __init__(
         self,
         arrangements: Dict["str", Union[Arrangement, dict]],
-        setables: Dict["str", Union[Setable, dict]],
+        setables: Dict["str", Optional[Union[Setable, dict]]] = None,
         *,
         name: Optional[str] = None,
         transition: Optional[Union[Transition, dict]] = None,
@@ -25,6 +25,8 @@ class Instrument(object):
         self._arrangements: Dict["str", Arrangement] = {
             k: Arrangement(**v) if isinstance(v, dict) else v for k, v in arrangements.items()
         }
+        if setables is None:
+            setables = {}
         self._setables: Dict["str", Setable] = {
             k: Setable(**v) if isinstance(v, dict) else v for k, v in setables.items()
         }
@@ -77,20 +79,20 @@ class Instrument(object):
             raise ValueError("There are multiple valid arrangements! You must specify one.")
         # call arrangement
         setable_positions = {}
+        setables = self._setables.copy()
         todo = [(ind_value, tune) for tune in arrangement.tunes.items()]
         while todo:
             v, t = todo.pop(0)
             tune_name, tune = t
-            if tune_name in self._setables:
-                assert tune_name not in setable_positions
-                setable_positions[tune_name] = tune(v)
-            elif tune_name in self._arrangements:
+            if tune_name in self._arrangements:
                 new = [
                     (tune(v), subtune) for subtune in self._arrangements[tune_name].tunes.items()
                 ]
                 todo += new
             else:
-                raise ValueError(f"Unrecognized name {tune_name}")
+                assert tune_name not in setable_positions
+                setable_positions[tune_name] = tune(v)
+                setables[tune_name] = Setable(tune_name)
         # finish
         note = Note(
             setables=self._setables,
