@@ -4,6 +4,7 @@ import shutil
 import tempfile
 
 import attune
+import numpy as np
 import pytest
 
 here = pathlib.Path(__file__).parent
@@ -46,3 +47,12 @@ def test_load_store():
     instr = attune.load("test")
     with pytest.warns(UserWarning, match="Attempted to store instrument equivalent"):
         attune.store(instr)
+
+
+@temp_store
+def test_store_ndarray():
+    instr = attune.load("test")
+    instr = attune.map_ind_points(instr, "arr", "tune", np.linspace(0.25, 1, 5))
+    # Would raise here because it is trying to serialize the ndarray in metadata
+    # prior to bug fix
+    attune.store(instr)

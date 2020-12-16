@@ -133,4 +133,11 @@ class Instrument(object):
 
     def save(self, file):
         """Save the JSON representation into an open file."""
-        json.dump(self.as_dict(), file)
+
+        class NdarrayEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if hasattr(obj, "tolist"):
+                    return obj.tolist()
+                return json.JSONEncoder.default(self, obj)
+
+        json.dump(self.as_dict(), file, cls=NdarrayEncoder)
