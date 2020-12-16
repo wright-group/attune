@@ -1,9 +1,0 @@
-*.rst
-!modules.rst
-!attune.curve.rst
-!attune.curve.Curve.rst
-!attune.curve.Dependents.rst
-!attune.curve.Setpoints.rst
-!attune.curve.TopasCurve.rst
-!attune.interpolator.rst
-!attune.workup.rst
