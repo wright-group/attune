@@ -31,8 +31,6 @@ class Tune:
         dependent = np.asarray(dependent)
         assert independent.size == dependent.size
         assert independent.ndim == dependent.ndim == 1
-        self._ind_max = max(independent)
-        self._ind_min = min(independent)
         self._ind_units = "nm"
         self._dep_units = dep_units
         self._interp = scipy.interpolate.interp1d(independent, dependent, fill_value="extrapolate")
@@ -79,11 +77,11 @@ class Tune:
 
     @property
     def ind_max(self):
-        return self._ind_max
+        return self.independent.max()
 
     @property
     def ind_min(self):
-        return self._ind_min
+        return self.independent.min()
 
     @property
     def ind_units(self):
