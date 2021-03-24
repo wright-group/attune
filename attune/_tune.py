@@ -42,7 +42,7 @@ class Tune:
 
     def __call__(self, ind_value, *, ind_units=None, dep_units=None):
         if ind_units is not None and self._ind_units is not None:
-            wt.units.convert(ind_value, ind_units, self._ind_units)
+            ind_value = wt.units.convert(ind_value, ind_units, self._ind_units)
         ret = self._interp(ind_value)
         if dep_units is not None and self._dep_units is not None:
             ret = wt.units.convert(ret, self._dep_units, dep_units)

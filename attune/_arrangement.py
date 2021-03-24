@@ -6,10 +6,17 @@ from typing import Dict, Union
 import numpy as np
 
 from ._tune import Tune
+from ._discrete_tune import DiscreteTune
+
+
+def mktune(dict_):
+    if "ranges" in dict_:
+        return DiscreteTune(**dict_)
+    return Tune(**dict_)
 
 
 class Arrangement:
-    def __init__(self, name: str, tunes: Dict[str, Union[Tune, dict]]):
+    def __init__(self, name: str, tunes: Dict[str, Union[DiscreteTune, Tune, dict]]):
         """Arrangement of several Tunes to form one cohesive set.
 
         Tunes may represent either motors or other arrangements, however
@@ -27,8 +34,8 @@ class Arrangement:
             Mapping of names to Tune objects which compose the Arrangement
         """
         self._name: str = name
-        self._tunes: Dict[str, Tune] = {
-            k: Tune(**v) if isinstance(v, dict) else v for k, v in tunes.items()
+        self._tunes: Dict[str, Union[DiscreteTune, Tune]] = {
+            k: mktune(v) if isinstance(v, dict) else v for k, v in tunes.items()
         }
         self._ind_units: str = "nm"
 
@@ -53,7 +60,9 @@ class Arrangement:
 
         Only returns points within range of all tunes.
         """
-        out = np.unique(np.concatenate([t.independent for t in self._tunes.values()], 0))
+        out = np.unique(
+            np.concatenate([t.independent for t in self._tunes.values() if isinstance(t, Tune)], 0)
+        )
         tol = tol = 1e-3 * (self.ind_max - self.ind_min)
         diff = np.append(tol * 2, np.diff(out))
         out = out[diff > tol]
@@ -79,11 +88,11 @@ class Arrangement:
 
     @property
     def ind_max(self):
-        return min([t.ind_max for t in self._tunes.values()])
+        return min([t.ind_max for t in self._tunes.values() if isinstance(t, Tune)])
 
     @property
     def ind_min(self):
-        return max([t.ind_min for t in self._tunes.values()])
+        return max([t.ind_min for t in self._tunes.values() if isinstance(t, Tune)])
 
     @property
     def name(self):
