@@ -6,7 +6,6 @@ import json
 
 def test_fromTopas4():
     testobj=attune.fromTopas4('OpticalDevicesTest.json')
-    #print(testobj)
     assert isinstance(testobj,attune.Instrument)
     return
 

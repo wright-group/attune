@@ -53,7 +53,7 @@ def fromTopas4(Topasfile):
                             c=False
                     
                     tune=Tune(indarr,deparr)
-                    tunes[k]=Dict[k,Union[tune,dict]]
+                    tunes[k]=tune
                         
                 except IndexError:
                     b=False
