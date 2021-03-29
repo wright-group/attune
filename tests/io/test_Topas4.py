@@ -6,10 +6,9 @@ import json
 
 def test_fromTopas4():
     testobj = attune.from_topas4("c:/Users/kamey/work/python/attune/tests/io")
-    
+
     assert isinstance(testobj, attune.Instrument)
     return
-
 
 
 if __name__ == "__main__":
