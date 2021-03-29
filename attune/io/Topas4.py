@@ -4,18 +4,19 @@ from .. import Arrangement
 import json
 import os
 
-file1='OpticalDevices.json'
-file2='Motors.json'
+file1 = "OpticalDevices.json"
+file2 = "Motors.json"
+
 
 def from_topas4(topas4_folder):
     """Convert a LightConversion marked up Topas4 calibration JSON file into an Instrument object.
-    Topas4 Folder must contain at least the following 2 files:  OpticalDevices.json and Motors.json. """
-    f = open(os.path.join(topas4_folder,file1), "r")
+    Topas4 Folder must contain at least the following 2 files:  OpticalDevices.json and Motors.json."""
+    f = open(os.path.join(topas4_folder, file1), "r")
     lines = f.read()
     f.close()
-    
-    g = open(os.path.join(topas4_folder,file2), "r")
-    lines2=g.read()
+
+    g = open(os.path.join(topas4_folder, file2), "r")
+    lines2 = g.read()
     g.close()
 
     jsond = json.loads(lines)
@@ -23,13 +24,12 @@ def from_topas4(topas4_folder):
     instr_name = jsond1["Title"]
     jsond1sub = jsond1["Interactions"]
 
-    jsond2=json.loads(lines2)
-    jsond2sub=jsond2["Motors"]
+    jsond2 = json.loads(lines2)
+    jsond2sub = jsond2["Motors"]
 
-    motorlist= list()
+    motorlist = list()
     for motor in jsond2sub:
         motorlist.append(motor["Title"])
-
 
     arrangements = {}
 
@@ -46,7 +46,7 @@ def from_topas4(topas4_folder):
             deparr = list()
             indarr = list()
 
-            for point in points['Points']:
+            for point in points["Points"]:
                 indarr.append(point.get("Input"))
                 deparr.append(point.get("Output"))
 
@@ -58,5 +58,3 @@ def from_topas4(topas4_folder):
     instr = Instrument(arrangements)
 
     return instr
-
-
