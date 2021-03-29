@@ -1,79 +1,62 @@
 from .. import Instrument
 from .. import Tune
 from .. import Arrangement
-from typing import Dict, Union
 import json
-import numpy as np
+import os
 
+file1='OpticalDevices.json'
+file2='Motors.json'
 
-def fromTopas4(Topasfile):
-    # converts a LightConversion marked up Topas4 calibration JSON file into
-    # an Instrument object
-    f = open(Topasfile, "r")
+def from_topas4(topas4_folder):
+    """Convert a LightConversion marked up Topas4 calibration JSON file into an Instrument object.
+    Topas4 Folder must contain at least the following 2 files:  OpticalDevices.json and Motors.json. """
+    f = open(os.path.join(topas4_folder,file1), "r")
     lines = f.read()
     f.close()
+    
+    g = open(os.path.join(topas4_folder,file2), "r")
+    lines2=g.read()
+    g.close()
+
     jsond = json.loads(lines)
     jsond1 = jsond["Configurations"].pop()["OpticalDevices"].pop()
     instr_name = jsond1["Title"]
-    jsondsub = jsond1["Interactions"]
+    jsond1sub = jsond1["Interactions"]
 
-    a = True
+    jsond2=json.loads(lines2)
+    jsond2sub=jsond2["Motors"]
+
+    motorlist= list()
+    for motor in jsond2sub:
+        motorlist.append(motor["Title"])
+
 
     arrangements = {}
 
-    while a:
+    for jsondsub1 in jsond1sub:
+        arrange_name = jsondsub1.get("Type")
+        motors = jsondsub1.get("MotorPositionCurves")
 
-        try:
-            jsondsub1 = jsondsub.pop()
-            arrange_name = jsondsub1.get("Type")
-            motors = jsondsub1.get("MotorPositionCurves")
+        tunes = {}
 
-            b = True
+        for index in range(len(motors)):
+            k = motorlist[index]
+            points = motors[index]
 
-            tunes = {}
+            deparr = list()
+            indarr = list()
 
-            while b:
-                try:
-                    motor = motors.pop()
-                    k = motor.get("MotorTitle")
-                    points = motor.get("Points")
+            for point in points['Points']:
+                indarr.append(point.get("Input"))
+                deparr.append(point.get("Output"))
 
-                    deparr = np.empty(0, dtype=float)
-                    indarr = np.empty(0, dtype=float)
+            tune = Tune(indarr, deparr)
+            tunes[k] = tune
 
-                    c = True
-                    while c:
-                        try:
-                            point = points.pop()
-                            indarr = np.append(indarr, point.get("Input"))
-                            deparr = np.append(deparr, point.get("Output"))
-
-                        except IndexError:
-                            c = False
-
-                    tune = Tune(indarr, deparr)
-                    tunes[k] = tune
-
-                except IndexError:
-                    b = False
-
-            arrangements[arrange_name] = Arrangement(arrange_name, tunes)
-
-        except IndexError:
-            a = False
+        arrangements[arrange_name] = Arrangement(arrange_name, tunes)
 
     instr = Instrument(arrangements)
 
     return instr
 
 
-"""
-def toTopas4(Instrument):
-    # converts an Instrument object to a LightConversion marked up
-    # Topas4 JSON object, which can then be saved
-    
-    string=json.dumps(Instrument)
-
-    return string
-
-"""
