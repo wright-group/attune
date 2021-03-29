@@ -6,8 +6,11 @@ import attune
 
 def test_construct_simple():
     tune = attune.Tune([0, 1], [0, 1])
-    arr = attune.Arrangement("arr", {"tune": tune})
-    inst = attune.Instrument({"arr": arr}, {"tune": attune.Setable("tune")})
+    discrete_tune = attune.DiscreteTune({"hi": (0.8, 1.0), "lo": (0.1, 0.2)}, default="med")
+    arr = attune.Arrangement("arr", {"tune": tune, "discrete": discrete_tune})
+    inst = attune.Instrument(
+        {"arr": arr}, {"tune": attune.Setable("tune"), "discrete": attune.Setable("discrete")}
+    )
     assert math.isclose(inst(0.5)["tune"], 0.5)
     with tempfile.TemporaryFile("w+t", suffix=".json") as tmp:
         inst.save(tmp)

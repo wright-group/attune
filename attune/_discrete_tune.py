@@ -28,7 +28,7 @@ class DiscreteTune:
         easy to initialize into a DiscreteTune object, but are currently ignored.
         """
         self._ind_units = "nm"
-        self._ranges = ranges
+        self._ranges = {k: tuple(v) for k, v in ranges.items()}
         self._default = default
 
     def __repr__(self):
