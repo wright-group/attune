@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- discrete tunes which map ranges of outputs to string identifiers (suitable e.g. for yaq is-discrete trait implementation)
+
 ## [0.4.1]
 
 ### Changed
