@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.4.2]
+
 ### Added
 - discrete tunes which map ranges of outputs to string identifiers (suitable e.g. for yaq is-discrete trait implementation)
 
@@ -22,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - initial release after a major rewrite
 
-[Unreleased]: https://github.com/wright-group/attune/compare/0.4.1...master
+[Unreleased]: https://github.com/wright-group/attune/compare/0.4.2...master
+[0.4.2]: https://github.com/wright-group/attune/compare/0.4.1...0.4.2
 [0.4.1]: https://github.com/wright-group/attune/compare/0.4.0...0.4.1
 [0.4.0]: https://github.com/wright-group/attune/releases/tag/0.4.0
