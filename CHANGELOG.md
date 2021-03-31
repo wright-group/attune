@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [0.4.1]
 
+### Added
+- from_topas4  and associated test script, for import of Topas4 file format 
+
 ### Changed
 - setables are now fully optional
 
