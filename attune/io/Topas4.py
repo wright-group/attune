@@ -11,20 +11,18 @@ file2 = "Motors.json"
 def from_topas4(topas4_folder):
     """Convert a LightConversion marked up Topas4 calibration JSON file into an Instrument object.
     Topas4 Folder must contain at least the following 2 files:  OpticalDevices.json and Motors.json."""
-    f = open(os.path.join(topas4_folder, file1), "r")
-    lines = f.read()
-    f.close()
+    with open(os.path.join(topas4_folder, file1), "r") as f:
+        jsond=json.load(f)
+       
 
-    g = open(os.path.join(topas4_folder, file2), "r")
-    lines2 = g.read()
-    g.close()
+    with open(os.path.join(topas4_folder, file2), "r") as g:
+        jsond2=json.load(g)
+       
 
-    jsond = json.loads(lines)
     jsond1 = jsond["Configurations"].pop()["OpticalDevices"].pop()
     instr_name = jsond1["Title"]
     jsond1sub = jsond1["Interactions"]
 
-    jsond2 = json.loads(lines2)
     jsond2sub = jsond2["Motors"]
 
     motorlist = list()
