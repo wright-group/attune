@@ -36,7 +36,9 @@ def from_topas4(topas4_folder):
 
         motorlist = list()
         for motor in jsond2sub:
-            motorlist.append(motor["Title"])
+            index=motor["Index"]
+            motorlist[index-1]=motor["Title"]
+            
 
         for jsond1sub3ind in jsond1sub3:
             arrange_name_full = jsond1sub3ind.get("Type")
@@ -57,8 +59,8 @@ def from_topas4(topas4_folder):
                 deparr = list()
                 indarr = list()
                 for inputpoint in inputpoints:
-                    indarr.append(inputpoint.get("Input"))
-                    deparr.append(inputpoint.get("Output"))
+                    indarr.append(inputpoint.get("Output"))
+                    deparr.append(inputpoint.get("Input"))
 
                 tune = Tune(indarr, deparr)
                 tunes[parent] = tune
@@ -67,7 +69,7 @@ def from_topas4(topas4_folder):
             for index in range(len(motors)):
                 points = motors[index]
                 motorindex=points["MotorIndex"]
-                k = motorlist[motorindex]
+                k = motorlist[motorindex-1]
                 deparr = list()
                 indarr = list()
                 for point in points["Points"]:
