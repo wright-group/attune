@@ -42,7 +42,6 @@ def from_topas4(topas4_folder):
             arrange_name_full = jsond1sub3ind.get("Type")
 
             if ">" in arrange_name_full:
-<<<<<<< HEAD
                 arrange_name,parent=arrange_name_full.split(">",maxsplit=1)
             else:
                 arrange_name=arrange_name_full
@@ -54,23 +53,6 @@ def from_topas4(topas4_folder):
             tunes = {}
 
             if parent is not None:
-=======
-                arrange_name, parent = arrange_name_full.split(">", maxsplit=1)
-                point_flag = False
-                input_point_flag = True
-            else:
-                arrange_name = arrange_name_full.split("-", maxsplit=1)[0]
-                parent = arrange_name_full.split("-", maxsplit=1)[-1]
-                point_flag = True
-                input_point_flag = True
-                if arrange_name == parent:
-                    parent = None
-                    input_point_flag = False
-
-            tunes = {}
-
-            if input_point_flag == True:
->>>>>>> fd3c7fc5df102330af85d424546ab28b9de87707
                 inputpoints = jsond1sub3ind.get("InputPoints")
                 deparr = list()
                 indarr = list()
@@ -81,7 +63,6 @@ def from_topas4(topas4_folder):
                 tune = Tune(indarr, deparr)
                 tunes[parent] = tune
 
-<<<<<<< HEAD
             motors = jsond1sub3ind.get("MotorPositionCurves")
             for index in range(len(motors)):
                 points = motors[index]
@@ -95,22 +76,6 @@ def from_topas4(topas4_folder):
 
                 tune = Tune(indarr, deparr)
                 tunes[k] = tune
-=======
-            if point_flag == True:
-                motors = jsond1sub3ind.get("MotorPositionCurves")
-                for index in range(len(motors)):
-                    points = motors[index]
-                    motorindex = points["MotorIndex"]
-                    k = motorlist[motorindex]
-                    deparr = list()
-                    indarr = list()
-                    for point in points["Points"]:
-                        indarr.append(point.get("Input"))
-                        deparr.append(point.get("Output"))
-
-                    tune = Tune(indarr, deparr)
-                    tunes[k] = tune
->>>>>>> fd3c7fc5df102330af85d424546ab28b9de87707
 
             arrangements[arrange_name] = Arrangement(arrange_name, tunes)
 
