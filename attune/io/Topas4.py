@@ -12,44 +12,55 @@ def from_topas4(topas4_folder):
     """Convert a LightConversion marked up Topas4 calibration JSON file into an Instrument object.
     Topas4 Folder must contain at least the following 2 files:  OpticalDevices.json and Motors.json."""
     with open(os.path.join(topas4_folder, file1), "r") as f:
-        jsond = json.load(f)
+        jsond1 = json.load(f)
 
     with open(os.path.join(topas4_folder, file2), "r") as g:
         jsond2 = json.load(g)
 
-    jsond1 = jsond["Configurations"].pop()["OpticalDevices"].pop()
-    instr_name = jsond1["Title"]
-    jsond1sub = jsond1["Interactions"]
+    jsond1actID=jsond1.get("ActiveConfigurationGUID")
+    jsond1sub=jsond1["Configurations"]
+    
+    ind=0
+    for a in range(len(jsond1sub)):
+        if jsond1sub[a]["GUID"]==jsond1actID:
+            ind=a
 
-    jsond2sub = jsond2["Motors"]
-
-    motorlist = list()
-    for motor in jsond2sub:
-        motorlist.append(motor["Title"])
-
+    jsond1sub2 = jsond1sub[ind]["OpticalDevices"]
     arrangements = {}
+    for b in range(len(jsond1sub2)):    
+    
+        jsond1sub3 = jsond1sub2[b]["Interactions"]
 
-    for jsondsub1 in jsond1sub:
-        arrange_name = jsondsub1.get("Type")
-        motors = jsondsub1.get("MotorPositionCurves")
+        jsond2sub = jsond2["Motors"]
 
-        tunes = {}
+        motorlist = list()
+        for motor in jsond2sub:
+            motorlist.append(motor["Title"])
 
-        for index in range(len(motors)):
-            k = motorlist[index]
-            points = motors[index]
+        
 
-            deparr = list()
-            indarr = list()
+        for jsond1sub3ind in jsond1sub3:
+            arrange_name = jsond1sub3ind.get("Type")
+            motors = jsond1sub3ind.get("MotorPositionCurves")
 
-            for point in points["Points"]:
-                indarr.append(point.get("Input"))
-                deparr.append(point.get("Output"))
+            tunes = {}
 
-            tune = Tune(indarr, deparr)
-            tunes[k] = tune
+            for index in range(len(motors)):
+                k = motorlist[index]
+                points = motors[index]
 
-        arrangements[arrange_name] = Arrangement(arrange_name, tunes)
+                deparr = list()
+                indarr = list()
+
+                for point in points["Points"]:
+                    indarr.append(point.get("Input"))
+                    deparr.append(point.get("Output"))
+
+
+                tune = Tune(indarr, deparr)
+                tunes[k] = tune
+
+            arrangements[arrange_name] = Arrangement(arrange_name, tunes)
 
     instr = Instrument(arrangements)
 
