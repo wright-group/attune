@@ -17,18 +17,18 @@ def from_topas4(topas4_folder):
     with open(os.path.join(topas4_folder, file2), "r") as g:
         jsond2 = json.load(g)
 
-    jsond1actID=jsond1.get("ActiveConfigurationGUID")
-    jsond1sub=jsond1["Configurations"]
-    
-    ind=0
+    jsond1actID = jsond1.get("ActiveConfigurationGUID")
+    jsond1sub = jsond1["Configurations"]
+
+    ind = 0
     for a in range(len(jsond1sub)):
-        if jsond1sub[a]["GUID"]==jsond1actID:
-            ind=a
+        if jsond1sub[a]["GUID"] == jsond1actID:
+            ind = a
 
     jsond1sub2 = jsond1sub[ind]["OpticalDevices"]
     arrangements = {}
-    for b in range(len(jsond1sub2)):    
-    
+    for b in range(len(jsond1sub2)):
+
         jsond1sub3 = jsond1sub2[b]["Interactions"]
 
         jsond2sub = jsond2["Motors"]
@@ -36,8 +36,6 @@ def from_topas4(topas4_folder):
         motorlist = list()
         for motor in jsond2sub:
             motorlist.append(motor["Title"])
-
-        
 
         for jsond1sub3ind in jsond1sub3:
             arrange_name = jsond1sub3ind.get("Type")
@@ -55,7 +53,6 @@ def from_topas4(topas4_folder):
                 for point in points["Points"]:
                     indarr.append(point.get("Input"))
                     deparr.append(point.get("Output"))
-
 
                 tune = Tune(indarr, deparr)
                 tunes[k] = tune
