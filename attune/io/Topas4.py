@@ -34,10 +34,10 @@ def from_topas4(topas4_folder):
         jsond1sub3 = jsond1sub2[b]["Interactions"]
         jsond2sub = jsond2["Motors"]
 
-        motorlist = list()
+        motorlist = {}
         for motor in jsond2sub:
             index=motor["Index"]
-            motorlist[index-1]=motor["Title"]
+            motorlist[index]=motor["Title"]
             
 
         for jsond1sub3ind in jsond1sub3:
@@ -68,7 +68,7 @@ def from_topas4(topas4_folder):
             for index in range(len(motors)):
                 points = motors[index]
                 motorindex=points["MotorIndex"]
-                k = motorlist[motorindex-1]
+                k = motorlist[motorindex]
                 deparr = list()
                 indarr = list()
                 for point in points["Points"]:
