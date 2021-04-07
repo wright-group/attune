@@ -36,9 +36,14 @@ def from_topas4(topas4_folder):
 
         motorlist = {}
         for motor in jsond2sub:
+<<<<<<< HEAD
             index=motor["Index"]
             motorlist[index]=motor["Title"]
             
+=======
+            index = motor["Index"]
+            motorlist[index - 1] = motor["Title"]
+>>>>>>> 93b9725e3429828bd3a05fbf1316bbbba9b33d8f
 
         for jsond1sub3ind in jsond1sub3:
             arrange_name_full = jsond1sub3ind.get("Type")
@@ -67,8 +72,13 @@ def from_topas4(topas4_folder):
             motors = jsond1sub3ind.get("MotorPositionCurves")
             for index in range(len(motors)):
                 points = motors[index]
+<<<<<<< HEAD
                 motorindex=points["MotorIndex"]
                 k = motorlist[motorindex]
+=======
+                motorindex = points["MotorIndex"]
+                k = motorlist[motorindex - 1]
+>>>>>>> 93b9725e3429828bd3a05fbf1316bbbba9b33d8f
                 deparr = list()
                 indarr = list()
                 for point in points["Points"]:
