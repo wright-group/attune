@@ -26,11 +26,12 @@ def from_topas4(topas4_folder):
             ind = a
 
     jsond1sub2 = jsond1sub[ind]["OpticalDevices"]
+    
     arrangements = {}
+    
     for b in range(len(jsond1sub2)):
 
         jsond1sub3 = jsond1sub2[b]["Interactions"]
-
         jsond2sub = jsond2["Motors"]
 
         motorlist = list()
@@ -38,26 +39,52 @@ def from_topas4(topas4_folder):
             motorlist.append(motor["Title"])
 
         for jsond1sub3ind in jsond1sub3:
-            arrange_name = jsond1sub3ind.get("Type")
-            motors = jsond1sub3ind.get("MotorPositionCurves")
+            arrange_name_full = jsond1sub3ind.get("Type")
 
+            if ">" in arrange_name_full:
+                arrange_name,parent=arrange_name_full.split(">",maxsplit=1)
+                point_flag=False
+                input_point_flag=True
+            else:
+                arrange_name=arrange_name_full.split("-", maxsplit=1)[0]
+                parent=arrange_name_full.split("-", maxsplit=1)[-1]
+                point_flag=True
+                input_point_flag=True
+                if arrange_name==parent:
+                    parent=None
+                    input_point_flag=False
+                    
             tunes = {}
 
-            for index in range(len(motors)):
-                k = motorlist[index]
-                points = motors[index]
-
+            if input_point_flag==True:
+                inputpoints = jsond1sub3ind.get("InputPoints")
                 deparr = list()
                 indarr = list()
-
-                for point in points["Points"]:
-                    indarr.append(point.get("Input"))
-                    deparr.append(point.get("Output"))
-
+                for inputpoint in inputpoints:
+                    indarr.append(inputpoint.get("Input"))
+                    deparr.append(inputpoint.get("Output"))
+                
                 tune = Tune(indarr, deparr)
-                tunes[k] = tune
+                tunes[parent] = tune
+
+            if point_flag==True:
+                motors = jsond1sub3ind.get("MotorPositionCurves")
+                for index in range(len(motors)):
+                    points = motors[index]
+                    motorindex=points["MotorIndex"]
+                    k = motorlist[motorindex]
+                    deparr = list()
+                    indarr = list()
+                    for point in points["Points"]:
+                        indarr.append(point.get("Input"))
+                        deparr.append(point.get("Output"))
+
+                    tune = Tune(indarr, deparr)
+                    tunes[k] = tune
 
             arrangements[arrange_name] = Arrangement(arrange_name, tunes)
+            
+
 
     instr = Instrument(arrangements)
 
