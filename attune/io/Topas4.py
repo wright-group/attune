@@ -44,14 +44,13 @@ def from_topas4(topas4_folder):
             arrange_name_full = jsond1sub3ind.get("Type")
 
             if ">" in arrange_name_full:
-                arrange_name,parent=arrange_name_full.split(">",maxsplit=1)
+                arrange_name, parent = arrange_name_full.split(">", maxsplit=1)
             else:
-                arrange_name=arrange_name_full
-                parent=arrange_name_full.split("-", maxsplit=1)[-1]
-                if arrange_name==parent:
-                    parent=None
-                    
-                    
+                arrange_name = arrange_name_full
+                parent = arrange_name_full.split("-", maxsplit=1)[-1]
+                if arrange_name == parent:
+                    parent = None
+
             tunes = {}
 
             if parent is not None:
