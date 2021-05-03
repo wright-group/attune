@@ -11,6 +11,7 @@ def test_from_topas4():
     testobj = attune.from_topas4(script_dir)
 
     TOTAL_ARRANGEMENTS = 3
+    TOTAL_MINS_MAXES = 7
     MIN_DEPS_REF = [
         2.230625,
         -2.2662695266462407,
