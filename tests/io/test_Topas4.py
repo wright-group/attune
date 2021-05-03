@@ -53,10 +53,10 @@ def test_from_topas4():
             max_deps.append(tune["dependent"][lentune - 1])
             max_indeps.append(tune["independent"][lentune - 1])
 
-    assert len(min_deps)==TOTAL_MINS_MAXES
-    assert len(min_indeps)==TOTAL_MINS_MAXES
-    assert len(max_deps)==TOTAL_MINS_MAXES
-    assert len(max_indeps)==TOTAL_MINS_MAXES
+    assert len(min_deps) == TOTAL_MINS_MAXES
+    assert len(min_indeps) == TOTAL_MINS_MAXES
+    assert len(max_deps) == TOTAL_MINS_MAXES
+    assert len(max_indeps) == TOTAL_MINS_MAXES
 
     for i in range(len(min_deps)):
         assert min_deps[i] == MIN_DEPS_REF[i]
