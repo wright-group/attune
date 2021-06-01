@@ -90,7 +90,10 @@ class Instrument(object):
                 ]
                 todo += new
             else:
-                assert tune_name not in setable_positions
+                # Since todos are appended for any subarrangement, the top-most (eg idl in idl>sig)
+                # Arrangment should be used, so skip setting if it is defined in inner arrangments
+                if tune_name in setable_positions:
+                    continue
                 setable_positions[tune_name] = tune(v)
                 setables[tune_name] = Setable(tune_name)
         # finish
