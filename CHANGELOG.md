@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- Tune Test does not overwrite discrete tunes and runs instead of failing if they exist
+
 ## [0.4.2]
 
 ### Added

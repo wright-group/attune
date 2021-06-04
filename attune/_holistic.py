@@ -72,6 +72,7 @@ def holistic(
         If a tuple: (amplitudes, centers), then these channels will be used directly.
     tunes: iterable of str
         Names of the tunes to modify in the instrument, in the same order as the axes of `data`.
+        Must not be DiscreteTunes.
     instrument: attune.Instrument
         Instrument object to modify. Setpoints are determined from the instrument.
 

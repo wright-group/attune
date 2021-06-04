@@ -5,6 +5,7 @@ import numpy as np
 
 import WrightTools as wt
 
+from ._discrete_tune import DiscreteTune
 from ._instrument import Instrument
 from ._transition import Transition
 from ._plot import plot_tune_test
@@ -117,12 +118,16 @@ def tune_test(
 
     old_instrument = instrument.as_dict()
     for tune in old_instrument["arrangements"][arrangement]["tunes"].values():
-        print(tune)
+        if "ranges" in tune:
+            # Discrete tune in dict form
+            continue
         tune["independent"] += offset_spline(tune["independent"])
     new_instrument = Instrument(**old_instrument)
 
     if restore_setpoints:
         for tune in new_instrument[arrangement].keys():
+            if isinstance(instrument[arrangement][tune], DiscreteTune):
+                continue
             new_instrument = map_ind_points(
                 new_instrument, arrangement, tune, instrument[arrangement][tune].independent
             )
