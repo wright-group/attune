@@ -32,6 +32,19 @@ class Transition:
         metadata: Optional[Dict[str, Any]] = None,
         data: Optional["wt.Data"] = None,
     ):
+        """Represent one processing step of an instrument.
+
+        Parameters
+        ----------
+        type: TransitionType
+            Indentity of the type of transition
+        previous: Optional["Instrument"]
+            The instrument which was modified in the transition.
+        metadata: Optional[Dict[str, Any]]
+            JSON serializable metadata associated with the transition.
+        data: Optional["wt.Data"]
+            A WrightTools Data object that was used to generate the transition.
+        """
         self.type = type
         self.previous = previous
         if metadata is None:
@@ -43,6 +56,7 @@ class Transition:
         return f"Transition({repr(self.type)}, {repr(self.previous)}, {repr(self.metadata)})"
 
     def as_dict(self) -> Dict[str, Any]:
+        """JSON serializable representation of the transition."""
         return {
             "type": self.type,
             "metadata": self.metadata,

@@ -14,13 +14,30 @@ from ._transition import Transition, TransitionType
 class Instrument(object):
     def __init__(
         self,
-        arrangements: Dict["str", Union[Arrangement, dict]],
-        setables: Dict["str", Optional[Union[Setable, dict]]] = None,
+        arrangements: Dict[str, Union[Arrangement, dict]],
+        setables: Dict[str, Optional[Union[Setable, dict]]] = None,
         *,
         name: Optional[str] = None,
         transition: Optional[Union[Transition, dict]] = None,
         load: Optional[float] = None,
     ):
+        """Representation of a system of arrangements for an instrument.
+
+        Parameters
+        ----------
+        arrangements: Dict[str, Union[Arrangement, dict]
+            Dictionary of arrangements in the instrument
+        setables: Dict[str, Optional[Union[Setable, dict]]]
+            Settable values in the instrument
+        name: Optional[str]
+            The name of the instrument, used to store/retrieve the instrument.
+        transition: Optional[Union[Transition, dict]]
+            The operation which creates this instrument.
+            If not given, will be "create".
+        load: Optional[float]
+            POSIX timestamp of the tune when retrieved from the store.
+            Ignore for instruments not retrieved from the store.
+        """
         self._name: Optional[str] = name
         self._arrangements: Dict["str", Arrangement] = {
             k: Arrangement(**v) if isinstance(v, dict) else v for k, v in arrangements.items()
@@ -115,22 +132,30 @@ class Instrument(object):
 
     @property
     def name(self):
+        """The name of the instrument.
+
+        This is the key that is used to store/retrieve the instrument.
+        """
         return self._name
 
     @property
     def transition(self):
+        """The transition operation that generated this instrument."""
         return self._transition
 
     @property
     def setables(self):
+        """The setables associated with this instrument."""
         return self._setables
 
     @property
     def arrangements(self):
+        """The arrangements associated with this instrument."""
         return self._arrangements
 
     @property
     def load(self):
+        """The POSIX timestamp for when this instrument was created, if it was stored."""
         return self._load
 
     def save(self, file):

@@ -69,24 +69,30 @@ class Tune:
 
     @property
     def independent(self):
+        """The independent (input) values for the tune points."""
         return self._interp.x.astype(float)
 
     @property
     def dependent(self):
+        """The dependent (output) values for the tune points."""
         return self._interp.y.astype(float)
 
     @property
     def ind_max(self):
+        """The maximum independent (input) value for the tune."""
         return self.independent.max()
 
     @property
     def ind_min(self):
+        """The minimum independent (input) value for the tune."""
         return self.independent.min()
 
     @property
     def ind_units(self):
+        """The units of the independent (input) values."""
         return self._ind_units
 
     @property
     def dep_units(self):
+        """The units of the dependent (output) values."""
         return self._dep_units
