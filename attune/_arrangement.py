@@ -71,12 +71,15 @@ class Arrangement:
         return out
 
     def keys(self):
+        """Return the names of the tunes in the arrangment."""
         return self.tunes.keys()
 
     def values(self):
+        """Return the tunes in the arrangment."""
         return self.tunes.values()
 
     def items(self):
+        """Return the names and tunes in the arrangment."""
         return self.tunes.items()
 
     def as_dict(self):
@@ -88,16 +91,20 @@ class Arrangement:
 
     @property
     def ind_max(self):
+        """The maximum independant (input) value for this arrangement."""
         return min([t.ind_max for t in self._tunes.values() if isinstance(t, Tune)])
 
     @property
     def ind_min(self):
+        """The minimum independant (input) value for this arrangement."""
         return max([t.ind_min for t in self._tunes.values() if isinstance(t, Tune)])
 
     @property
     def name(self):
+        """The name of the arrangement."""
         return self._name
 
     @property
     def tunes(self):
+        """The tunes in the arrangement."""
         return self._tunes

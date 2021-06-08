@@ -1,3 +1,5 @@
+"""Internal plotting functions for workup."""
+
 import WrightTools as wt
 import matplotlib.pyplot as plt
 import numpy as np

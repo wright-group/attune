@@ -1,3 +1,5 @@
+"""Tools to interact with the attune store."""
+
 __all__ = ["catalog", "load", "restore", "store", "undo"]
 
 
@@ -14,6 +16,11 @@ from ._open import open as open_
 
 
 def catalog(full=False):
+    """Access a catalog of instruments.
+
+    By default returns a list of keys available.
+    If full is True, loads each instrument as a dictionary of keys to Instrument objects.
+    """
     if "ATTUNE_STORE" in os.environ and os.environ["ATTUNE_STORE"]:
         attune_dir = pathlib.Path(os.environ["ATTUNE_STORE"])
     else:
@@ -25,7 +32,22 @@ def catalog(full=False):
         return instrument_names
 
 
-def load(name, time=None, reverse=True):
+def load(name: str, time=None, reverse: bool = True):
+    """Load an istrument of the given name.
+
+    Parameters
+    ----------
+    name: str
+        The key of the instrument to load
+    time: str, datetime, optional
+        The time for which to load the instrument.
+        Allows loading previous instruments in the catalog.
+        Allows for some natural language descriptions e.g. "5 minutes ago".
+        By default uses the current timestamp.
+    reverse: boolean, optional
+        Direction to search, by default looks for a previous curve.
+        If given as False, looks forward in time from the given timestamp.
+    """
     if isinstance(time, str):
         import maya
 
@@ -89,9 +111,26 @@ def load(name, time=None, reverse=True):
 
 
 def restore(name, time, reverse=True):
+    """Restore a previously applied instrument.
+
+
+    Parameters
+    ----------
+    name: str
+        The key of the instrument to load
+    time: str, datetime
+        The time for which to load the instrument.
+        Allows loading previous instruments in the catalog.
+        Allows for some natural language descriptions e.g. "5 minutes ago".
+        By default uses the current timestamp.
+    reverse: boolean, optional
+        Direction to search, by default looks for a previous curve.
+        If given as False, looks forward in time from the given timestamp.
+    """
     instr = load(name, time, reverse)
     if load(name) == instr:
         warnings.warn("Attempted to restore instrument equivalent to current head, ignoring.")
+        return
     instr._transition = Transition(
         TransitionType.restore, metadata={"time": instr.load.isoformat()}
     )
@@ -99,6 +138,15 @@ def restore(name, time, reverse=True):
 
 
 def store(instrument, warn=True):
+    """Store an instrument into the catalog.
+
+    Parameters
+    ----------
+    instrument: Instrument
+        The instrument to store.
+    warn: bool
+        Whether or not to warn if the store is equivalent to the current head.
+    """
     try:
         if load(instrument.name) == instrument:
             if warn:
@@ -153,6 +201,7 @@ def _store_instr(instrument):
 
 
 def undo(instrument):
+    """Undo one transition."""
     if instrument.load is not None:
         return load(instrument.name, instrument.load - timedelta(milliseconds=1))
     elif instrument.transition.previous is not None:

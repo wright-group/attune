@@ -55,12 +55,15 @@ class DiscreteTune:
 
     @property
     def ranges(self):
+        """The ranges for discrete setpoints."""
         return self._ranges
 
     @property
     def ind_units(self):
+        """The units of the independent (input) values."""
         return self._ind_units
 
     @property
     def default(self):
+        """The value returned if no supplied range applies."""
         return self._default
