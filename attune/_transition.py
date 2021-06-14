@@ -14,6 +14,7 @@ class TransitionType(str, Enum):
     create = "create"
     read = "read"
     restore = "restore"
+    rename = "rename"
     offset_to = "offset_to"
     offset_by = "offset_by"
     map_limits = "map_limits"
