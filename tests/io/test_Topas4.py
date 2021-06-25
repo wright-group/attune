@@ -3,12 +3,14 @@ import attune
 import pytest
 import json
 from pathlib import Path
+from attune import Tune, DiscreteTune
+import numpy as np
 
-script_dir = Path(__file__).parent
+test_dir = Path(__file__).parent / "twin_test_data"
 
 
 def test_from_topas4():
-    testobj = attune.from_topas4(script_dir)
+    instr = attune.from_topas4(test_dir)
 
     TOTAL_ARRANGEMENTS = 3
     TOTAL_MINS_MAXES = 7
@@ -33,26 +35,24 @@ def test_from_topas4():
     ]
     MAX_INDEPS_REF = [2500.0, 2500.0, 2500.0, 2500.0, 5005.9701492537315, 18000.0, 18000.0]
 
-    assert isinstance(testobj, attune.Instrument)
+    arrangements = {"SIG", "IDL", "DFG-SIG"}
 
-    instr = testobj.as_dict()
+    assert isinstance(instr, attune.Instrument)
 
     min_deps = []
     min_indeps = []
     max_deps = []
     max_indeps = []
 
-    length_arrange = len(instr["arrangements"])
-    assert length_arrange == TOTAL_ARRANGEMENTS
+    assert set(instr.arrangements.keys()) == arrangements
 
-    for key in instr["arrangements"]:
-        for tune in instr["arrangements"][key]["tunes"].values():
-            lentune = len(tune["independent"])
-
-            min_deps.append(tune["dependent"][0])
-            min_indeps.append(tune["independent"][0])
-            max_deps.append(tune["dependent"][lentune - 1])
-            max_indeps.append(tune["independent"][lentune - 1])
+    for key in instr.arrangements:
+        for tune in instr.arrangements[key].tunes.values():
+            if isinstance(tune, Tune):
+                min_deps.append(tune.dependent[0])
+                min_indeps.append(tune.independent[0])
+                max_deps.append(tune.dependent[-1])
+                max_indeps.append(tune.independent[-1])
 
     assert len(min_deps) == TOTAL_MINS_MAXES
     assert len(min_indeps) == TOTAL_MINS_MAXES
@@ -60,12 +60,13 @@ def test_from_topas4():
     assert len(max_indeps) == TOTAL_MINS_MAXES
 
     for i in range(len(min_deps)):
-        assert min_deps[i] == MIN_DEPS_REF[i]
-        assert min_indeps[i] == MIN_INDEPS_REF[i]
-        assert max_deps[i] == MAX_DEPS_REF[i]
-        assert max_indeps[i] == MAX_INDEPS_REF[i]
+        assert np.isclose(min_deps[i], MIN_DEPS_REF[i])
+        assert np.isclose(min_indeps[i], MIN_INDEPS_REF[i])
+        assert np.isclose(max_deps[i], MAX_DEPS_REF[i])
+        assert np.isclose(max_indeps[i], MAX_INDEPS_REF[i])
 
-    return
+    assert isinstance(instr["DFG-SIG"]["RP Stage"], DiscreteTune)
+    assert instr(10000)["RP Stage"] == "IN"
 
 
 if __name__ == "__main__":
