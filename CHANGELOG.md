@@ -5,10 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- Tune Test does not overwrite discrete tunes and runs instead of failing if they exist
+
 ## [0.4.2]
 
 ### Added
 - discrete tunes which map ranges of outputs to string identifiers (suitable e.g. for yaq is-discrete trait implementation)
+- Allow tunes to override setables from referenced arrangements (e.g. if idl refers to sig and idl also has setables that are defined in sig, use those defined in idl)
 
 ## [0.4.1]
 

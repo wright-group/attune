@@ -2,7 +2,14 @@ __all__ = ["Setable"]
 
 
 class Setable(object):
-    def __init__(self, name, **kwargs):
+    def __init__(self, name: str, **kwargs):
+        """Setable object representation.
+
+        Parameters
+        ----------
+        name: str
+            The key for this setable
+        """
         self.name = name
 
     def __repr__(self):
@@ -12,6 +19,7 @@ class Setable(object):
         return self.name == other.name
 
     def as_dict(self):
+        """Representation as a JSON encodable dictionary."""
         out = {}
         out["name"] = self.name
         return out
