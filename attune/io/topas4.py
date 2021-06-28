@@ -1,3 +1,5 @@
+__all__ = ["from_topas4"]
+
 import json
 import os
 import re
