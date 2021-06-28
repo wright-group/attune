@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- Reading Topas4 formatted curves (from a directory of JSON files)
+- Setables now have the ability to have defaults, which are added to Notes if not otherwise specified.
+
 ### Fixed
 - Tune Test does not overwrite discrete tunes and runs instead of failing if they exist
 
