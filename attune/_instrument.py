@@ -113,6 +113,9 @@ class Instrument(object):
                     continue
                 setable_positions[tune_name] = tune(v)
                 setables[tune_name] = Setable(tune_name)
+        for setable in self._setables:
+            if setable not in setable_positions and self._setables[setable].default is not None:
+                setable_positions[setable] = self._setables[setable].default
         # finish
         note = Note(
             setables=self._setables,

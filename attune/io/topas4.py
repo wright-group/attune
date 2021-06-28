@@ -5,6 +5,7 @@ import re
 from .. import Arrangement
 from .. import DiscreteTune
 from .. import Instrument
+from .. import Setable
 from .. import Tune
 
 
@@ -39,15 +40,26 @@ def from_topas4(topas4_folder):
             break
 
     arrangements = {}
+    setables = {}
 
     for interaction in opt_dev_active:
-
-        interaction = interaction["Interactions"]
 
         motorlist = {}
         for motor in motors:
             index = motor["Index"]
             motorlist[index] = motor["Title"]
+
+        neutral_positions = interaction["NeutralPositions"]
+        for pos in neutral_positions:
+            index = pos["MotorIndex"]
+            mot_name = motorlist[index]
+            if pos["UseNamedPositionToResolveValue"]:
+                position = pos["NamedPosition"]
+            else:
+                position = pos["Position"]
+            setables[mot_name] = Setable(mot_name, position)
+
+        interaction = interaction["Interactions"]
 
         for independent in interaction:
             arrange_name_full = independent.get("Type")
@@ -109,6 +121,6 @@ def from_topas4(topas4_folder):
             tune = DiscreteTune(pos)
             arrangements[arr]["tunes"][mot_name] = tune
 
-    instr = Instrument(arrangements)
+    instr = Instrument(arrangements, setables)
 
     return instr
