@@ -1,12 +1,11 @@
-from .. import Instrument
-from .. import DiscreteTune
-from .. import Tune
-from .. import Arrangement
 import json
 import os
+import re
 
-file1 = "OpticalDevices.json"
-file2 = "Motors.json"
+from .. import Arrangement
+from .. import DiscreteTune
+from .. import Instrument
+from .. import Tune
 
 
 def from_topas4(topas4_folder):
@@ -89,25 +88,25 @@ def from_topas4(topas4_folder):
 
             arrangements[arrange_name] = Arrangement(arrange_name, tunes).as_dict()
 
-    # This section is not as flexible as the source, I believe...
-    # Currently assumes all the positions are for one arrangement, given in full name
-    # The source file accepts wildcards like `*` or `SH-*` that should be applied to all
-    # matching arrangements, as well as points for a single motor applied to multiple/different
-    # arrangement in the same json section.
-    # However, for the simple example as in the test, this is good enough.
-    # KFS 2021-06-25
+    discrete_tunes = {x: {} for x in arrangements}
     for interaction in sep_dev_active:
         for mot_position in interaction["MotorPositionCurves"]:
             mot_index = mot_position["Index"]
             mot_name = motorlist[mot_index]
-            pos = {
-                x["NamedPosition"]: (x["Input"]["From"], x["Input"]["To"])
-                for x in mot_position["Points"]
-            }
+            for point in mot_position["Points"]:
+                interaction = point["InteractionType"]
+                interaction = interaction.replace("[", "")
+                interaction = interaction.replace("]", "")
+                interaction = interaction.replace("*", ".*")
+                for arr, mots in discrete_tunes.items():
+                    if re.match(interaction, arr):
+                        x = mots.get(mot_name, {})
+                        x[point["NamedPosition"]] = (point["Input"]["From"], point["Input"]["To"])
+                        mots[mot_name] = x
+
+    for arr, mots in discrete_tunes.items():
+        for mot_name, pos in mots.items():
             tune = DiscreteTune(pos)
-
-            arr = mot_position["Points"][0]["InteractionType"]
-
             arrangements[arr]["tunes"][mot_name] = tune
 
     instr = Instrument(arrangements)
