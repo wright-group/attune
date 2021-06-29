@@ -31,7 +31,7 @@ class Note:
         return self.setable_positions[k]
 
     def __repr__(self):
-        return f"Note({self.setables}, {self.setable_positions}, {self.arrangement_name})"
+        return f"Note({self.setables}, {self.setable_positions}, {repr(self.arrangement_name)})"
 
     def items(self):
         """Items in the Note."""

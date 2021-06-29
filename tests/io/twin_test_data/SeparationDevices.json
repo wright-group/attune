@@ -1,0 +1,82 @@
+{
+  "Configurations": [
+    {
+      "SeparationDevices": [
+        {
+          "Index": 0,
+          "MotorPositionCurves": [],
+          "Title": "OPA Separation",
+          "Messengers": [
+            {
+              "Points": [
+                {
+                  "Text": "##Use **DFG Filter** in position **OPEN**\r\n\r\n##Mount wavelength separator **HRs 1350-2040** downwards. Use reflected Signal beam\r\n\r\n##Use Wavelength separator top cover to **block transmitted Idler beam if not in use!**\r\n\r\n##Output polarization - Horizontal",
+                  "Image": "",
+                  "IsCritical": false,
+                  "InteractionType": "SIG",
+                  "Input": {
+                    "From": 1300.0,
+                    "To": 2100.0
+                  }
+                },
+                {
+                  "Text": "##Use **DFG Filter** in position **OPEN**\r\n\r\n##Mount wavelength separator **HRs 1350-2040** downwards and take out top cover of wavelength separator. Use transmitted Idler beam\r\n\r\n##**Block reflected Signal beam if not in use!**\r\n\r\n##Output polarization - Vertical",
+                  "Image": "",
+                  "IsCritical": false,
+                  "InteractionType": "IDL",
+                  "Input": {
+                    "From": 1700.0,
+                    "To": 5000.0
+                  }
+                }
+              ],
+              "Index": 0
+            }
+          ]
+        },
+        {
+          "Index": 1,
+          "MotorPositionCurves": [
+            {
+              "MotorTitle": "",
+              "Points": [
+                {
+                  "Output": 0,
+                  "NamedPosition": "IN",
+                  "InteractionType": "DFG-SIG",
+                  "Input": {
+                    "From": 0.0,
+                    "To": 20000.0
+                  }
+                }
+              ],
+              "Index": 6
+            }
+          ],
+          "Title": "Mixer 1 Separation",
+          "Messengers": [
+            {
+              "Points": [
+                {
+                  "Text": "##Use **DFG Filter** in position **CLOSED**\r\n\r\n##Remove wavelength separator\r\n\r\n##Output polarization - Vertical",
+                  "Image": "",
+                  "IsCritical": false,
+                  "InteractionType": "DFG-SIG",
+                  "Input": {
+                    "From": 4000.0,
+                    "To": 20000.0
+                  }
+                }
+              ],
+              "Index": 0
+            }
+          ]
+        }
+      ],
+      "GUID": "d955fec3-8906-4532-88ce-0d3dd4490055",
+      "Name": "Default",
+      "Description": ""
+    }
+  ],
+  "ActiveConfigurationGUID": "d955fec3-8906-4532-88ce-0d3dd4490055"
+}

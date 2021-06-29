@@ -1,0 +1,16 @@
+{
+  "RootDirectory": "",
+  "Log1DEveryMs": 5000,
+  "IsEnabled": false,
+  "ADCAndTemperature": {
+    "Log1DEveryMs": 0,
+    "IsEnabled": null
+  },
+  "MotorPositions": {
+    "LogSteps": true,
+    "LogUnits": true,
+    "LogSuperUnits": true,
+    "Log1DEveryMs": 0,
+    "IsEnabled": null
+  }
+}
