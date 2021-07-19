@@ -12,6 +12,7 @@ from ._setable import *
 from ._note import *
 from ._offset import *
 from ._open import *
+from ._rename import *
 from ._setpoint import *
 from ._store import *
 from ._tune import *
