@@ -5,9 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.4.3]
+
 ### Added
 - Reading Topas4 formatted curves (from a directory of JSON files)
 - Setables now have the ability to have defaults, which are added to Notes if not otherwise specified.
+- Add transition to rename an Instrument
 
 ### Fixed
 - Tune Test does not overwrite discrete tunes and runs instead of failing if they exist
@@ -35,7 +38,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - initial release after a major rewrite
 
-[Unreleased]: https://github.com/wright-group/attune/compare/0.4.2...master
+[Unreleased]: https://github.com/wright-group/attune/compare/0.4.3...master
+[0.4.3]: https://github.com/wright-group/attune/compare/0.4.2...0.4.3
 [0.4.2]: https://github.com/wright-group/attune/compare/0.4.1...0.4.2
 [0.4.1]: https://github.com/wright-group/attune/compare/0.4.0...0.4.1
 [0.4.0]: https://github.com/wright-group/attune/releases/tag/0.4.0
