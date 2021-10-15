@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- Units on attune.intensity are set according to the axis they are referencing
+
 ## [0.4.3]
 
 ### Added
