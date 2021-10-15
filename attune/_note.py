@@ -39,7 +39,6 @@ class Note:
 
     def keys(self):
         """Settable keys in the Note."""
-        return self.setable_positions.items()
         return self.setable_positions.keys()
 
     def values(self):

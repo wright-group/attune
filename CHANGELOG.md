@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- Resolve some issues discovered by CodeQL which could result in unexpected behavior
+
 ## [0.4.3]
 
 ### Added
