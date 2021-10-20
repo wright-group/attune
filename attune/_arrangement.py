@@ -63,7 +63,7 @@ class Arrangement:
         out = np.unique(
             np.concatenate([t.independent for t in self._tunes.values() if isinstance(t, Tune)], 0)
         )
-        tol = tol = 1e-3 * (self.ind_max - self.ind_min)
+        tol = 1e-3 * (self.ind_max - self.ind_min)
         diff = np.append(tol * 2, np.diff(out))
         out = out[diff > tol]
         out = out[out <= self.ind_max]
