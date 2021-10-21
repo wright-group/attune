@@ -31,6 +31,8 @@ def from_topas4(topas4_folder):
         if a["GUID"] == opt_dev_active_guid:
             opt_dev_active = a["OpticalDevices"]
             break
+    else:
+        raise ValueError("Active optical device GUID not found")
 
     sep_dev_active_guid = sep_dev.get("ActiveConfigurationGUID")
     sep_dev_conf = sep_dev["Configurations"]
@@ -40,6 +42,8 @@ def from_topas4(topas4_folder):
         if a["GUID"] == sep_dev_active_guid:
             sep_dev_active = a["SeparationDevices"]
             break
+    else:
+        raise ValueError("Active separation device GUID not found")
 
     arrangements = {}
     setables = {}
