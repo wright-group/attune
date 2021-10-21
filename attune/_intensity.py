@@ -131,6 +131,13 @@ def intensity(
         units = None
 
     if instrument is not None:
+        # Note, assumes units can be converted here... which I hope so
+        if units is not None:
+            offsets = wt.units.convert(
+                offsets,
+                units,
+                old_instrument["arrangements"][arrangement]["tunes"][tune]["dep_units"],
+            )
         old_instrument["arrangements"][arrangement]["tunes"][tune]["independent"] = setpoints
         old_instrument["arrangements"][arrangement]["tunes"][tune]["dependent"] += offsets
         try:
@@ -139,7 +146,7 @@ def intensity(
             pass
         new_instrument = Instrument(**old_instrument, transition=transition)
     else:
-        arr = Arrangement(arrangement, {tune: Tune(setpoints, offsets)})
+        arr = Arrangement(arrangement, {tune: Tune(setpoints, offsets, dep_units=units)})
         new_instrument = Instrument(
             {arrangement: arr}, {tune: Setable(tune)}, transition=transition
         )
