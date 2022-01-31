@@ -43,7 +43,7 @@ def plot_intensity(
     ax.plot(new_tune.independent, ypoints, **instrument_plot_kwargs)
     ax.axhline(0, **prior_instrument_plot_kwargs)
     wt.artists.plot_gridlines()
-    ax.set_ylabel(fr"$\mathsf{{\Delta {tune}}}$")
+    ax.set_ylabel(rf"$\mathsf{{\Delta {tune}}}$")
     ax.set_xlabel(data.axes[0].label)
     ax.set_xlim(instrument[arrangement].ind_min, instrument[arrangement].ind_max)
 
@@ -103,7 +103,7 @@ def plot_setpoint(
     ax.plot(instrument[arrangement][tune].independent, ypoints, **instrument_plot_kwargs)
     ax.axhline(0, **prior_instrument_plot_kwargs)
     wt.artists.plot_gridlines()
-    ax.set_ylabel(fr"$\mathsf{{\Delta {tune}}}$")
+    ax.set_ylabel(rf"$\mathsf{{\Delta {tune}}}$")
     ax.set_xlabel(data.axes[0].label)
     ax.set_xlim(instrument[arrangement].ind_min, instrument[arrangement].ind_max)
 
@@ -135,7 +135,7 @@ def plot_tune_test(data, channel, used_offsets, raw_offsets=None):
     ax.grid()
 
     ax.set_xlabel(data.axes[0].label)
-    ax.set_ylabel(fr"$\mathsf{{\Delta}}$ {data.axes[0].label}")
+    ax.set_ylabel(rf"$\mathsf{{\Delta}}$ {data.axes[0].label}")
 
     # colorbar
     cax = plt.subplot(gs[:, -1])
