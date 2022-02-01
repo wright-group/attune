@@ -226,4 +226,4 @@ def _fit_gauss(x, y):
 
 
 def _gauss(center, sigma, amplitude):
-    return lambda x: amplitude * np.exp(-1 / 2 * (x - center) ** 2 / sigma ** 2)
+    return lambda x: amplitude * np.exp(-1 / 2 * (x - center) ** 2 / sigma**2)
