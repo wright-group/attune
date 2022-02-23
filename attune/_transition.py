@@ -23,6 +23,7 @@ class TransitionType(str, Enum):
     intensity = "intensity"
     setpoint = "setpoint"
     holistic = "holistic"
+    update_merge = "update_merge"
 
 
 class Transition:

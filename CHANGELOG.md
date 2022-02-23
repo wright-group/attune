@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Units on attune.intensity are set according to the axis they are referencing
 - Resolve some issues discovered by CodeQL which could result in unexpected behavior
 
+### Added
+- `update_merge` function which allows applying tunes from one instrument into an existing instrument.
+
 ## [0.4.3]
 
 ### Added
