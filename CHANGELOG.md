@@ -5,9 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.4.4]
+
 ### Fixed
 - Units on attune.intensity are set according to the axis they are referencing
 - Resolve some issues discovered by CodeQL which could result in unexpected behavior
+
+### Added
+- `update_merge` function which allows applying tunes from one instrument into an existing instrument.
 
 ## [0.4.3]
 
@@ -42,7 +47,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - initial release after a major rewrite
 
-[Unreleased]: https://github.com/wright-group/attune/compare/0.4.3...master
+[Unreleased]: https://github.com/wright-group/attune/compare/0.4.4...master
+[0.4.4]: https://github.com/wright-group/attune/compare/0.4.3...0.4.4
 [0.4.3]: https://github.com/wright-group/attune/compare/0.4.2...0.4.3
 [0.4.2]: https://github.com/wright-group/attune/compare/0.4.1...0.4.2
 [0.4.1]: https://github.com/wright-group/attune/compare/0.4.0...0.4.1
