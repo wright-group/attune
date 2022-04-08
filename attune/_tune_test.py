@@ -42,7 +42,7 @@ def tune_test(
     autosave=True,
     save_directory=None,
     **spline_kwargs,
-):
+) -> Instrument:
     """Workup a Tune Test.
 
     Parameters
@@ -74,6 +74,24 @@ def tune_test(
     -------
     attune.Instrument
         New instrument object.
+
+    Example
+    -------
+    ```
+    >>> d = wt.open(path_to_data_file)
+    >>> d.transform("w3_points", "wm-w3")
+    >>> instr2 = attune.tune_test(
+            data=d,
+            channel="sample",
+            arrangement="df1",
+            instrument=instr, 
+            gtol=.0002,
+            ltol=.01,
+            autosave=False,
+            save_directory=folder
+        )
+    ```
+    
     """
     metadata = {
         "channel": channel,
