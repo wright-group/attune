@@ -84,14 +84,14 @@ def tune_test(
             data=d,
             channel="sample",
             arrangement="df1",
-            instrument=instr, 
+            instrument=instr,
             gtol=.0002,
             ltol=.01,
             autosave=False,
             save_directory=folder
         )
     ```
-    
+
     """
     metadata = {
         "channel": channel,
