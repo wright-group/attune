@@ -89,6 +89,13 @@ class Arrangement:
         out["tunes"] = {k: v.as_dict() for k, v in self._tunes.items()}
         return out
 
+    def plot(self):
+        nplots = len(self.tunes)
+        for i, ti in enumerate(self.tunes.values()):
+            plt.subplot(1, nplots, i + 1)
+            plt.scatter(ti.independent, ti.dependent)
+            plt.grid()
+
     @property
     def ind_max(self):
         """The maximum independant (input) value for this arrangement."""

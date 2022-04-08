@@ -164,6 +164,12 @@ class Instrument(object):
         """The POSIX timestamp for when this instrument was created, if it was stored."""
         return self._load
 
+    def plot(self, arrangement=None):
+        arrangements = self.arrangments if arrangement is None else arrangement
+        for ar in arrangements:
+            plt.figure()
+            ar.plot()
+
     def save(self, file):
         """Save the JSON representation into an open file."""
 
