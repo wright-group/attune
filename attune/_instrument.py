@@ -3,6 +3,7 @@ __all__ = ["Instrument"]
 
 from datetime import datetime as _datetime
 from typing import Dict, Optional, Union
+import matplotlib.pyplot as plt
 import json
 
 from ._arrangement import Arrangement
@@ -165,8 +166,8 @@ class Instrument(object):
         return self._load
 
     def plot(self, arrangement=None):
-        arrangements = self.arrangments if arrangement is None else arrangement
-        for ar in arrangements:
+        arrangements = self.arrangements if arrangement is None else arrangement
+        for ar in arrangements.values():
             plt.figure()
             ar.plot()
 
