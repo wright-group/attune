@@ -3,7 +3,7 @@ __all__ = ["DiscreteTune"]
 from typing import Dict, Tuple, Optional
 
 import WrightTools as wt
-
+import numpy as np
 
 class DiscreteTune:
     def __init__(
