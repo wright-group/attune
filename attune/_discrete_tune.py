@@ -5,6 +5,7 @@ from typing import Dict, Tuple, Optional
 import WrightTools as wt
 import numpy as np
 
+
 class DiscreteTune:
     def __init__(
         self, ranges: Dict[str, Tuple[float, float]], default: Optional[str] = None, **kwargs
