@@ -35,16 +35,35 @@ class DiscreteTune:
     def __repr__(self):
         return f"DiscreteTune({repr(self.ranges)}, {repr(self.default)})"
 
-    def __call__(self, ind_value, *, ind_units=None, dep_units=None):
+    def __call__(self, ind_value, *, ind_units=None):
+        """ Evaluate the DiscreteTune at specific independent value(s).
+
+        Paramters
+        ---------
+        ind_val: float-like or ndarray
+            The value or values at which to evaluate the DiscreteTune.
+        ind_units: Optional[str]
+            Units of the independent variable.  Default is "nm".
+
+        Returns
+        -------
+        key: str or ndarray
+            The string identifier for the independent value.
+            For an array of ind_val, an array of identifiers is given.
+
+        """
         if ind_units is not None and self._ind_units is not None:
             ind_value = wt.units.convert(ind_value, ind_units, self._ind_units)
-        for key, (min, max) in self.ranges.items():
-            if isinstance(ind_value, np.ndarray):
-                if (min <= ind_value).all() and (ind_value <= max).all():
+        if isinstance(ind_value, np.ndarray):
+            out = np.full(ind_value.shape, dtype=str, default_value=self.default)
+            for key, (min, max) in self.ranges.items():
+                out[(out >= min) & (out <= max)] = key
+            return out
+        else:
+            for key, (min, max) in self.ranges.items():
+                if min <= ind_value <= max:
                     return key
-            elif min <= ind_value <= max:
-                return key
-        return self.default
+            return self.default
 
     def __eq__(self, other):
         return self.ranges == other.ranges and self.default == other.default
