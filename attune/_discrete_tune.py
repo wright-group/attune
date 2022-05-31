@@ -36,7 +36,7 @@ class DiscreteTune:
         return f"DiscreteTune({repr(self.ranges)}, {repr(self.default)})"
 
     def __call__(self, ind_value, *, ind_units=None):
-        """ Evaluate the DiscreteTune at specific independent value(s).
+        """Evaluate the DiscreteTune at specific independent value(s).
 
         Paramters
         ---------
