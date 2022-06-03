@@ -28,7 +28,7 @@ class Instrument(object):
         arrangements: Dict[str, Union[Arrangement, dict]
             Dictionary of arrangements in the instrument
         setables: Dict[str, Optional[Union[Setable, dict]]]
-            Settable values in the instrument
+            Default values for the instrument. You can usually ignore this.
         name: Optional[str]
             The name of the instrument, used to store/retrieve the instrument.
         transition: Optional[Union[Transition, dict]]
