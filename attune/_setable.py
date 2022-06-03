@@ -15,9 +15,9 @@ class Setable:
     default: str or float (optional)
         The default value for this independent variable.  Defaults to None (no default).
     """
+
     name: str
     default: Optional[Union[str, float]] = None
 
     def as_dict(self):
         return asdict(self)
-
