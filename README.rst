@@ -17,7 +17,7 @@ attune has three primary jobs:
 
     * Tune : a map of OPA color (the "independent") to positions of a single motor (the "dependent").  
         ```
-        my_tune = attune.Tune("bbo_crystal", independent=[450, 600, 700], dependent=[3.225, 2.332, 1.987])
+        my_tune = attune.Tune(independent=[450, 600, 700], dependent=[3.225, 2.332, 1.987])  # relate color to bbo angle
         ```
 
     * Arrangement = a collection of Tunes that define a concerted process (e.g. move both `crystal1` position and `delay1` position get idler optical parametric amplification)
