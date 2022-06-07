@@ -20,12 +20,12 @@ attune has three primary jobs:
         my_tune = attune.Tune(independent=[450, 600, 700], dependent=[3.225, 2.332, 1.987])  # relate color to bbo angle
         ```
 
-    * Arrangement = a collection of Tunes that define a concerted process (e.g. move both `crystal1` position and `delay1` position get idler optical parametric amplification)
+    * Arrangement : a collection of Tunes that define a concerted process (e.g. to generate idler photones, one might move several motors (`bbo`, `g1`, etc.))
         ```
         idler = attune.Arrangement("idler", dict(bbo=my_tune, g1=my_other_tune))
         ```
 
-    * Instrument : a collection of Arrangements (e.g. an OPA may have signal and idler, and second harmonic of signal)
+    * Instrument : a collection of Arrangements (e.g. an OPA may have signal and idler)
         ```
         my_opa = attune.Instrument({"idler": idler, "signal": signal}, name="opa1")
         ```
@@ -39,9 +39,9 @@ attune has three primary jobs:
     * lookup a saved instrument (by name)
         ```
         attune.catalog()  # lists all saved instruments
-        my_opa = attune.load("my_opa")  # fetches the most recent version of the instrument
+        my_opa = attune.load("opa1")  # fetches the most recent version of the instrument
         my_previous_opa = attune.undo(my_opa) # fetches the previous version of the instrument
-        my_old_opa = attune.load("my_opa", time="yesterday")  # optional kwarg specifies the version by time of usage    
+        my_old_opa = attune.load("opa1", time="yesterday")  # optional kwarg specifies the version by time of usage    
         ```
 
 
