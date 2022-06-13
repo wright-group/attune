@@ -22,7 +22,6 @@ with open(os.path.join(here, "attune", "VERSION")) as version_file:
 
 # --- setup function -----------------------------------------------------------------------------
 
-# TODO: key for interpreting markdown
 setup(
     name="attune",
     packages=find_packages(exclude=("tests", "tests.*")),
