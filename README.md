@@ -1,13 +1,12 @@
 attune
 ------
 
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-    :target: https://github.com/psf/black
+[![image](https://img.shields.io/badge/code%20style-black-000000.svg)(https://github.com/psf/black)]
 
 Tools for tuning optical parametric amplifiers and multidimensional spectrometers.
 
-TL;DR
------
+Overview
+--------
 
 attune has three primary jobs:
 
