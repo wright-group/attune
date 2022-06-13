@@ -1,22 +1,38 @@
-attune
-------
+# attune
 
 [![image](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 Tools for tuning optical parametric amplifiers and multidimensional spectrometers.
 
-Overview
---------
+# Overview
 
-attune has three primary jobs:
+`attune` has three primary jobs:
 
 1.  attune parses calibration data to find optimal motor positions
+    ```
+    # data has scans of a motor position ("OPA1_SHS_crystal") against a signal
+    # ("signal") for a set of second harmonic signal color setpoints
+    # ("opa_color")
+    calibration_data = wt.open(path_to_data.wt5)
+    calibration_data.transform("opa_color", "motor")
+    args = {
+        "data": calibration_data,
+        "channel": "signal",
+        "arrangement": "SHS",
+        "tune": "SHS_crystal",
+        "instrument": "OPA1",
+    }
+    tuned_opa1 = attune.intensity(**args)
+    ```
 
-2.  attune organizes optimal motor positions.  The motor positions are stored in a hierarchy of mappings.  Beginning at the lowest level:
+2.  `attune` organizes optimal motor positions.  The motor positions are stored in a hierarchy of mappings.  Beginning at the lowest level:
 
     * Tune : a map of OPA color (the "independent") to positions of a single motor (the "dependent").  
         ```
-        my_tune = attune.Tune(independent=[450, 600, 700], dependent=[3.225, 2.332, 1.987])  # relate color to bbo angle
+        my_tune = attune.Tune(
+            independent=[450, 600, 700],
+            dependent=[3.225, 2.332, 1.987]
+        )  # relate color to bbo angle
         ```
 
     * Arrangement : a collection of Tunes that define a concerted process (e.g. to generate idler photons, one might move several motors (`bbo`, `g1`, etc.))
@@ -37,7 +53,7 @@ attune has three primary jobs:
         )) 
         ```
 
-3. attune stores motor mappings and remembers them through version tracking. 
+3. `attune` stores motor mappings and remembers them through version tracking. 
     * save a new instrument (or update an existing one)
         ```
         attune.store(my_opa)
@@ -52,7 +68,10 @@ attune has three primary jobs:
         ```
 
 
-Notes
------
+## Notes
 
-For integration with `yaqd-attune`, use units of nanometers for colors.
+* `attune` uses default units of nanometers ("nm") for its independent variables.
+    _At this time, units cannot be changed, so alternate units must be handled externally_ (PRs are welcome!).
+    WrightTools calibration data is automatically converted into "nm" units for parsing.
+
+
