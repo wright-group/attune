@@ -28,7 +28,7 @@ class Instrument(object):
         arrangements: Dict[str, Union[Arrangement, dict]
             Dictionary of arrangements in the instrument
         setables: Dict[str, Optional[Union[Setable, dict]]]
-            Default values for the instrument. Can be ignored unless you 
+            Default values for the instrument. Can be ignored unless you
             require your instrument to have default positions.
         name: Optional[str]
             The name of the instrument, used to store/retrieve the instrument.
