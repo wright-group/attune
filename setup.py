@@ -22,7 +22,7 @@ with open(os.path.join(here, "attune", "VERSION")) as version_file:
 
 # --- setup function -----------------------------------------------------------------------------
 
-
+# TODO: key for interpreting markdown
 setup(
     name="attune",
     packages=find_packages(exclude=("tests", "tests.*")),
@@ -43,7 +43,7 @@ setup(
     },
     version=version,
     description="Tools for tuning optical parametric amplifiers and multidimensional spectrometers.",
-    long_description=read("README.rst"),
+    long_description=read("README.md"),
     author="Blaise Thompson",
     author_email="blaise@untzag.com",
     license="MIT",

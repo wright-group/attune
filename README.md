@@ -20,7 +20,7 @@ attune has three primary jobs:
         my_tune = attune.Tune(independent=[450, 600, 700], dependent=[3.225, 2.332, 1.987])  # relate color to bbo angle
         ```
 
-    * Arrangement : a collection of Tunes that define a concerted process (e.g. to generate idler photones, one might move several motors (`bbo`, `g1`, etc.))
+    * Arrangement : a collection of Tunes that define a concerted process (e.g. to generate idler photons, one might move several motors (`bbo`, `g1`, etc.))
         ```
         idler = attune.Arrangement("idler", dict(bbo=my_tune, g1=my_other_tune))
         ```
@@ -28,6 +28,14 @@ attune has three primary jobs:
     * Instrument : a collection of Arrangements (e.g. an OPA may have signal and idler)
         ```
         my_opa = attune.Instrument({"idler": idler, "signal": signal}, name="opa1")
+        ```
+
+        Note: arrangements can be called as tunables if they exist in the same instrument.  This can allow nested naming
+        ```
+        shi = attune.Arrangement(Dict(
+            idler = Tune(shi_colors, idler_colors), 
+            sh_crystal = Tune(shi_colors, angles)
+        )) 
         ```
 
 3. attune stores motor mappings and remembers them through version tracking. 
