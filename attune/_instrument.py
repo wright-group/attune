@@ -28,12 +28,15 @@ class Instrument(object):
         arrangements: Dict[str, Union[Arrangement, dict]
             Dictionary of arrangements in the instrument
         setables: Dict[str, Optional[Union[Setable, dict]]]
-            Settable values in the instrument
+            Default values for the instrument. Can be ignored unless you
+            require your instrument to have default positions.
         name: Optional[str]
             The name of the instrument, used to store/retrieve the instrument.
         transition: Optional[Union[Transition, dict]]
             The operation which creates this instrument.
-            If not given, will be "create".
+            transitions are concise records for instrument changes.
+            If not given, a blank Transition (TransitionType "create") will be
+            made.
         load: Optional[float]
             POSIX timestamp of the tune when retrieved from the store.
             Ignore for instruments not retrieved from the store.
