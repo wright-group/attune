@@ -28,6 +28,10 @@ Contents
 
    install
    contributing
+   structure
+   store
+   transitions
+   tuning
    api/modules
    auto_examples/index
 
