@@ -1,3 +1,5 @@
+.. _store:
+
 The Attune Store
 ================
 

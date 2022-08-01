@@ -1,5 +1,7 @@
-Tuning
-======
+.. _`tuning transitions`:
+
+Tuning Transitions
+==================
 
 tune_test
 ---------
