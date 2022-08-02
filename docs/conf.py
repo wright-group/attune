@@ -287,4 +287,5 @@ intersphinx_mapping = {
     "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),
     "matplotlib": ("http://matplotlib.org", None),
     "numpy": ("https://docs.scipy.org/doc/numpy/", None),
+    "WrightTools": ("https://wright.tools/en/stable", None),
 }
