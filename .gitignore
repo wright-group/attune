@@ -35,6 +35,7 @@ flycheck_*.el
 *.gif
 *.png
 !logo/logo.png
+!docs/imgs/*.png
 *.svg
 *.ico
 

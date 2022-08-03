@@ -71,7 +71,17 @@ OPAs with longer pulse durations often can get by with simpler optimization rout
 
 :meth:`~attune.tune_test` accepts one additional parameter ``restore_setpoints`` which prevents the tune points from being interpolated back if it is set to ``False``.
 
-.. TODO add example and image.
+.. code-block:: python
+
+   data.transform("w3", "wm-w3")
+   out = attune.tune_test(
+       data=data,
+       channel="signal_mean",
+       arrangement="sfs",
+       instrument=instr,
+   )
+
+.. image:: imgs/tune_test.png
 
 The optimal tune test plot is flat at 0 deviation from expected color.
 
@@ -86,7 +96,18 @@ Any tunes other than the one specified as a parameter are ignored and kept the s
 This method of tuning is usually sufficient for OPAs in the picosecond regime, where pulse widths allow each motor to be tuned independently.
 It is also used for later motors in femtosecond tuning procedures such as the ``delay_2`` motor of a Light Conversion TOPAS-C OPA or any additional mixing process after signal and idler have been generated.
 
-.. TODO add example and image.
+.. code-block:: python
+
+   data.transform("w1=wm", "w1_Delay_2_points")
+   new = attune.intensity(
+        data=data,
+        channel=-1,
+        arrangement="sig",
+        tune="d2",
+        instrument=old,
+    )
+
+.. image:: imgs/intensity.png
 
 In the plot, the optimal position of the motor would be to follow the ridge of the most intense peak.
 
@@ -108,7 +129,26 @@ The data must be transformed to (setpoint, differential_motor_position)
 The channel must be pre-processed to contain the color information, rather than intensity information.
 This is usually done by taking the :meth:`WrightTools.data.Data.moment` with ``moment=1`` along the spectral axis of the scan.
 
-.. TODO add example and image.
+.. code-block:: python
+
+   data.transform("w1=wm", "w1_Crystal_2_points", "wa-w1")
+   data.level(0, 2, 5)
+   data.array_signal.clip(min=0)
+   data.transform("w1=wm", "w1_Crystal_2_points", "wa")
+   data.moment("wa", moment=1, resultant=wt.kit.joint_shape(data.w1, data.w1_Crystal_2))
+   data.transform("w1=wm", "w1_Crystal_2_points")
+   data.channels[-1].clip(min=data.w1.min() - 1000, max=data.w1.max() + 1000)
+   data.channels[-1].null = data.wa.min()
+
+   out = attune.setpoint(
+       data=data,
+       channel=-1,
+       arrangement="sig",
+       tune="c2",
+       instrument=instr,
+   )
+
+.. image:: imgs/setpoint.png
 
 In the graph, the color represents deviation from the expected color and pure white is the optimal motor position.
 
@@ -136,8 +176,20 @@ It then splines each motor against the input color, and replaces the tunes in th
 
 In principle, this algorithm generalizes to an arbitrary number of dimensions, however the plotting step in particular only works for 2 dimensional data.
 
+.. code-block:: python
 
-.. TODO add example and image.
+   data.transform("w1_Crystal_1", "w1_Delay_1", "wa")
+   out = attune.holistic(
+       data=data,
+       channels="array_signal",
+       arrangement="NON-NON-NON-Sig",
+       tunes=["c1", "d1"],
+       instrument=instr,
+       gtol=0.05,
+       level=True,
+   )
+
+.. image:: imgs/holistic.png
 
 The axes of both plots are in 2D motor-space.
 The top plot is an intensity plot with contours of constant color overlaid.
