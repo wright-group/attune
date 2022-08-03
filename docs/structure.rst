@@ -16,6 +16,10 @@ By default a :class:`~attune.Tune` maps an input to a motor position or :class:`
 This behavior allows the tuning curve for OPA mixing processes (such as Second Harmonic of Signal) to be built by adding one (or more) additional :class:`~attune.Setable` to an existing Signal :class:`~attune.Arrangement`.
 Parent :class:`~attune.Arrangement` s may override the position of :class:`~attune.Setable` s in the child arrangement.
 
+These data structures are treated as "immutable" objects. This means that once created the values and the relationships of the objects are not changed.
+Instead, we have a system of :ref:`transitions` which provide *new*, updated :class:`~attune.Instrument` instances.
+This allows the context of how instruments were created to be preserved.
+
 
 Setable
 -------
