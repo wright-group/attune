@@ -18,24 +18,6 @@ In order to use store, the instrument must have a name.
 
 If transitions have been applied in memory, the whole chain will be stored with a single call.
 
-
-Listing available instruments
------------------------------
-
-A list of available instrument histories can be obtained using :meth:`attune.catalog`.
-
-.. code-block:: python
-
-   attune.catalog()
-
-By default, this provides a simple list of string names of instruments.
-
-If you pass the argument :code:`full` as :code:`True`, then :meth:`attune.catalog` will instead return a dictionary of names to loaded :class:`~attune.Instrument` objects.
-
-.. code-block:: python
-
-   attune.catalog(True)
-
 Retrieving an instrument
 ------------------------
 
@@ -61,6 +43,24 @@ Similarly if you want to find the *next* instrument object from a certain date, 
    attune.load("instr", "3 days ago", False) # Load the next instrument created after "3 days ago"
 
 
+Listing available instruments
+-----------------------------
+
+A list of available instrument histories can be obtained using :meth:`attune.catalog`.
+
+.. code-block:: python
+
+   attune.catalog()
+
+By default, this provides a simple list of string names of instruments.
+
+If you pass the argument :code:`full` as :code:`True`, then :meth:`attune.catalog` will instead return a dictionary of names to loaded :class:`~attune.Instrument` objects.
+
+.. code-block:: python
+
+   attune.catalog(True)
+
+
 Instrument history
 ------------------
 
@@ -84,7 +84,7 @@ undo
 
 :meth:`attune.undo` provides the instrument from prior to the latest transition.
 If the transitions have occurred in memory (i.e. not stored to the Attune Store) then it simply provides the previous instrument object directly.
-If instead the Instrument was loaded, it retrieves the instrument from 1 millisecond prior to the current instrument (the resolution of the Attune Store) and loads it from disk.
+If instead the Instrument was loaded from the attune store, it retrieves the instrument that was stored just before itself from the attune store.
 
 .. code-block:: python
 
