@@ -43,7 +43,7 @@ Contributing
 
         $ # Create the branch, including remote
         $ git branch <your branch> --set-upstream-to origin origin/<your branch>  
-        $ git checkout <your branch> # Switch to the newly created branch
+        $ git switch <your branch> # Switch to the newly created branch
 
 #. run all tests to ensure that nothing is broken right off the start
 
