@@ -2,7 +2,9 @@
 
 [![image](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-Tools for tuning optical parametric amplifiers and multidimensional spectrometers.
+Tools for tuning optical parametric amplifiers and multidimensional spectrometers. 
+
+Documentation is available at <https://attune.wright.tools/en/latest/>.
 
 # Overview
 
