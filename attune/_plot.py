@@ -91,7 +91,7 @@ def plot_setpoint(
     if prior_instrument:
         ypoints = (
             instrument[arrangement][tune].dependent
-            - prior_instrument(instrument[arrangement][tune].independent)[tune]
+            - prior_instrument(instrument[arrangement][tune].independent, arrangement)[tune]
         )
     else:
         ypoints = instrument[arrangement][tune].dependent
