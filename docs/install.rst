@@ -4,7 +4,7 @@
 Installation
 ============
 
-``attune`` requires Python 3.6 or newer.
+``attune`` requires Python 3.7 or newer.
 
 conda-forge
 -----------

@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Fixed
 - Fixed bug where `DiscreteTune`s returned only one value when called (regardless of input shape) 
 
+### Added
+- more documentation
+
 ## [0.4.4]
 
 ### Fixed

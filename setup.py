@@ -22,12 +22,11 @@ with open(os.path.join(here, "attune", "VERSION")) as version_file:
 
 # --- setup function -----------------------------------------------------------------------------
 
-
 setup(
     name="attune",
     packages=find_packages(exclude=("tests", "tests.*")),
     package_data=extra_files,
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     install_requires=[
         "WrightTools>=3.2.5",
         "numpy",
@@ -43,7 +42,7 @@ setup(
     },
     version=version,
     description="Tools for tuning optical parametric amplifiers and multidimensional spectrometers.",
-    long_description=read("README.rst"),
+    long_description=read("README.md"),
     author="Blaise Thompson",
     author_email="blaise@untzag.com",
     license="MIT",
@@ -55,10 +54,10 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering",
     ],
 )
