@@ -55,12 +55,13 @@ class DiscreteTune:
         if ind_units is not None and self._ind_units is not None:
             ind_value = wt.units.convert(ind_value, ind_units, self._ind_units)
         if isinstance(ind_value, np.ndarray):
-            out = np.full(ind_value.shape, dtype=str, default_value=self.default)
-            for key, (min, max) in self.ranges.items():
-                out[(out >= min) & (out <= max)] = key
+            out = np.full(ind_value.shape, self.default,
+                dtype=f"U{max([len(s) for s in self.ranges.keys()])}")
+            for key, (imin, imax) in self.ranges.items():
+                out[(ind_value >= imin) & (ind_value <= imax)] = key
             return out
         else:
-            for key, (min, max) in self.ranges.items():
+            for key, (imin, imax) in self.ranges.items():
                 if min <= ind_value <= max:
                     return key
             return self.default
