@@ -65,7 +65,7 @@ class DiscreteTune:
             return out
         else:
             for key, (imin, imax) in self.ranges.items():
-                if min <= ind_value <= max:
+                if imin <= ind_value <= imax:
                     return key
             return self.default
 
