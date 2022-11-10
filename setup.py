@@ -43,6 +43,7 @@ setup(
     version=version,
     description="Tools for tuning optical parametric amplifiers and multidimensional spectrometers.",
     long_description=read("README.md"),
+    long_description_content_type='text/markdown',
     author="Blaise Thompson",
     author_email="blaise@untzag.com",
     license="MIT",
