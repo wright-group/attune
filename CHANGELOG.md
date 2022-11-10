@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.4.5]
+
 ### Fixed
 - Fixed bug where `DiscreteTune`s returned only one value when called (regardless of input shape) 
 
@@ -53,7 +55,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - initial release after a major rewrite
 
-[Unreleased]: https://github.com/wright-group/attune/compare/0.4.4...master
+[Unreleased]: https://github.com/wright-group/attune/compare/0.4.5...master
+[0.4.5]: https://github.com/wright-group/attune/compare/0.4.4...0.4.5
 [0.4.4]: https://github.com/wright-group/attune/compare/0.4.3...0.4.4
 [0.4.3]: https://github.com/wright-group/attune/compare/0.4.2...0.4.3
 [0.4.2]: https://github.com/wright-group/attune/compare/0.4.1...0.4.2
