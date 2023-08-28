@@ -1,7 +1,7 @@
 __all__ = ["map_ind_points", "map_ind_limits"]
 
 import copy
-
+import WrightTools as wt
 import numpy as np
 
 from ._transition import Transition

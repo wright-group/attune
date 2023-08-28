@@ -1,7 +1,7 @@
 __all__ = ["offset_by", "offset_to"]
 
 import copy
-
+import WrightTools as wt
 from ._transition import Transition
 from ._tune import Tune
 

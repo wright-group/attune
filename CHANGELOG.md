@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- Inserted WrightTools import into _map and _offset
+
 ## [0.4.5]
 
 ### Fixed
