@@ -25,6 +25,7 @@ def from_topas3(filepaths):
         arrangements.update(_read_file(f))
     return Instrument(arrangements)
 
+
 def _read_file(filepath):
     with open(str(filepath), "rt") as f:
         head = f.readline().strip()
@@ -55,12 +56,10 @@ def _read_file(filepath):
             offsets = np.fromstring(f.readline(), dtype=float, sep="\t")  # noqa
             npts = int(f.readline())
             strings = [f.readline().strip() for _ in range(npts)]
-            arr = np.genfromtxt(
-                strings, delimiter="\t", max_rows=npts, filling_values=np.nan
-            ).T
+            arr = np.genfromtxt(strings, delimiter="\t", max_rows=npts, filling_values=np.nan).T
 
             tunes = {}
-            
+
             source_interaction = interaction_string.split("-")
 
             # Compute the source interaction string, flipping the first entry that is
@@ -74,7 +73,6 @@ def _read_file(filepath):
             if any(v != "NON" for v in source_interaction):
                 source_tune = Tune(arr[1], arr[0], units="nm")
                 tunes["-".join(source_interaction)] = source_tune
-
 
             for i in range(n_motors):
                 name = str(motor_indexes[i])
