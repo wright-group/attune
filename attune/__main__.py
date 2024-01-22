@@ -15,24 +15,31 @@ def main():
 @click.option("--arrangement", "-a", default=None)
 def inspect(instrument, arrangement=None, tune=None):
     instr = _store.load(instrument)
-    if arrangement is None:
-        pass
-    print("inspecting")
-    pass
+    print(instr.__repr__())
 
 
 @main.command(name="catalog")
 def catalog():
     for ins in _store.catalog():
-        print(_store.load(ins).__repr__())
+        print(ins)
 
 
 @main.command(name="history")
 @click.argument("instrument", nargs=1)
 @click.option("-n", default=5)
-def history(instr, n=5):
+def history(instrument, n=5):
+    title_string = f"{instrument}, from latest to earliest"
+    print(title_string + "-"*(80-len(instrument)))
+    current = _store.load(instrument)
     for i in range(n):
-        print(n)
+        try:            
+            print("{0}{1} at {2}".format(
+                current.transition.type,
+                " " * (20-len(current.transition.type)),
+                str(current.load)))
+            current = _store.undo(current)
+        except ValueError:  # reached end of history
+            break
 
 
 if __name__ == "__main__":
