@@ -15,7 +15,7 @@ def main():
 @click.option("--arrangement", "-a", default=None)
 def inspect(instrument, arrangement=None, tune=None):
     instr = _store.load(instrument)
-    print(instr.__repr__())
+    instr.print_tree()
 
 
 @main.command(name="catalog")
@@ -35,7 +35,7 @@ def history(instrument, n=5):
         try:            
             print("{0}{1} at {2}".format(
                 current.transition.type,
-                " " * (20-len(current.transition.type)),
+                "." * (20-len(current.transition.type)),
                 str(current.load)))
             current = _store.undo(current)
         except ValueError:  # reached end of history

@@ -35,6 +35,22 @@ class Tune:
         self._dep_units = dep_units
         self._interp = scipy.interpolate.interp1d(independent, dependent, fill_value="extrapolate")
 
+    @property
+    def _leaf(self):
+        out = ""
+        if self.independent.size == 1:
+            out += f" = {self.independent[0]}"
+        if self.dep_units is not None:
+            out += " ({0})".format(self.dep_units)
+        if self.independent.size != 1:
+            out += " {0} points, {1}monotonic".format(self.independent.size, "" if self.monotonic else "non-")
+        return out
+
+    @property
+    def monotonic(self):
+        checks = np.gradient(self.dependent) < 0
+        return checks.all() or (not checks.any())
+
     def __repr__(self):
         if self.dep_units is None:
             return f"Tune({repr(self.independent)}, {repr(self.dependent)})"
