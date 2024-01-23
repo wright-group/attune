@@ -40,8 +40,8 @@ class Tune:
         out = " {0} points, ".format(self.independent.size)
         functional_notation = "[{0}, {1}] {2} -> [{3}, {4}] {5}"
         out += functional_notation.format(
-            self.independent.min(),
-            self.independent.max(),
+            self.ind_min,
+            self.ind_max,
             self.ind_units,
             self.dependent.min(),
             self.dependent.max(),
@@ -49,11 +49,6 @@ class Tune:
         )
         out += ", {0}monotonic".format("" if self.monotonic else "non-")
         return out
-
-    @property
-    def monotonic(self):
-        checks = np.gradient(self.dependent) < 0
-        return checks.all() or (not checks.any())
 
     def __repr__(self):
         if self.dep_units is None:
@@ -116,3 +111,10 @@ class Tune:
     def dep_units(self):
         """The units of the dependent (output) values."""
         return self._dep_units
+
+    @property
+    def monotonic(self) -> bool:
+        """Whether or not the dependent variable moves monotonically."""
+        checks = np.gradient(self.dependent) <= 0
+        return checks.all() or (not checks.any())
+

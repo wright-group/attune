@@ -10,22 +10,24 @@ def main():
     pass
 
 
-@main.command(name="inspect")
+@main.command(name="inspect", help="show the structure of an instrument")
 @click.argument("instrument", nargs=1)
 def inspect(instrument, arrangement=None, tune=None):
     instr = store.load(instrument)
     instr.print_tree()
 
 
-@main.command(name="catalog")
+@main.command(name="catalog", help="lists the instrument names in the catalog")
 def catalog():
     for ins in store.catalog():
         print(ins)
 
 
-@main.command(name="history")
+@main.command(name="history", help="show the change history of an instrument")
 @click.argument("instrument", nargs=1)
-@click.option("-n", default=10)
+@click.option("-n", default=10, help="number of change records to list")
+# TODO: add a --date option (perhaps just date) to anchor the history list to
+# TODO: add a --direction option to search forward or backward from date
 def history(instrument, n=10):
     title_string = f"{instrument}, from latest to earliest"
     print(title_string + "-" * (80 - len(instrument)))
