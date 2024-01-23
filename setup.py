@@ -61,4 +61,7 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering",
     ],
+    entry_points = {
+        "console_scripts": ['attune = attune.__main__:main']
+    }
 )

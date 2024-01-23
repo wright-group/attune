@@ -1,7 +1,7 @@
 import click
 
-from attune.__version__ import __version__
-import attune._store as _store
+from .attune.__version__ import __version__
+from .attune import _store
 
 
 @click.group()
