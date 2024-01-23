@@ -35,6 +35,7 @@ setup(
         "appdirs",
         "python-dateutil",
         "maya",
+        "click",
     ],
     extras_require={
         "dev": ["black", "pre-commit", "pytest", "pytest-cov"],
