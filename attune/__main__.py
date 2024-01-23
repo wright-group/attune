@@ -29,15 +29,18 @@ def catalog():
 @click.option("-n", default=10)
 def history(instrument, n=10):
     title_string = f"{instrument}, from latest to earliest"
-    print(title_string + "-"*(80-len(instrument)))
+    print(title_string + "-" * (80 - len(instrument)))
     current = _store.load(instrument)
     for i in range(n):
-        try:            
-            print("{0:4} {1}{2} at {3}".format(
-                -i,
-                current.transition.type,
-                "." * (20-len(current.transition.type)),
-                str(current.load)))
+        try:
+            print(
+                "{0:4} {1}{2} at {3}".format(
+                    -i,
+                    current.transition.type,
+                    "." * (20 - len(current.transition.type)),
+                    str(current.load),
+                )
+            )
             current = _store.undo(current)
         except ValueError:  # reached end of history
             print("<end of history>")

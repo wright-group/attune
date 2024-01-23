@@ -43,7 +43,9 @@ class Tune:
         if self.dep_units is not None:
             out += " ({0})".format(self.dep_units)
         if self.independent.size != 1:
-            out += " {0} points, {1}monotonic".format(self.independent.size, "" if self.monotonic else "non-")
+            out += " {0} points, {1}monotonic".format(
+                self.independent.size, "" if self.monotonic else "non-"
+            )
         return out
 
     @property
