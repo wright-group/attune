@@ -117,4 +117,3 @@ class Tune:
         """Whether or not the dependent variable moves monotonically."""
         checks = np.gradient(self.dependent) <= 0
         return checks.all() or (not checks.any())
-
