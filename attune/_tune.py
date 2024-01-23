@@ -40,8 +40,12 @@ class Tune:
         out = " {0} points, ".format(self.independent.size)
         functional_notation = "[{0}, {1}] {2} -> [{3}, {4}] {5}"
         out += functional_notation.format(
-            self.independent.min(), self.independent.max(), self.ind_units,
-            self.dependent.min(), self.dependent.max(), self.dep_units
+            self.independent.min(),
+            self.independent.max(),
+            self.ind_units,
+            self.dependent.min(),
+            self.dependent.max(),
+            self.dep_units,
         )
         out += ", {0}monotonic".format("" if self.monotonic else "non-")
         return out
