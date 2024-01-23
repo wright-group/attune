@@ -21,7 +21,7 @@ __all__ = ["__version__", "__branch__"]
 
 
 # read from VERSION file
-with open(here.parent / "VERSION") as f:
+with open(here / "VERSION") as f:
     __version__ = f.read().strip()
 
 

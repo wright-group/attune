@@ -37,15 +37,13 @@ class Tune:
 
     @property
     def _leaf(self):
-        out = ""
-        if self.independent.size == 1:
-            out += f" = {self.independent[0]}"
-        if self.dep_units is not None:
-            out += " ({0})".format(self.dep_units)
-        if self.independent.size != 1:
-            out += " {0} points, {1}monotonic".format(
-                self.independent.size, "" if self.monotonic else "non-"
-            )
+        out = " {0} points, ".format(self.independent.size)
+        functional_notation = "[{0}, {1}] {2} -> [{3}, {4}] {5}"
+        out += functional_notation.format(
+            self.independent.min(), self.independent.max(), self.ind_units,
+            self.dependent.min(), self.dependent.max(), self.dep_units
+        )
+        out += ", {0}monotonic".format("" if self.monotonic else "non-")
         return out
 
     @property

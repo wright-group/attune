@@ -1,7 +1,7 @@
 import click
 
-from .attune.__version__ import __version__
-from .attune import _store
+from .__version__ import __version__
+from . import _store as store
 
 
 @click.group()
@@ -12,15 +12,14 @@ def main():
 
 @main.command(name="inspect")
 @click.argument("instrument", nargs=1)
-@click.option("--arrangement", "-a", default=None)
 def inspect(instrument, arrangement=None, tune=None):
-    instr = _store.load(instrument)
+    instr = store.load(instrument)
     instr.print_tree()
 
 
 @main.command(name="catalog")
 def catalog():
-    for ins in _store.catalog():
+    for ins in store.catalog():
         print(ins)
 
 
@@ -30,7 +29,7 @@ def catalog():
 def history(instrument, n=10):
     title_string = f"{instrument}, from latest to earliest"
     print(title_string + "-" * (80 - len(instrument)))
-    current = _store.load(instrument)
+    current = store.load(instrument)
     for i in range(n):
         try:
             print(
@@ -41,7 +40,7 @@ def history(instrument, n=10):
                     str(current.load),
                 )
             )
-            current = _store.undo(current)
+            current = store.undo(current)
         except ValueError:  # reached end of history
             print("<end of history>")
             break
