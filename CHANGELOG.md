@@ -8,7 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - command line interface for simple queries of instruments
 - tunes now have a `monotonic` property
-- instruments now have a `print_tree` method
+- `Instrument.print_tree`
+- `Instrument.print_history`
 
 ### Fixed
 - Inserted WrightTools import into _map and _offset
