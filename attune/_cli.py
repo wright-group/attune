@@ -36,6 +36,7 @@ def catalog():
     help="when specified, history will search forwards in time",
 )
 def history(instrument, n=10, start="now", forward=False):
+    store.print_history(instrument, n, start, reverse=not forward)
     try:
         root = store.load(instrument, start)
     except ValueError as e:

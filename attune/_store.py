@@ -1,6 +1,6 @@
 """Tools to interact with the attune store."""
 
-__all__ = ["catalog", "load", "restore", "store", "undo"]
+__all__ = ["catalog", "load", "restore", "store", "undo", "print_history"]
 
 
 from datetime import datetime, timedelta, timezone
@@ -135,6 +135,43 @@ def restore(name, time, reverse=True):
         TransitionType.restore, metadata={"time": instr.load.isoformat()}
     )
     _store_instr(instr)
+
+
+def print_history(instrument, n=10, start="now", reverse: bool = True):
+    """retrieve the store's history of an instrument"""
+    try:
+        current = load(instrument, start)
+    except ValueError as e:
+        print(e)
+        return
+
+    # TODO: iterator will simplify
+    # TODO: worker function that returns list (better to keep structure)
+    #   formatting can be done outside of this
+
+    title_string = f"{current.name}, going {'backwards' if reverse else 'forwards'}"
+    print(title_string + "-" * (80 - len(current.name)))
+    direction = -1 if reverse else 1
+    for i in range(n):
+        if current.transition is None:
+            transition_type = None
+        else:
+            transition_type = current.transition.type
+        print(
+            "{0:4} {1}{2} at {3}".format(
+                direction * i,
+                transition_type,
+                "." * (20 - len(transition_type)),
+                str(current.load),
+            )
+        )
+        new_time = current.load + direction * timedelta(milliseconds=1)
+
+        try:
+            current = load(current.name, new_time, reverse)
+        except ValueError:  # reached end of history
+            print("<end of history>")
+            break
 
 
 def store(instrument, warn=True):
