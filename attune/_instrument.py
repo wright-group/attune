@@ -59,9 +59,8 @@ class Instrument(object):
             self._transition = transition
         self._load: Optional[float] = load
 
-    def print_history(self, n:int=10, reverse:bool=True):
-        """retrieve history of the instrument
-        """
+    def print_history(self, n: int = 10, reverse: bool = True):
+        """retrieve history of the instrument"""
         # TODO: iterator will simplify
         # TODO: worker function that returns list (better to keep structure)
         #   formatting can be done outside of this
@@ -84,6 +83,7 @@ class Instrument(object):
             )
             new_time = current.load + direction * timedelta(milliseconds=1)
             from ._store import load
+
             try:
                 current = load(current.name, new_time, reverse)
             except ValueError:  # reached end of history

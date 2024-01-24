@@ -33,7 +33,7 @@ def catalog():
     is_flag=True,
     show_default=True,
     default=False,
-    help="when specified, history will search forwards in time"
+    help="when specified, history will search forwards in time",
 )
 def history(instrument, n=10, start="now", forward=False):
     try:
@@ -42,6 +42,7 @@ def history(instrument, n=10, start="now", forward=False):
         print(e)
         return
     root.print_history(n, not forward)
+
 
 if __name__ == "__main__":
     main()
