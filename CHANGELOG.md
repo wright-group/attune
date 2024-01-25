@@ -13,6 +13,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - `Instrument.print_tree`
 - `print_history` function
 
+### Changed
+- maya is no longer a dependency
+
 ### Fixed
 - Inserted WrightTools import into _map and _offset
 - Tune equality handles tunes of unequal size
