@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - command line interface for simple queries of instruments
 - tunes now have a `monotonic` property
 - `Instrument.print_tree`
-- `Instrument.print_history`
+- `print_history` function
 
 ### Fixed
 - Inserted WrightTools import into _map and _offset
