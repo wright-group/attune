@@ -159,7 +159,25 @@ class WalkHistory:
 
 
 def print_history(name, n=10, start="now", reverse: bool = True):
-    """print the store's history of an instrument"""
+    """
+    Print the store's history of an instrument
+    
+    Parameters
+    ----------
+    name: str
+        Name of the instrument.  The instrument name must be in the catalog
+    n: int
+        Number of change records to look up.  Default is 10.
+    start: datetime.Datetime or str
+        Date and time from which the records begin listing.  Default is "now".
+    reverse: bool
+        When false, history will search records forwards in time.  
+
+    Returns
+    -------
+    history: str
+        a neatly formatted, multiline string overviewing the history of instrument changes
+    """
     title_string = f"{name}, going {'backwards' if reverse else 'forwards'}"
     print(title_string + "-" * (80 - len(name)))
     for i, inst in enumerate(WalkHistory(name, start, reverse)):
