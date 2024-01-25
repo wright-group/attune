@@ -139,6 +139,7 @@ def restore(name, time, reverse=True):
 
 class WalkHistory:
     """iterator for a instrument's history"""
+
     def __init__(self, name, start="now", reverse=True):
         self.name = name
         self.time = start
@@ -147,7 +148,7 @@ class WalkHistory:
 
     def __iter__(self):
         return self
-    
+
     def __next__(self):
         try:
             self.current = load(self.name, self.time, self.reverse)
