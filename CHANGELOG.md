@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- command line interface for simple queries of instruments
+- tunes now have a `monotonic` property
+- `Instrument.print_tree`
+- `print_history` function
+
 ### Fixed
 - Inserted WrightTools import into _map and _offset
 

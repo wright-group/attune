@@ -35,6 +35,7 @@ setup(
         "appdirs",
         "python-dateutil",
         "maya",
+        "click",
     ],
     extras_require={
         "dev": ["black", "pre-commit", "pytest", "pytest-cov"],
@@ -61,4 +62,5 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering",
     ],
+    entry_points={"console_scripts": ["attune = attune._cli:main"]},
 )

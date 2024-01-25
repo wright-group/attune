@@ -39,6 +39,15 @@ class Arrangement:
         }
         self._ind_units: str = "nm"
 
+    def _print_tunes(self, prefix):
+        for i, (name, tune) in enumerate(self.tunes.items()):
+            if i + 1 == len(self.tunes):
+                b = "└── "
+            else:
+                b = "├── "
+            s = prefix + b + "{0}: {1}".format(name, tune._leaf)
+            print(s)
+
     def __repr__(self):
         return f"Arrangement({repr(self.name)}, {repr(self.tunes)})"
 
