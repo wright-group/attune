@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 - Inserted WrightTools import into _map and _offset
+- Tune equality handles tunes of unequal size
 
 ## [0.4.5]
 
