@@ -33,8 +33,8 @@ setup(
         "scipy",
         "matplotlib",
         "appdirs",
+        "dateparser",
         "python-dateutil",
-        "maya",
         "click",
     ],
     extras_require={
