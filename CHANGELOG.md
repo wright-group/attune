@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.5.0]
+
 ### Added
 - command line interface for simple queries of instruments
 - tunes now have a `monotonic` property
@@ -68,7 +70,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - initial release after a major rewrite
 
-[Unreleased]: https://github.com/wright-group/attune/compare/0.4.5...master
+[Unreleased]: https://github.com/wright-group/attune/compare/0.5.0...master
+[0.5.0]: https://github.com/wright-group/attune/compare/0.4.5...0.5.0
 [0.4.5]: https://github.com/wright-group/attune/compare/0.4.4...0.4.5
 [0.4.4]: https://github.com/wright-group/attune/compare/0.4.3...0.4.4
 [0.4.3]: https://github.com/wright-group/attune/compare/0.4.2...0.4.3
