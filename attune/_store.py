@@ -4,6 +4,7 @@ __all__ = ["catalog", "load", "restore", "store", "undo", "print_history", "Walk
 
 
 from datetime import datetime, timedelta, timezone
+from dateparser import parse
 import pathlib
 import os
 import warnings
@@ -49,9 +50,17 @@ def load(name: str, time=None, reverse: bool = True):
         If given as False, looks forward in time from the given timestamp.
     """
     if isinstance(time, str):
-        import maya
-
-        time = maya.when(time)
+        time = parse(
+            time,
+            settings=dict(
+                TIMEZONE="UTC",
+                PREFER_DATES_FROM="current_period",
+                TO_TIMEZONE="UTC",
+                RETURN_AS_TIMEZONE_AWARE=True,
+            )
+        )
+        if time is None:
+            raise ValueError("invalid datetime")
     if time is None:
         time = datetime.now(timezone.utc)
     if hasattr(time, "datetime"):

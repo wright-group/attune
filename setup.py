@@ -34,7 +34,6 @@ setup(
         "matplotlib",
         "appdirs",
         "python-dateutil",
-        "maya",
         "click",
     ],
     extras_require={
