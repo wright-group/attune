@@ -37,12 +37,6 @@ def catalog():
 )
 def history(instrument, n=10, start="now", forward=False):
     store.print_history(instrument, n, start, reverse=not forward)
-    try:
-        root = store.load(instrument, start)
-    except ValueError as e:
-        print(e)
-        return
-    root.print_history(n, not forward)
 
 
 if __name__ == "__main__":

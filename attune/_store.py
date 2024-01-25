@@ -1,6 +1,6 @@
 """Tools to interact with the attune store."""
 
-__all__ = ["catalog", "load", "restore", "store", "undo", "print_history"]
+__all__ = ["catalog", "load", "restore", "store", "undo", "print_history", "WalkHistory"]
 
 
 from datetime import datetime, timedelta, timezone
@@ -137,41 +137,43 @@ def restore(name, time, reverse=True):
     _store_instr(instr)
 
 
-def print_history(instrument, n=10, start="now", reverse: bool = True):
-    """retrieve the store's history of an instrument"""
-    try:
-        current = load(instrument, start)
-    except ValueError as e:
-        print(e)
-        return
+class WalkHistory:
+    """iterator for a instrument's history"""
+    def __init__(self, name, start="now", reverse=True):
+        self.name = name
+        self.time = start
+        self.reverse = reverse
+        self.direction = -1 if reverse else 1
 
-    # TODO: iterator will simplify
-    # TODO: worker function that returns list (better to keep structure)
-    #   formatting can be done outside of this
+    def __iter__(self):
+        return self
+    
+    def __next__(self):
+        try:
+            self.current = load(self.name, self.time, self.reverse)
+        except ValueError:
+            raise StopIteration
+        self.time = self.current.load + self.direction * timedelta(milliseconds=1)
+        return self.current
 
-    title_string = f"{current.name}, going {'backwards' if reverse else 'forwards'}"
-    print(title_string + "-" * (80 - len(current.name)))
-    direction = -1 if reverse else 1
-    for i in range(n):
-        if current.transition is None:
-            transition_type = None
-        else:
-            transition_type = current.transition.type
+
+def print_history(name, n=10, start="now", reverse: bool = True):
+    """print the store's history of an instrument"""
+    title_string = f"{name}, going {'backwards' if reverse else 'forwards'}"
+    print(title_string + "-" * (80 - len(name)))
+    for i, inst in enumerate(WalkHistory(name, start, reverse)):
+        transition_type = None if inst.transition is None else inst.transition.type
         print(
-            "{0:4} {1}{2} at {3}".format(
-                direction * i,
+            "{0:6} {1}{2} at {3}".format(
+                -i if reverse else i,
                 transition_type,
                 "." * (20 - len(transition_type)),
-                str(current.load),
+                str(inst.load),
             )
         )
-        new_time = current.load + direction * timedelta(milliseconds=1)
-
-        try:
-            current = load(current.name, new_time, reverse)
-        except ValueError:  # reached end of history
-            print("<end of history>")
+        if i == n:
             break
+    print("<end of history>")
 
 
 def store(instrument, warn=True):
