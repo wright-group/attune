@@ -57,7 +57,7 @@ def load(name: str, time=None, reverse: bool = True):
                 PREFER_DATES_FROM="current_period",
                 TO_TIMEZONE="UTC",
                 RETURN_AS_TIMEZONE_AWARE=True,
-            )
+            ),
         )
         if time is None:
             raise ValueError("invalid datetime")
