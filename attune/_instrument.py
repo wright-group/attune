@@ -59,37 +59,6 @@ class Instrument(object):
             self._transition = transition
         self._load: Optional[float] = load
 
-    def print_history(self, n: int = 10, reverse: bool = True):
-        """retrieve history of the instrument"""
-        # TODO: iterator will simplify
-        # TODO: worker function that returns list (better to keep structure)
-        #   formatting can be done outside of this
-        title_string = f"{self.name}, going {'backwards' if reverse else 'forwards'}"
-        print(title_string + "-" * (80 - len(self.name)))
-        direction = -1 if reverse else 1
-        current = self
-        for i in range(n):
-            if current.transition is None:
-                transition_type = None
-            else:
-                transition_type = current.transition.type
-            print(
-                "{0:4} {1}{2} at {3}".format(
-                    direction * i,
-                    transition_type,
-                    "." * (20 - len(transition_type)),
-                    str(current.load),
-                )
-            )
-            new_time = current.load + direction * timedelta(milliseconds=1)
-            from ._store import load
-
-            try:
-                current = load(current.name, new_time, reverse)
-            except ValueError:  # reached end of history
-                print("<end of history>")
-                break
-
     def __repr__(self):
         ret = f"Instrument({repr(self.arrangements)}, {repr(self.setables)}"
         if self.name is not None:
