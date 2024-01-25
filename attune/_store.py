@@ -161,7 +161,7 @@ class WalkHistory:
 def print_history(name, n=10, start="now", reverse: bool = True):
     """
     Print the store's history of an instrument
-    
+
     Parameters
     ----------
     name: str
@@ -171,7 +171,7 @@ def print_history(name, n=10, start="now", reverse: bool = True):
     start: datetime.Datetime or str
         Date and time from which the records begin listing.  Default is "now".
     reverse: bool
-        When false, history will search records forwards in time.  
+        When false, history will search records forwards in time.
 
     Returns
     -------
