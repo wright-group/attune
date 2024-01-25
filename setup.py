@@ -33,6 +33,7 @@ setup(
         "scipy",
         "matplotlib",
         "appdirs",
+        "dateparser",
         "python-dateutil",
         "click",
     ],
