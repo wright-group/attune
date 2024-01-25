@@ -67,7 +67,7 @@ class Tune:
         return len(self.independent)
 
     def __eq__(self, other):
-        if self.independent.size != other.independant.size:
+        if self.independent.size != other.independent.size:
             return False
         if not np.allclose(self.independent, other.independent):
             return False
