@@ -1,16 +1,16 @@
 """Define Attune version."""
 
-
 # --- import --------------------------------------------------------------------------------------
 
 
+import pathlib
 import os
 
 
 # ---- define -------------------------------------------------------------------------------------
 
 
-here = os.path.abspath(os.path.dirname(__file__))
+here = pathlib.Path(__file__).resolve().parent
 
 
 __all__ = ["__version__", "__branch__"]
@@ -20,12 +20,12 @@ __all__ = ["__version__", "__branch__"]
 
 
 # read from VERSION file
-with open(os.path.join(here, "VERSION")) as f:
+with open(here / "VERSION") as f:
     __version__ = f.read().strip()
 
 
 # add git branch, if appropriate
-p = os.path.join(os.path.dirname(here), ".git", "HEAD")
+p = here.parent / ".git" / "HEAD"
 if os.path.isfile(p):
     with open(p) as f:
         __branch__ = f.readline().rstrip().split(r"/")[-1]

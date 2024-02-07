@@ -1,4 +1,5 @@
 """Tuning tools."""
+
 # flake8: noqa
 
 from .__version__ import *
@@ -19,3 +20,5 @@ from ._tune import *
 from ._tune_test import *
 from ._update_merge import *
 from .io import *
+
+from . import _cli

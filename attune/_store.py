@@ -1,9 +1,10 @@
 """Tools to interact with the attune store."""
 
-__all__ = ["catalog", "load", "restore", "store", "undo"]
+__all__ = ["catalog", "load", "restore", "store", "undo", "print_history", "WalkHistory"]
 
 
 from datetime import datetime, timedelta, timezone
+from dateparser import parse
 import pathlib
 import os
 import warnings
@@ -49,9 +50,17 @@ def load(name: str, time=None, reverse: bool = True):
         If given as False, looks forward in time from the given timestamp.
     """
     if isinstance(time, str):
-        import maya
-
-        time = maya.when(time)
+        time = parse(
+            time,
+            settings=dict(
+                TIMEZONE="UTC",
+                PREFER_DATES_FROM="current_period",
+                TO_TIMEZONE="UTC",
+                RETURN_AS_TIMEZONE_AWARE=True,
+            ),
+        )
+        if time is None:
+            raise ValueError("invalid datetime")
     if time is None:
         time = datetime.now(timezone.utc)
     if hasattr(time, "datetime"):
@@ -135,6 +144,64 @@ def restore(name, time, reverse=True):
         TransitionType.restore, metadata={"time": instr.load.isoformat()}
     )
     _store_instr(instr)
+
+
+class WalkHistory:
+    """iterator for a instrument's history"""
+
+    def __init__(self, name, start="now", reverse=True):
+        self.name = name
+        self.time = start
+        self.reverse = reverse
+        self.direction = -1 if reverse else 1
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        try:
+            self.current = load(self.name, self.time, self.reverse)
+        except ValueError:
+            raise StopIteration
+        self.time = self.current.load + self.direction * timedelta(milliseconds=1)
+        return self.current
+
+
+def print_history(name, n=10, start="now", reverse: bool = True):
+    """
+    Print the store's history of an instrument
+
+    Parameters
+    ----------
+    name: str
+        Name of the instrument.  The instrument name must be in the catalog
+    n: int
+        Number of change records to look up.  Default is 10.
+    start: datetime.Datetime or str
+        Date and time from which the records begin listing.  Default is "now".
+    reverse: bool
+        When false, history will search records forwards in time.
+
+    Returns
+    -------
+    history: str
+        a neatly formatted, multiline string overviewing the history of instrument changes
+    """
+    title_string = f"{name}, going {'backwards' if reverse else 'forwards'}"
+    print(title_string + "-" * (80 - len(name)))
+    for i, inst in enumerate(WalkHistory(name, start, reverse)):
+        transition_type = None if inst.transition is None else inst.transition.type
+        print(
+            "{0:6} {1}{2} at {3}".format(
+                -i if reverse else i,
+                transition_type,
+                "." * (20 - len(transition_type)),
+                str(inst.load),
+            )
+        )
+        if i == n:
+            break
+    print("<end of history>")
 
 
 def store(instrument, warn=True):

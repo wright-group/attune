@@ -8,8 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - return of from_topas3 method from older versions of attune, for backcompat
 
+## [0.5.0]
+
+### Added
+- command line interface for simple queries of instruments
+- tunes now have a `monotonic` property
+- `Instrument.print_tree`
+- `print_history` function
+
+### Changed
+- maya is no longer a dependency
+
 ### Fixed
 - Inserted WrightTools import into _map and _offset
+- Tune equality handles tunes of unequal size
 
 ## [0.4.5]
 
@@ -61,7 +73,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - initial release after a major rewrite
 
-[Unreleased]: https://github.com/wright-group/attune/compare/0.4.5...master
+[Unreleased]: https://github.com/wright-group/attune/compare/0.5.0...master
+[0.5.0]: https://github.com/wright-group/attune/compare/0.4.5...0.5.0
 [0.4.5]: https://github.com/wright-group/attune/compare/0.4.4...0.4.5
 [0.4.4]: https://github.com/wright-group/attune/compare/0.4.3...0.4.4
 [0.4.3]: https://github.com/wright-group/attune/compare/0.4.2...0.4.3

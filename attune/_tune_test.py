@@ -1,6 +1,5 @@
 """Methods for processing OPA 800 tuning data."""
 
-
 import numpy as np
 
 import WrightTools as wt

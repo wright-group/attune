@@ -127,6 +127,23 @@ class Instrument(object):
         )
         return note
 
+    def print_tree(self):
+        """Print a ascii-formatted tree representation of the instrument contents."""
+        print("{0}".format(self.name))
+        self._print_arrangements("")
+
+    def _print_arrangements(self, prefix):
+        for i, (name, arrangement) in enumerate(self.arrangements.items()):
+            if i + 1 == len(self.arrangements):
+                b = "└── "
+                add_prefix = "    "
+            else:
+                b = "├── "
+                add_prefix = "│   "
+            s = prefix + b + "{0}".format(name)
+            print(s)
+            arrangement._print_tunes(prefix + add_prefix)
+
     def __getitem__(self, item):
         return self._arrangements[item]
 
