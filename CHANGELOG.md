@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- return of from_topas3 method from older versions of attune, for backcompat
+
 ### Fixed
 - Inserted WrightTools import into _map and _offset
 
