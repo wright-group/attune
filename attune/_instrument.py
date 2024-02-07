@@ -3,6 +3,7 @@ __all__ = ["Instrument"]
 
 from datetime import datetime as _datetime
 from typing import Dict, Optional, Union
+import matplotlib.pyplot as plt
 import json
 
 from ._arrangement import Arrangement
@@ -183,6 +184,12 @@ class Instrument(object):
     def load(self):
         """The POSIX timestamp for when this instrument was created, if it was stored."""
         return self._load
+
+    def plot(self, arrangement=None):
+        arrangements = self.arrangements if arrangement is None else arrangement
+        for ar in arrangements.values():
+            plt.figure()
+            ar.plot()
 
     def save(self, file):
         """Save the JSON representation into an open file."""
