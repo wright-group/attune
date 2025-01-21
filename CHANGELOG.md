@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.5.1]
+
 ### Added
 - return of from_topas3 method from older versions of attune, for backcompat
 
@@ -73,7 +75,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - initial release after a major rewrite
 
-[Unreleased]: https://github.com/wright-group/attune/compare/0.5.0...master
+[Unreleased]: https://github.com/wright-group/attune/compare/0.5.1...master
+[0.5.1]: https://github.com/wright-group/attune/compare/0.5.0...0.5.1
 [0.5.0]: https://github.com/wright-group/attune/compare/0.4.5...0.5.0
 [0.4.5]: https://github.com/wright-group/attune/compare/0.4.4...0.4.5
 [0.4.4]: https://github.com/wright-group/attune/compare/0.4.3...0.4.4
