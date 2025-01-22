@@ -28,7 +28,7 @@ setup(
     package_data=extra_files,
     python_requires=">=3.7",
     install_requires=[
-        "WrightTools>=3.2.5",
+        "WrightTools>=3.5.3",
         "numpy",
         "scipy",
         "matplotlib",
