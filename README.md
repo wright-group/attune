@@ -1,5 +1,9 @@
 # attune
 
+[![image](https://badge.fury.io/py/attune.svg)](https://badge.fury.io/py/attune)
+[![image](https://anaconda.org/conda-forge/attune/badges/version.svg)](https://anaconda.org/conda-forge/attune)
+
+[![image](https://readthedocs.org/projects/attune/badge/?version=stable)](http://attune.wright.tools/en/stable/?badge=stable)
 [![image](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 Tools for tuning optical parametric amplifiers and multidimensional spectrometers. 
