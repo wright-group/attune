@@ -4,6 +4,7 @@ __all__ = ["Arrangement"]
 from typing import Dict, Union
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from ._tune import Tune
 from ._discrete_tune import DiscreteTune
@@ -97,6 +98,20 @@ class Arrangement:
         out["name"] = self._name
         out["tunes"] = {k: v.as_dict() for k, v in self._tunes.items()}
         return out
+
+    def plot(self):
+        nplots = len(self.tunes)
+        axes = [plt.subplot(nplots, 1, i + 1) for i in range(nplots)]
+        for i, (name, ti) in enumerate(self.tunes.items()):
+            axes[i].scatter(ti.independent, ti.dependent)
+            axes[i].plot(ti.independent, ti.dependent)
+            axes[i].grid()
+            axes[i].set_ylabel(f"{name} ({ti.dep_units})")
+            # can I assume all independent vars are the same?
+            if i + 1 != nplots:
+                plt.xticks(visible=False)
+            else:
+                axes[i].set_xlabel(f"wavelength ({ti.ind_units})")
 
     @property
     def ind_max(self):
