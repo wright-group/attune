@@ -35,7 +35,7 @@ class DiscreteTune:
     def __repr__(self):
         return f"DiscreteTune({repr(self.ranges)}, {repr(self.default)})"
 
-    def __call__(self, ind_value, *, ind_units=None):
+    def __call__(self, ind_value, *, ind_units=None) -> np.ndarray:
         """Evaluate the DiscreteTune at specific independent value(s).
 
         Paramters
@@ -54,20 +54,15 @@ class DiscreteTune:
         """
         if ind_units is not None and self._ind_units is not None:
             ind_value = wt.units.convert(ind_value, ind_units, self._ind_units)
-        if isinstance(ind_value, np.ndarray):
-            out = np.full(
-                ind_value.shape,
-                self.default,
-                dtype=f"U{max([len(s) for s in self.ranges.keys()])}",
-            )
-            for key, (imin, imax) in self.ranges.items():
-                out[(ind_value >= imin) & (ind_value <= imax)] = key
-            return out
-        else:
-            for key, (imin, imax) in self.ranges.items():
-                if imin <= ind_value <= imax:
-                    return key
-            return self.default
+        ind_value = np.asarray(ind_value)
+        out = np.full(
+            ind_value.shape,
+            self.default,
+            dtype=f"U{max([len(s) for s in self.ranges.keys()])}",
+        )
+        for key, (imin, imax) in self.ranges.items():
+            out[(ind_value >= imin) & (ind_value <= imax)] = key
+        return out
 
     def __eq__(self, other):
         return self.ranges == other.ranges and self.default == other.default
