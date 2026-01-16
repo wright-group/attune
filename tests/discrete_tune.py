@@ -7,5 +7,5 @@ def test_discrete():
     x = [150, 20, 15, 100, 70, 5, 500]
     y = ["hi", "lo", "lo", "hi", "med", "def", "def"]
     assert dt(x) == np.asarray(y)
-    for xi, yi in zip(x,y):
+    for xi, yi in zip(x, y):
         assert dt(xi).item() == yi
