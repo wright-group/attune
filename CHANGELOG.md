@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## Changed
+- DiscreteTune.__call__ will now always return a numpy.ndarray object, regardless of argument type
+
+## Fixed
+- fixed bug where DiscreteTune did not respect order of identifiers when called with an array
+
 ## [0.5.1]
 
 ### Added

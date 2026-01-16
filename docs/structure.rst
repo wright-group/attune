@@ -78,15 +78,15 @@ You can, however, place higher priority (earlier) ranges inside of other ranges 
 .. code-block:: python
    
    dt = attune.DiscreteTune({"hi": (100, 200), "lo": (10, 20), "inner": (50, 60), "med": (20, 100)}, default="def")
-   dt(5) == "def"
-   dt(15) == "lo"
-   dt(20) == "lo"
-   dt(30) == "med"
-   dt(55) == "inner"
-   dt(70) == "med"
-   dt(100) == "hi"
-   dt(150) == "hi"
-   dt(500) == "def"
+   dt(5) == np.array("def")
+   dt(15) == np.array("lo")
+   dt(20) == np.array("lo")
+   dt(30) == np.array("med")
+   dt(55) == np.array("inner")
+   dt(70) == np.array("med")
+   dt(100) == np.array("hi")
+   dt(150) == np.array("hi")
+   dt(500) == np.array("def")
 
 
 

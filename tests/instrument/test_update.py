@@ -46,7 +46,7 @@ def test_update_existing():
     inst2 = attune.Instrument({"arr": arr_new}, {"tune": attune.Setable("tune")})
     inst_new = attune.update_merge(inst, inst2)
     assert math.isclose(inst_new(0.5)["tune"], 1.5)
-    assert inst_new(0.5)["discrete"] == "med"
+    assert inst_new(0.5)["discrete"] == inst(0.5)["discrete"]
     assert inst_new.transition.type == "update_merge"
 
 

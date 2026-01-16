@@ -55,7 +55,7 @@ class Tune:
             return f"Tune({repr(self.independent)}, {repr(self.dependent)})"
         return f"Tune({repr(self.independent)}, {repr(self.dependent)}, dep_units={repr(self.dep_units)})"
 
-    def __call__(self, ind_value, *, ind_units=None, dep_units=None):
+    def __call__(self, ind_value, *, ind_units=None, dep_units=None) -> np.ndarray:
         if ind_units is not None and self._ind_units is not None:
             ind_value = wt.units.convert(ind_value, ind_units, self._ind_units)
         ret = self._interp(ind_value)
