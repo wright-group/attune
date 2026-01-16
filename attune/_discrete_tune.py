@@ -60,7 +60,8 @@ class DiscreteTune:
             self.default,
             dtype=f"U{max([len(s) for s in self.ranges.keys()])}",
         )
-        for key, (imin, imax) in self.ranges.items():
+        # work in reverse so that the first valid entry persists
+        for key, (imin, imax) in reversed(self.ranges.items()):
             out[(ind_value >= imin) & (ind_value <= imax)] = key
         return out
 
