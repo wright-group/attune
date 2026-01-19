@@ -3,7 +3,6 @@ return__all__ = ["Transition", "TransitionType"]
 from enum import Enum
 from typing import Any, Optional, Dict, TYPE_CHECKING
 
-
 if TYPE_CHECKING:
     import WrightTools as wt
 
