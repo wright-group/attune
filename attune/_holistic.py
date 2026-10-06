@@ -11,7 +11,6 @@ from ._transition import Transition
 from ._plot import plot_holistic
 from ._common import save
 
-
 __all__ = ["holistic"]
 
 

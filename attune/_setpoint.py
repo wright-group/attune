@@ -11,7 +11,6 @@ from ._transition import Transition
 from ._plot import plot_setpoint
 from ._common import save
 
-
 # --- processing methods --------------------------------------------------------------------------
 
 __all__ = ["setpoint"]
